@@ -142,6 +142,7 @@
                 let texture = Laya.loader.getRes(this.imageUrl);
                 let cube = this.mScene.getChildByName("Cube");
                 let material = cube.meshRenderer.material;
+                material.albedoTexture = texture;
             }));
         }
         checkTexture() {

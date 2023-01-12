@@ -77,7 +77,7 @@ export default class GameUI extends Laya.Scene {
             let cube = this.mScene.getChildByName("Cube") as MeshSprite3D
             let material = cube.meshRenderer.material as PBRMaterial
 
-            // material.albedoTexture = texture
+            material.albedoTexture = texture
         }))
     }
 
