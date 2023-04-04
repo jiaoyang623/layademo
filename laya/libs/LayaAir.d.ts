@@ -129,8 +129,8 @@
 
 		/**
 		 * 是否开启视锥裁剪调试。
-		 * 如果开启八叉树裁剪,使用红色绘制高层次八叉树节点包围盒,使用蓝色绘制低层次八叉节点包围盒,精灵包围盒和八叉树节点包围盒颜色一致,但Alpha为非透明。如果视锥完全包含八叉树节点,八叉树节点包围盒和精灵包围盒变为蓝色,同样精灵包围盒的Alpha为非透明。
-		 * 如果不开启八叉树裁剪,使用绿色像素线绘制精灵包围盒。
+如果开启八叉树裁剪,使用红色绘制高层次八叉树节点包围盒,使用蓝色绘制低层次八叉节点包围盒,精灵包围盒和八叉树节点包围盒颜色一致,但Alpha为非透明。如果视锥完全包含八叉树节点,八叉树节点包围盒和精灵包围盒变为蓝色,同样精灵包围盒的Alpha为非透明。
+如果不开启八叉树裁剪,使用绿色像素线绘制精灵包围盒。
 		 */
 		debugFrustumCulling:boolean;
 
@@ -149,41 +149,6 @@
 		 */
 		get defaultPhysicsMemory():number;
 		set defaultPhysicsMemory(value:number);
-
-		/**
-		 * 设置分辨率大小（并不是实际渲染分辨率）
-		 * @param width 
-		 * @param height 
-		 */
-		setResSize(width:number,height:number):void;
-
-		/**
-		 * 分辨率宽
-		 */
-		get pixResolWidth():number;
-
-		/**
-		 * 设置分辨率宽
-		 */
-		get pixResolHeight():number;
-
-		/**
-		 * 分辨率倍率
-		 */
-		get pixelResol():number;
-		set pixelResol(ratio:number);
-
-		/**
-		 * 分辨率倍率
-		 */
-		set pixelRatio(ratio:number);
-		get pixelRatio():number;
-
-		/**
-		 * 自定义渲染像素
-		 */
-		set customPixel(value:boolean);
-		get customPixel():boolean;
 
 		/**
 		 * 最大光源数量。
@@ -218,7 +183,7 @@
 
 	/**
 	 * <code>Laya</code> 是全局对象的引用入口集。
-	 * Laya类引用了一些常用的全局对象，比如Laya.stage：舞台，Laya.timer：时间管理器，Laya.loader：加载管理器，使用时注意大小写。
+Laya类引用了一些常用的全局对象，比如Laya.stage：舞台，Laya.timer：时间管理器，Laya.loader：加载管理器，使用时注意大小写。
 	 */
 	declare class Laya  {
 
@@ -298,7 +263,7 @@
 
 		/**
 		 * 表示是否捕获全局错误并弹出提示。默认为false。
-		 * 适用于移动设备等不方便调试的时候，设置为true后，如有未知错误，可以弹窗抛出详细错误堆栈。
+适用于移动设备等不方便调试的时候，设置为true后，如有未知错误，可以弹窗抛出详细错误堆栈。
 		 */
 		static alertGlobalError(value:boolean):void;
 
@@ -442,6 +407,50 @@
 		static closeDialogOnSide:boolean;
 	}
 declare module Laya {
+	class ImageCacheHelper  {
+		static instance:ImageCacheHelper;
+		static useBlobCache:boolean;
+		private blobMap:any;
+		private base64Map:any;
+		private imageMap:any;
+		static createBlob(data:ArrayBuffer):string;
+		static destroyBlob(blobUrl:string):void;
+		getCache(url:string):string;
+		setCache(url:string,fileData:ArrayBuffer):void;
+		getImageBlobCache(url:string):string;
+		getImageBeanCache(url:string):ImageBean;
+		getImageBase64Cache(url:string):string;
+		private cacheImageBlob:any;
+		private arrayBufferToBase64:any;
+		private cacheImageBase64:any;
+	}
+	class ImageBean  {
+		image:any;
+		onload:Function;
+		onerror:Function;
+		private requestLoad:any;
+		private isLoaded:any;
+		private isError:any;
+		private blobUrl:any;
+
+		constructor(blobUrl:string);
+		load():void;
+	}
+
+	/**
+	 * @private 静态常量集合
+	 */
+	class Const  {
+		static NOT_ACTIVE:number;
+		static ACTIVE_INHIERARCHY:number;
+		static AWAKED:number;
+		static NOT_READY:number;
+		static DISPLAY:number;
+		static HAS_ZORDER:number;
+		static HAS_MOUSE:number;
+		static DISPLAYED_INSTAGE:number;
+		static DRAWCALL_OPTIMIZE:number;
+	}
 
 	/**
 	 * 开始播放时调度。
@@ -642,7 +651,7 @@ declare module Laya {
 
 		/**
 		 * 停止播放当前动画
-		 * 如果不是立即停止就等待动画播放完成后再停止
+如果不是立即停止就等待动画播放完成后再停止
 		 * @param immediate 是否立即停止
 		 */
 		stop(immediate?:boolean):void;
@@ -817,6 +826,62 @@ declare module Laya {
 		 * 获取原始数据
 		 */
 		getOriginalDataUnfixedRate(aniIndex:number,originalData:Float32Array,playCurTime:number):void;
+	}
+
+	/**
+	 * 动画
+	 */
+	class GraphicsAni extends Graphics  {
+
+		/**
+		 * @private 画自定义蒙皮动画
+		 * @param skin 
+		 */
+		drawSkin(skinA:SkinMeshForGraphic,alpha:number):void;
+		private static _caches:any;
+		static create():GraphicsAni;
+
+		/**
+		 * 回收清理
+		 * @param graphics 
+		 */
+		static recycle(graphics:GraphicsAni):void;
+	}
+
+	/**
+	 * 关键帧
+	 */
+	class KeyFramesContent  {
+
+		/**
+		 * 开始时间
+		 */
+		startTime:number;
+
+		/**
+		 * 持续时间
+		 */
+		duration:number;
+
+		/**
+		 * 私有插值方式
+		 */
+		interpolationData:any[];
+
+		/**
+		 * 数据
+		 */
+		data:Float32Array;
+
+		/**
+		 * 数据变化量
+		 */
+		dData:Float32Array;
+
+		/**
+		 * 下一次的数据
+		 */
+		nextData:Float32Array;
 	}
 
 	/**
@@ -1000,62 +1065,6 @@ declare module Laya {
 		 * @return 
 		 */
 		copy():BoneSlot;
-	}
-
-	/**
-	 */
-	class MeshData  {
-
-		/**
-		 * 纹理
-		 */
-		texture:Texture;
-
-		/**
-		 * uv数据
-		 */
-		uvs:Float32Array;
-
-		/**
-		 * 顶点数据
-		 */
-		vertices:Float32Array;
-
-		/**
-		 * 顶点索引
-		 */
-		indexes:Uint16Array;
-
-		/**
-		 * uv变换矩阵
-		 */
-		uvTransform:Matrix;
-
-		/**
-		 * 是否有uv变化矩阵
-		 */
-		useUvTransform:boolean;
-
-		/**
-		 * 扩展像素,用来去除黑边
-		 */
-		canvasPadding:number;
-
-		/**
-		 * 计算mesh的Bounds
-		 * @return 
-		 */
-		getBounds():Rectangle;
-	}
-	class SkinMeshForGraphic extends MeshData  {
-
-		constructor();
-
-		/**
-		 * 矩阵
-		 */
-		transform:Matrix|null;
-		init2(texture:Texture,ps:any[],verticles:any[],uvs:any[]):void;
 	}
 
 	/**
@@ -1521,9 +1530,9 @@ declare module Laya {
 
 		/**
 		 * 创建动画
-		 * 0,使用模板缓冲的数据，模板缓冲的数据，不允许修改					（内存开销小，计算开销小，不支持换装）
-		 * 1,使用动画自己的缓冲区，每个动画都会有自己的缓冲区，相当耗费内存	（内存开销大，计算开销小，支持换装）
-		 * 2,使用动态方式，去实时去画										（内存开销小，计算开销大，支持换装,不建议使用）
+0,使用模板缓冲的数据，模板缓冲的数据，不允许修改					（内存开销小，计算开销小，不支持换装）
+1,使用动画自己的缓冲区，每个动画都会有自己的缓冲区，相当耗费内存	（内存开销大，计算开销小，支持换装）
+2,使用动态方式，去实时去画										（内存开销小，计算开销大，支持换装,不建议使用）
 		 * @param aniMode 0	动画模式，0:不支持换装,1,2支持换装
 		 * @return 
 		 */
@@ -1659,59 +1668,59 @@ declare module Laya {
 	}
 
 	/**
-	 * 动画
 	 */
-	class GraphicsAni extends Graphics  {
+	class MeshData  {
 
 		/**
-		 * @private 画自定义蒙皮动画
-		 * @param skin 
+		 * 纹理
 		 */
-		drawSkin(skinA:SkinMeshForGraphic,alpha:number):void;
-		private static _caches:any;
-		static create():GraphicsAni;
+		texture:Texture;
 
 		/**
-		 * 回收清理
-		 * @param graphics 
+		 * uv数据
 		 */
-		static recycle(graphics:GraphicsAni):void;
+		uvs:Float32Array;
+
+		/**
+		 * 顶点数据
+		 */
+		vertices:Float32Array;
+
+		/**
+		 * 顶点索引
+		 */
+		indexes:Uint16Array;
+
+		/**
+		 * uv变换矩阵
+		 */
+		uvTransform:Matrix;
+
+		/**
+		 * 是否有uv变化矩阵
+		 */
+		useUvTransform:boolean;
+
+		/**
+		 * 扩展像素,用来去除黑边
+		 */
+		canvasPadding:number;
+
+		/**
+		 * 计算mesh的Bounds
+		 * @return 
+		 */
+		getBounds():Rectangle;
 	}
+	class SkinMeshForGraphic extends MeshData  {
 
-	/**
-	 * 关键帧
-	 */
-	class KeyFramesContent  {
+		constructor();
 
 		/**
-		 * 开始时间
+		 * 矩阵
 		 */
-		startTime:number;
-
-		/**
-		 * 持续时间
-		 */
-		duration:number;
-
-		/**
-		 * 私有插值方式
-		 */
-		interpolationData:any[];
-
-		/**
-		 * 数据
-		 */
-		data:Float32Array;
-
-		/**
-		 * 数据变化量
-		 */
-		dData:Float32Array;
-
-		/**
-		 * 下一次的数据
-		 */
-		nextData:Float32Array;
+		transform:Matrix|null;
+		init2(texture:Texture,ps:any[],verticles:any[],uvs:any[]):void;
 	}
 
 	/**
@@ -1856,43 +1865,43 @@ declare module Laya {
 
 		/**
 		 * 创建后只执行一次
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onAwake():void;
 
 		/**
 		 * 每次启动后执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onEnable():void;
 
 		/**
 		 * 第一次执行update之前执行，只会执行一次
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onStart():void;
 
 		/**
 		 * 每帧更新时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onUpdate():void;
 
 		/**
 		 * 每帧更新时执行，在update之后执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onLateUpdate():void;
 
 		/**
 		 * 禁用时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onDisable():void;
 
 		/**
 		 * 销毁时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onDestroy():void;
 	}
@@ -1947,8 +1956,8 @@ declare module Laya {
 
 		/**
 		 * 重置组件参数到默认值，如果实现了这个函数，则组件会被重置并且自动回收到对象池，方便下次复用
-		 * 如果没有重置，则不进行回收复用
-		 * 此方法为虚方法，使用时重写覆盖即可
+如果没有重置，则不进行回收复用
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onReset():void;
 
@@ -1976,7 +1985,7 @@ declare module Laya {
 
 	/**
 	 * <code>Script</code> 类用于创建脚本的父类，该类为抽象类，不允许实例。
-	 * 组件的生命周期
+组件的生命周期
 	 */
 	class Script extends Component  {
 
@@ -1988,180 +1997,249 @@ declare module Laya {
 
 		/**
 		 * 组件被激活后执行，此时所有节点和组件均已创建完毕，次方法只执行一次
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onAwake():void;
 
 		/**
 		 * 组件被启用后执行，比如节点被添加到舞台后
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onEnable():void;
 
 		/**
 		 * 第一次执行update之前执行，只会执行一次
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onStart():void;
 
 		/**
 		 * 开始碰撞时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onTriggerEnter(other:any,self:any,contact:any):void;
 
 		/**
 		 * 持续碰撞时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onTriggerStay(other:any,self:any,contact:any):void;
 
 		/**
 		 * 结束碰撞时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onTriggerExit(other:any,self:any,contact:any):void;
 
 		/**
 		 * 鼠标按下时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onMouseDown(e:Event):void;
 
 		/**
 		 * 鼠标抬起时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onMouseUp(e:Event):void;
 
 		/**
 		 * 鼠标点击时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onClick(e:Event):void;
 
 		/**
 		 * 鼠标在舞台按下时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onStageMouseDown(e:Event):void;
 
 		/**
 		 * 鼠标在舞台抬起时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onStageMouseUp(e:Event):void;
 
 		/**
 		 * 鼠标在舞台点击时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onStageClick(e:Event):void;
 
 		/**
 		 * 鼠标在舞台移动时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onStageMouseMove(e:Event):void;
 
 		/**
 		 * 鼠标双击时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onDoubleClick(e:Event):void;
 
 		/**
 		 * 鼠标右键点击时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onRightClick(e:Event):void;
 
 		/**
 		 * 鼠标移动时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onMouseMove(e:Event):void;
 
 		/**
 		 * 鼠标经过节点时触发
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onMouseOver(e:Event):void;
 
 		/**
 		 * 鼠标离开节点时触发
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onMouseOut(e:Event):void;
 
 		/**
 		 * 键盘按下时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onKeyDown(e:Event):void;
 
 		/**
 		 * 键盘产生一个字符时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onKeyPress(e:Event):void;
 
 		/**
 		 * 键盘抬起时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onKeyUp(e:Event):void;
 
 		/**
 		 * 每帧更新时执行，尽量不要在这里写大循环逻辑或者使用getComponent方法
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onUpdate():void;
 
 		/**
 		 * 每帧更新时执行，在update之后执行，尽量不要在这里写大循环逻辑或者使用getComponent方法
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onLateUpdate():void;
 
 		/**
 		 * 渲染之前执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onPreRender():void;
 
 		/**
 		 * 渲染之后执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onPostRender():void;
 
 		/**
 		 * 组件被禁用时执行，比如从节点从舞台移除后
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onDisable():void;
 
 		/**
 		 * 手动调用节点销毁时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onDestroy():void;
 	}
 
 	/**
-	 * @private 静态常量集合
+	 * /**
+   <code>CastShadowList</code> 类用于实现产生阴影者队列。
 	 */
-	class Const  {
-		static NOT_ACTIVE:number;
-		static ACTIVE_INHIERARCHY:number;
-		static AWAKED:number;
-		static NOT_READY:number;
-		static DISPLAY:number;
-		static HAS_ZORDER:number;
-		static HAS_MOUSE:number;
-		static DISPLAYED_INSTAGE:number;
-		static DRAWCALL_OPTIMIZE:number;
+	class CastShadowList extends SingletonList<ISingletonElement>  {
+
+		/**
+		 * 创建一个新的 <code>CastShadowList</code> 实例。
+		 */
+
+		constructor();
+	}
+
+	/**
+	 * <code>Input3D</code> 类用于实现3D输入。
+	 */
+	class Input3D  {
+
+		/**
+		 * 获取触摸点个数。
+		 * @return 触摸点个数。
+		 */
+		touchCount():number;
+
+		/**
+		 * 获取是否可以使用多点触摸。
+		 * @return 是否可以使用多点触摸。
+		 */
+		get multiTouchEnabled():boolean;
+
+		/**
+		 * 设置是否可以使用多点触摸。
+		 * @param 是否可以使用多点触摸 。
+		 */
+		set multiTouchEnabled(value:boolean);
+
+		/**
+		 * 获取触摸点。
+		 * @param index 索引。
+		 * @return 触摸点。
+		 */
+		getTouch(index:number):Touch;
+	}
+
+	/**
+	 * Laya物理类
+internal
+	 */
+	class Physics3D  {
+	}
+
+	/**
+	 * <code>Touch</code> 类用于实现触摸描述。
+	 */
+	class Touch implements ISingletonElement  {
+
+		/**
+		 * [实现IListPool接口]
+		 */
+		private _indexInList:any;
+
+		/**
+		 * 获取唯一识别ID。
+		 * @return 唯一识别ID。
+		 */
+		get identifier():number;
+
+		/**
+		 * 获取触摸点的像素坐标。
+		 * @return 触摸点的像素坐标 [只读]。
+		 */
+		get position():Vector2;
+
+		/**
+		 * [实现ISingletonElement接口]
+		 */
+		_getIndexInList():number;
+
+		/**
+		 * [实现ISingletonElement接口]
+		 */
+		_setIndexInList(index:number):void;
 	}
 
 	/**
@@ -2197,16 +2275,6 @@ declare module Laya {
 		 */
 
 		constructor();
-
-		/**
-		 * 是否是Weight模式
-		 * @param weightMode 
-		 * @param nextweightMode 
-		 * @returns true 此段动画插值使用埃尔米特插值
-		 */
-		private _weightModeHermite:any;
-		private _hermiteCurveSplineWeight:any;
-		private _curveInterpolate:any;
 		private _evaluateFrameNodeVector3DatasRealTime:any;
 		private _evaluateFrameNodeQuaternionDatasRealTime:any;
 		private _binarySearchEventIndex:any;
@@ -2374,19 +2442,6 @@ declare module Laya {
 		 * 动画状态退出时执行。
 		 */
 		onStateExit():void;
-	}
-
-	/**
-	 * /**
-	 *    <code>CastShadowList</code> 类用于实现产生阴影者队列。
-	 */
-	class CastShadowList extends SingletonList<ISingletonElement>  {
-
-		/**
-		 * 创建一个新的 <code>CastShadowList</code> 实例。
-		 */
-
-		constructor();
 	}
 
 enum AnimatorUpdateMode {
@@ -2843,139 +2898,139 @@ enum AnimatorUpdateMode {
 
 		/**
 		 * 创建后只执行一次
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onAwake():void;
 
 		/**
 		 * 每次启动后执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onEnable():void;
 
 		/**
 		 * 第一次执行update之前执行，只会执行一次
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onStart():void;
 
 		/**
 		 * 开始触发时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onTriggerEnter(other:PhysicsComponent):void;
 
 		/**
 		 * 持续触发时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onTriggerStay(other:PhysicsComponent):void;
 
 		/**
 		 * 结束触发时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onTriggerExit(other:PhysicsComponent):void;
 
 		/**
 		 * 开始碰撞时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onCollisionEnter(collision:Collision):void;
 
 		/**
 		 * 持续碰撞时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onCollisionStay(collision:Collision):void;
 
 		/**
 		 * 结束碰撞时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onCollisionExit(collision:Collision):void;
 
 		/**
 		 * 关节破坏时执行此方法
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onJointBreak():void;
 
 		/**
 		 * 鼠标按下时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onMouseDown():void;
 
 		/**
 		 * 鼠标拖拽时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onMouseDrag():void;
 
 		/**
 		 * 鼠标点击时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onMouseClick():void;
 
 		/**
 		 * 鼠标弹起时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onMouseUp():void;
 
 		/**
 		 * 鼠标进入时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onMouseEnter():void;
 
 		/**
 		 * 鼠标经过时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onMouseOver():void;
 
 		/**
 		 * 鼠标离开时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onMouseOut():void;
 
 		/**
 		 * 每帧更新时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onUpdate():void;
 
 		/**
 		 * 每帧更新时执行，在update之后执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onLateUpdate():void;
 
 		/**
 		 * 渲染之前执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onPreRender():void;
 
 		/**
 		 * 渲染之后执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onPostRender():void;
 
 		/**
 		 * 禁用时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onDisable():void;
 
 		/**
 		 * 销毁时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
+此方法为虚方法，使用时重写覆盖即可
 		 */
 		onDestroy():void;
 	}
@@ -3410,14 +3465,10 @@ enum CameraEventFlags {
 		 */
 		get viewport():Viewport;
 		set viewport(value:Viewport);
-		get clientWidth():number;
-		get clientHeight():number;
 
 		/**
 		 * 多重采样抗锯齿
 		 */
-		set msaa(value:boolean);
-		get msaa():boolean;
 
 		/**
 		 * 裁剪空间的视口。
@@ -3460,14 +3511,14 @@ enum CameraEventFlags {
 
 		/**
 		 * 是否开启HDR。
-		 * 开启后对性能有一定影响。
+开启后对性能有一定影响。
 		 */
 		get enableHDR():boolean;
 		set enableHDR(value:boolean);
 
 		/**
 		 * 是否使用正在渲染的RenderTexture为CommandBuffer服务，设置为true
-		 * 一般和CommandBuffer一起使用
+一般和CommandBuffer一起使用
 		 */
 		get enableBuiltInRenderTexture():boolean;
 		set enableBuiltInRenderTexture(value:boolean);
@@ -3606,21 +3657,6 @@ enum CameraEventFlags {
 		 * 帧数据
 		 */
 		value:number;
-
-		/**
-		 * 内权重
-		 */
-		inWeight:number;
-
-		/**
-		 * 外权重
-		 */
-		outWeight:number;
-
-		/**
-		 * 权重模式
-		 */
-		weightedMode:number;
 
 		/**
 		 * 创建一个 <code>FloatKeyFrame</code> 实例。
@@ -3874,18 +3910,14 @@ enum CameraEventFlags {
 	}
 
 
-enum WeightedMode {
-    None = 0,
-    In = 1,
-    Out = 2,
-    Both = 3
-}
+	/**
+	 * 动画权重模式
+	 */
 
 	/**
 	 * <code>KeyFrame</code> 类用于创建关键帧实例。
 	 */
 	class Keyframe implements IClone  {
-		static defaultWeight:number;
 
 		/**
 		 * 时间。
@@ -3909,6 +3941,830 @@ enum WeightedMode {
 		 * @return 克隆副本。
 		 */
 		clone():any;
+	}
+
+	/**
+	 * <code>MeshFilter</code> 类用于创建网格过滤器。
+	 */
+	class MeshFilter  {
+
+		/**
+		 * 共享网格。
+		 */
+		get sharedMesh():Mesh;
+		set sharedMesh(value:Mesh);
+
+		/**
+		 * 创建一个新的 <code>MeshFilter</code> 实例。
+		 * @param owner 所属网格精灵。
+		 */
+
+		constructor(owner:RenderableSprite3D);
+
+		/**
+		 * @inheritDoc 
+		 */
+		destroy():void;
+	}
+
+	/**
+	 * <code>MeshRenderer</code> 类用于网格渲染器。
+	 */
+	class MeshRenderer extends BaseRender  {
+
+		/**
+		 * 创建一个新的 <code>MeshRender</code> 实例。
+		 */
+
+		constructor(owner:RenderableSprite3D);
+	}
+
+	/**
+	 * <code>MeshSprite3D</code> 类用于创建网格。
+	 */
+	class MeshSprite3D extends RenderableSprite3D  {
+		private _meshFilter:any;
+
+		/**
+		 * 网格过滤器。
+		 */
+		get meshFilter():MeshFilter;
+
+		/**
+		 * 网格渲染器。
+		 */
+		get meshRenderer():MeshRenderer;
+
+		/**
+		 * 创建一个 <code>MeshSprite3D</code> 实例。
+		 * @param mesh 网格,同时会加载网格所用默认材质。
+		 * @param name 名字。
+		 */
+
+		constructor(mesh?:Mesh,name?:string);
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		destroy(destroyChild?:boolean):void;
+	}
+
+	/**
+	 * 类用来记录精灵数据宏
+	 */
+	class MeshSprite3DShaderDeclaration  {
+
+		/**
+		 * UV0通道顶点数据宏
+		 */
+		static SHADERDEFINE_UV0:ShaderDefine;
+
+		/**
+		 * 顶点色顶点数据宏
+		 */
+		static SHADERDEFINE_COLOR:ShaderDefine;
+
+		/**
+		 * UV1通道顶点数据宏
+		 */
+		static SHADERDEFINE_UV1:ShaderDefine;
+
+		/**
+		 * instance调用宏
+		 */
+		static SHADERDEFINE_GPU_INSTANCE:ShaderDefine;
+
+		/**
+		 * 盒子反射宏
+		 */
+		static SHADERDEFINE_SPECCUBE_BOX_PROJECTION:ShaderDefine;
+	}
+
+	/**
+	 * <code>TerrainMeshSprite3D</code> 类用于地形节点转换普通mesh渲染。
+	 */
+	class MeshTerrainSprite3D extends MeshSprite3D  {
+		private static _tempVector3:any;
+		private static _tempMatrix4x4:any;
+
+		/**
+		 * 从网格创建一个TerrainMeshSprite3D实例和其高度图属性。
+		 * @param mesh 网格。
+		 * @param heightMapWidth 高度图宽度。
+		 * @param heightMapHeight 高度图高度。
+		 * @param name 名字。
+		 */
+		static createFromMesh(mesh:Mesh,heightMapWidth:number,heightMapHeight:number,name?:string):MeshTerrainSprite3D;
+
+		/**
+		 * 从网格创建一个TerrainMeshSprite3D实例、图片读取高度图属性。
+		 * @param mesh 网格。
+		 * @param image 高度图。
+		 * @param name 名字。
+		 * @returns 地形渲染节点
+		 */
+		static createFromMeshAndHeightMap(mesh:Mesh,texture:Texture2D,minHeight:number,maxHeight:number,name?:string):MeshTerrainSprite3D;
+		private _minX:any;
+		private _minZ:any;
+		private _cellSize:any;
+		private _heightMap:any;
+
+		/**
+		 * 获取地形X轴最小位置。
+		 * @return 地形X轴最小位置。
+		 */
+		get minX():number;
+
+		/**
+		 * 获取地形Z轴最小位置。
+		 * @return 地形X轴最小位置。
+		 */
+		get minZ():number;
+
+		/**
+		 * 获取地形X轴长度。
+		 * @return 地形X轴长度。
+		 */
+		get width():number;
+
+		/**
+		 * 获取地形Z轴长度。
+		 * @return 地形Z轴长度。
+		 */
+		get depth():number;
+
+		/**
+		 * 创建一个 <code>TerrainMeshSprite3D</code> 实例。
+		 * @param mesh 网格。
+		 * @param heightMap 高度图。
+		 * @param name 名字。
+		 */
+
+		constructor(mesh:Mesh,heightMap:HeightMap,name?:string);
+		private _disableRotation:any;
+		private _getScaleX:any;
+		private _getScaleZ:any;
+		private _initCreateFromMesh:any;
+		private _initCreateFromMeshHeightMap:any;
+		private _computeCellSize:any;
+
+		/**
+		 * 获取地形高度。
+		 * @param x X轴坐标。
+		 * @param z Z轴坐标。
+		 */
+		getHeight(x:number,z:number):number;
+	}
+
+	/**
+	 * <code>QuaternionKeyframe</code> 类用于创建四元数关键帧实例。
+	 */
+	class QuaternionKeyframe extends Keyframe  {
+
+		/**
+		 * 内切线
+		 */
+		inTangent:Vector4;
+
+		/**
+		 * 外切线
+		 */
+		outTangent:Vector4;
+
+		/**
+		 * 帧数据
+		 */
+		value:Quaternion;
+
+		/**
+		 * 创建一个 <code>QuaternionKeyframe</code> 实例。
+		 */
+
+		constructor();
+
+		/**
+		 * 克隆。
+		 * @param destObject 克隆源。
+		 * @override 
+		 */
+		cloneTo(dest:any):void;
+	}
+
+	/**
+	 * <code>RenderableSprite3D</code> 类用于可渲染3D精灵的父类，抽象类不允许实例。
+	 */
+	class RenderableSprite3D extends Sprite3D  {
+
+		/**
+		 * 精灵级着色器宏定义,接收阴影。
+		 */
+		static SHADERDEFINE_RECEIVE_SHADOW:ShaderDefine;
+
+		/**
+		 * 精灵级着色器宏定义,光照贴图。
+		 */
+		static SAHDERDEFINE_LIGHTMAP:ShaderDefine;
+
+		/**
+		 * 精灵级着色器宏定义,光照贴图方向。
+		 */
+		static SHADERDEFINE_LIGHTMAP_DIRECTIONAL:ShaderDefine;
+
+		/**
+		 * 着色器变量名，光照贴图缩放和偏移。
+		 */
+		static LIGHTMAPSCALEOFFSET:number;
+
+		/**
+		 * 着色器变量名，光照贴图。
+		 */
+		static LIGHTMAP:number;
+
+		/**
+		 * 着色器变量名，光照贴图方向。
+		 */
+		static LIGHTMAP_DIRECTION:number;
+
+		/**
+		 * 拾取颜色。
+		 */
+		static PICKCOLOR:number;
+
+		/**
+		 * 反射贴图
+		 */
+		static REFLECTIONTEXTURE:number;
+
+		/**
+		 * 反射贴图参数
+		 */
+		static REFLECTIONCUBE_HDR_PARAMS:number;
+
+		/**
+		 * 反射探针位置 最大最小值
+		 */
+		static REFLECTIONCUBE_PROBEPOSITION:number;
+		static REFLECTIONCUBE_PROBEBOXMAX:number;
+		static REFLECTIONCUBE_PROBEBOXMIN:number;
+		pickColor:Vector4;
+
+		/**
+		 * 创建一个 <code>RenderableSprite3D</code> 实例。
+		 */
+
+		constructor(name:string);
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		protected _onInActive():void;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		protected _onActive():void;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		protected _onActiveInScene():void;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		destroy(destroyChild?:boolean):void;
+	}
+	class SimpleSkinnedMeshRenderer extends SkinnedMeshRenderer  {
+
+		/**
+		 * 创建一个 <code>SkinnedMeshRender</code> 实例。
+		 */
+
+		constructor(owner:RenderableSprite3D);
+
+		/**
+		 * 删除节点
+		 */
+		_destroy():void;
+	}
+
+	/**
+	 * <code>SkinnedMeshSprite3D</code> 类用于创建网格。
+	 */
+	class SimpleSkinnedMeshSprite3D extends RenderableSprite3D  {
+
+		/**
+		 */
+		static SIMPLE_SIMPLEANIMATORTEXTURE:number;
+		static SIMPLE_SIMPLEANIMATORPARAMS:number;
+		static SIMPLE_SIMPLEANIMATORTEXTURESIZE:number;
+
+		/**
+		 * 网格过滤器。
+		 */
+		get meshFilter():MeshFilter;
+
+		/**
+		 * 网格渲染器。
+		 */
+		get simpleSkinnedMeshRenderer():SimpleSkinnedMeshRenderer;
+
+		/**
+		 * 创建一个 <code>MeshSprite3D</code> 实例。
+		 * @param mesh 网格,同时会加载网格所用默认材质。
+		 * @param name 名字。
+		 */
+
+		constructor(mesh?:Mesh,name?:string);
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		destroy(destroyChild?:boolean):void;
+	}
+
+	/**
+	 * <code>SkinMeshRenderer</code> 类用于蒙皮渲染器。
+	 */
+	class SkinnedMeshRenderer extends MeshRenderer  {
+
+		/**
+		 * 局部边界。
+		 */
+		get localBounds():Bounds;
+		set localBounds(value:Bounds);
+
+		/**
+		 * 根节点。
+		 */
+		get rootBone():Sprite3D;
+		set rootBone(value:Sprite3D);
+
+		/**
+		 * 用于蒙皮的骨骼。
+		 */
+		get bones():Sprite3D[];
+
+		/**
+		 * 创建一个 <code>SkinnedMeshRender</code> 实例。
+		 */
+
+		constructor(owner:RenderableSprite3D);
+		protected _computeSkinnedData():void;
+
+		/**
+		 * @override 包围盒。
+		 */
+		get bounds():Bounds;
+	}
+
+	/**
+	 * <code>SkinnedMeshSprite3D</code> 类用于绑点骨骼节点精灵。
+	 */
+	class SkinnedMeshSprite3D extends RenderableSprite3D  {
+
+		/**
+		 * 着色器变量名，蒙皮动画。
+		 */
+		static BONES:number;
+
+		/**
+		 * 简单动画变量名，贴图蒙皮动画
+		 */
+		static SIMPLE_SIMPLEANIMATORTEXTURE:number;
+		static SIMPLE_SIMPLEANIMATORPARAMS:number;
+		static SIMPLE_SIMPLEANIMATORTEXTURESIZE:number;
+
+		/**
+		 * 网格过滤器。
+		 */
+		get meshFilter():MeshFilter;
+
+		/**
+		 * 网格渲染器。
+		 */
+		get skinnedMeshRenderer():SkinnedMeshRenderer;
+
+		/**
+		 * 创建一个 <code>MeshSprite3D</code> 实例。
+		 * @param mesh 网格,同时会加载网格所用默认材质。
+		 * @param name 名字。
+		 */
+
+		constructor(mesh?:Mesh,name?:string);
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		destroy(destroyChild?:boolean):void;
+	}
+	class SkinnedMeshSprite3DShaderDeclaration  {
+
+		/**
+		 * 精灵级着色器宏定义,蒙皮动画。
+		 */
+		static SHADERDEFINE_BONE:ShaderDefine;
+		static SHADERDEFINE_SIMPLEBONE:ShaderDefine;
+	}
+
+	/**
+	 * <code>Sprite3D</code> 类用于实现3D精灵。
+	 */
+	class Sprite3D extends Node implements ICreateResource  {
+
+		/**
+		 * Hierarchy资源。
+		 */
+		static HIERARCHY:string;
+
+		/**
+		 * 创建精灵的克隆实例。
+		 * @param original 原始精灵。
+		 * @param parent 父节点。
+		 * @param worldPositionStays 是否保持自身世界变换。
+		 * @param position 世界位置,worldPositionStays为false时生效。
+		 * @param rotation 世界旋转,worldPositionStays为false时生效。
+		 * @return 克隆实例。
+		 */
+		static instantiate(original:Sprite3D,parent?:Node,worldPositionStays?:boolean,position?:Vector3,rotation?:Quaternion):Sprite3D;
+
+		/**
+		 * 加载网格模板。
+		 * @param url 模板地址。
+		 * @param complete 完成回掉。
+		 */
+		static load(url:string,complete:Handler):void;
+
+		/**
+		 * 唯一标识ID。
+		 */
+		get id():number;
+
+		/**
+		 * 蒙版层。
+		 */
+		get layer():number;
+		set layer(value:number);
+
+		/**
+		 * 资源的URL地址。
+		 */
+		get url():string;
+
+		/**
+		 * 是否为静态。
+		 */
+		get isStatic():boolean;
+
+		/**
+		 * 精灵变换。
+		 */
+		get transform():Transform3D;
+
+		/**
+		 * 创建一个 <code>Sprite3D</code> 实例。
+		 * @param name 精灵名称。
+		 * @param isStatic 是否为静态。
+		 */
+
+		constructor(name?:string,isStatic?:boolean);
+
+		/**
+		 */
+		_setCreateURL(url:string):void;
+
+		/**
+		 * @private 
+		 */
+		protected _onInActiveInScene():void;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		protected _onAdded():void;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		protected _onRemoved():void;
+
+		/**
+		 * 克隆。
+		 * @return 克隆副本。
+		 */
+		clone():Node;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		destroy(destroyChild?:boolean):void;
+	}
+	class TextureMode  {
+
+		/**
+		 * 拉伸模式。
+		 */
+		static Stretch:number;
+
+		/**
+		 * 平铺模式。
+		 */
+		static Tile:number;
+	}
+
+	/**
+	 * <code>Transform3D</code> 类用于实现3D变换。
+	 */
+	class Transform3D extends EventDispatcher  {
+
+		/**
+		 * 所属精灵。
+		 */
+		get owner():Sprite3D;
+
+		/**
+		 * 世界矩阵是否需要更新。
+		 */
+		get worldNeedUpdate():boolean;
+
+		/**
+		 * 局部位置X轴分量。
+		 */
+		get localPositionX():number;
+		set localPositionX(x:number);
+
+		/**
+		 * 局部位置Y轴分量。
+		 */
+		get localPositionY():number;
+		set localPositionY(y:number);
+
+		/**
+		 * 局部位置Z轴分量。
+		 */
+		get localPositionZ():number;
+		set localPositionZ(z:number);
+
+		/**
+		 * 局部位置。
+		 */
+		get localPosition():Vector3;
+		set localPosition(value:Vector3);
+
+		/**
+		 * 局部旋转四元数X分量。
+		 */
+		get localRotationX():number;
+		set localRotationX(x:number);
+
+		/**
+		 * 局部旋转四元数Y分量。
+		 */
+		get localRotationY():number;
+		set localRotationY(y:number);
+
+		/**
+		 * 局部旋转四元数Z分量。
+		 */
+		get localRotationZ():number;
+		set localRotationZ(z:number);
+
+		/**
+		 * 局部旋转四元数W分量。
+		 */
+		get localRotationW():number;
+		set localRotationW(w:number);
+
+		/**
+		 * 局部旋转。
+		 */
+		get localRotation():Quaternion;
+		set localRotation(value:Quaternion);
+
+		/**
+		 * 局部缩放X。
+		 */
+		get localScaleX():number;
+		set localScaleX(value:number);
+
+		/**
+		 * 局部缩放Y。
+		 */
+		get localScaleY():number;
+		set localScaleY(value:number);
+
+		/**
+		 * 局部缩放Z。
+		 */
+		get localScaleZ():number;
+		set localScaleZ(value:number);
+
+		/**
+		 * 局部缩放。
+		 */
+		get localScale():Vector3;
+		set localScale(value:Vector3);
+
+		/**
+		 * 局部空间的X轴欧拉角。
+		 */
+		get localRotationEulerX():number;
+		set localRotationEulerX(value:number);
+
+		/**
+		 * 局部空间的Y轴欧拉角。
+		 */
+		get localRotationEulerY():number;
+		set localRotationEulerY(value:number);
+
+		/**
+		 * 局部空间的Z轴欧拉角。
+		 */
+		get localRotationEulerZ():number;
+		set localRotationEulerZ(value:number);
+
+		/**
+		 * 局部空间欧拉角。
+		 */
+		get localRotationEuler():Vector3;
+		set localRotationEuler(value:Vector3);
+
+		/**
+		 * 局部矩阵。
+		 */
+		get localMatrix():Matrix4x4;
+		set localMatrix(value:Matrix4x4);
+
+		/**
+		 * 世界位置。
+		 */
+		get position():Vector3;
+		set position(value:Vector3);
+
+		/**
+		 * 世界旋转。
+		 */
+		get rotation():Quaternion;
+		set rotation(value:Quaternion);
+
+		/**
+		 * 世界空间的旋转角度，顺序为x、y、z。
+		 */
+		get rotationEuler():Vector3;
+		set rotationEuler(value:Vector3);
+
+		/**
+		 * 世界矩阵。
+		 */
+		get worldMatrix():Matrix4x4;
+		set worldMatrix(value:Matrix4x4);
+
+		/**
+		 * 创建一个 <code>Transform3D</code> 实例。
+		 * @param owner 所属精灵。
+		 */
+
+		constructor(owner:Sprite3D);
+
+		/**
+		 * 平移变换。
+		 * @param translation 移动距离。
+		 * @param isLocal 是否局部空间。
+		 */
+		translate(translation:Vector3,isLocal?:boolean):void;
+
+		/**
+		 * 旋转变换。
+		 * @param rotations 旋转幅度。
+		 * @param isLocal 是否局部空间。
+		 * @param isRadian 是否弧度制。
+		 */
+		rotate(rotation:Vector3,isLocal?:boolean,isRadian?:boolean):void;
+
+		/**
+		 * 获取向前方向。
+		 * @param forward 前方向。
+		 */
+		getForward(forward:Vector3):void;
+
+		/**
+		 * 获取向上方向。
+		 * @param up 上方向。
+		 */
+		getUp(up:Vector3):void;
+
+		/**
+		 * 获取向右方向。
+		 * @param 右方向 。
+		 */
+		getRight(right:Vector3):void;
+
+		/**
+		 * 观察目标位置。
+		 * @param target 观察目标。
+		 * @param up 向上向量。
+		 * @param isLocal 是否局部空间。
+		 */
+		lookAt(target:Vector3,up:Vector3,isLocal?:boolean):void;
+
+		/**
+		 * 世界缩放。
+某种条件下获取该值可能不正确（例如：父节点有缩放，子节点有旋转），缩放会倾斜，无法使用Vector3正确表示,必须使用Matrix3x3矩阵才能正确表示。
+		 * @return 世界缩放。
+		 */
+		getWorldLossyScale():Vector3;
+
+		/**
+		 * 设置世界缩放。
+某种条件下设置该值可能不正确（例如：父节点有缩放，子节点有旋转），缩放会倾斜，无法使用Vector3正确表示,必须使用Matrix3x3矩阵才能正确表示。
+		 * @return 世界缩放。
+		 */
+		setWorldLossyScale(value:Vector3):void;
+
+		/**
+		 * @deprecated 
+		 */
+		get scale():Vector3;
+
+		/**
+		 * @deprecated 
+		 */
+		set scale(value:Vector3);
+		localToGlobal(value:Vector3,out:Vector3):void;
+
+		/**
+		 * 转化成局部坐标
+		 * @param pos 
+		 * @param out 
+		 */
+		globalToLocal(pos:Vector3,out:Vector3):void;
+
+		/**
+		 * 转化成局部向量
+		 * @param pos 
+		 * @param out 
+		 */
+		toLocalNormal(pos:Vector3,out:Vector3):void;
+		toDir(forward:Vector3,dir:Vector3):void;
+		static tmpVec3:Vector3;
+
+		/**
+		 * 这是一个 glmatrix中的函数
+a,b都是规格化以后的向量
+Sets a quaternion to represent the shortest rotation from one
+vector to another.
+
+Both vectors are assumed to be unit length.
+		 * @param out the receiving quaternion.
+		 * @param a the initial vector
+		 * @param b the destination vector
+		 * @returns out
+		 */
+		rotationTo(out:Quaternion,a:Vector3,b:Vector3):boolean;
+	}
+
+	/**
+	 * <code>Vector3Keyframe</code> 类用于创建三维向量关键帧实例。
+	 */
+	class Vector3Keyframe extends Keyframe  {
+
+		/**
+		 * 内切线
+		 */
+		inTangent:Vector3;
+
+		/**
+		 * 外切线
+		 */
+		outTangent:Vector3;
+
+		/**
+		 * 帧数据
+		 */
+		value:Vector3;
+
+		/**
+		 * 创建一个 <code>Vector3Keyframe</code> 实例。
+		 */
+
+		constructor();
+
+		/**
+		 * 克隆。
+		 * @param destObject 克隆源。
+		 * @override 
+		 */
+		cloneTo(dest:any):void;
 	}
 
 	/**
@@ -4346,7 +5202,7 @@ enum ShadowMode {
 		/**
 		 * 透光率，会影响漫反射以及透光强度
 		 */
-		get transmissionRata():number;
+		get transmissionRate():number;
 		set transmissionRata(value:number);
 
 		/**
@@ -4391,12 +5247,6 @@ enum ShadowMode {
 		 * @override 
 		 */
 		cloneTo(destObject:any):void;
-
-		/**
-		 * 请使用transmissionRata
-		 * @deprecated 
-		 */
-		get transmissionRate():number;
 	}
 
 	/**
@@ -4718,30 +5568,6 @@ enum ShadowMode {
 		/**
 		 * 模板测试方式
 		 */
-		get stencilTest():number;
-		set stencilTest(value:number);
-
-		/**
-		 * 是否写入模板。
-		 */
-		get stencilWrite():boolean;
-		set stencilWrite(value:boolean);
-
-		/**
-		 * 写入模板值
-		 */
-		set stencilRef(value:number);
-		get stencilRef():number;
-
-		/**
-		 */
-
-		/**
-		 * 写入模板测试设置
-		 * vector(fail, zfail, zpass)
-		 */
-		set stencilOp(value:Vector3);
-		get stencilOp():Vector3;
 
 		/**
 		 * 获得材质属性
@@ -5164,47 +5990,6 @@ enum PBRMetallicSmoothnessSource {
 		 * 深度测试函数枚举_总是通过。
 		 */
 		static DEPTHTEST_ALWAYS:number;
-		static STENCILTEST_OFF:number;
-
-		/**
-		 * 深度测试函数枚举_从不通过。
-		 */
-		static STENCILTEST_NEVER:number;
-
-		/**
-		 * 深度测试函数枚举_小于时通过。
-		 */
-		static STENCILTEST_LESS:number;
-
-		/**
-		 * 深度测试函数枚举_等于时通过。
-		 */
-		static STENCILTEST_EQUAL:number;
-
-		/**
-		 * 深度测试函数枚举_小于等于时通过。
-		 */
-		static STENCILTEST_LEQUAL:number;
-
-		/**
-		 * 深度测试函数枚举_大于时通过。
-		 */
-		static STENCILTEST_GREATER:number;
-
-		/**
-		 * 深度测试函数枚举_不等于时通过。
-		 */
-		static STENCILTEST_NOTEQUAL:number;
-
-		/**
-		 * 深度测试函数枚举_大于等于时通过。
-		 */
-		static STENCILTEST_GEQUAL:number;
-
-		/**
-		 * 深度测试函数枚举_总是通过。
-		 */
-		static STENCILTEST_ALWAYS:number;
 
 		/**
 		 * 保持当前值
@@ -5317,29 +6102,8 @@ enum PBRMetallicSmoothnessSource {
 		depthWrite:boolean;
 
 		/**
-		 * 是否模板写入
-		 */
-		stencilWrite:boolean;
-
-		/**
-		 * 是否开启模板测试
-		 */
-		stencilTest:number;
-
-		/**
-		 * 模板值 一般会在0-255
-		 */
-		stencilRef:number;
-
-		/**
-		 * 模板设置值
-		 */
-		stencilOp:Vector3;
-
-		/**
 		 * RenderState init data
 		 */
-		static __init__(gl:WebGLRenderingContext):void;
 
 		/**
 		 * 创建一个 <code>RenderState</code> 实例。
@@ -5739,177 +6503,603 @@ enum PBRMetallicSmoothnessSource {
 	}
 
 	/**
-	 * <code>MeshFilter</code> 类用于创建网格过滤器。
+	 * <code>ShuriKenParticle3D</code> 3D粒子。
 	 */
-	class MeshFilter  {
+	class ShuriKenParticle3D extends RenderableSprite3D  {
 
 		/**
-		 * 共享网格。
+		 * 粒子系统。
 		 */
-		get sharedMesh():Mesh;
-		set sharedMesh(value:Mesh);
+		get particleSystem():ShurikenParticleSystem;
 
 		/**
-		 * 创建一个新的 <code>MeshFilter</code> 实例。
-		 * @param owner 所属网格精灵。
+		 * 粒子渲染器。
 		 */
-
-		constructor(owner:RenderableSprite3D);
+		get particleRenderer():ShurikenParticleRenderer;
 
 		/**
-		 * @inheritDoc 
+		 * 创建一个 <code>Particle3D</code> 实例。
 		 */
+
+		constructor();
+
+		/**
+		 * <p>销毁此对象。</p>
+		 * @param destroyChild 是否同时销毁子节点，若值为true,则销毁子节点，否则不销毁子节点。
+		 * @override 
+		 */
+		destroy(destroyChild?:boolean):void;
+	}
+	class ShurikenParticleInstanceSystem extends ShurikenParticleSystem  {
+		private _instanceParticleVertexBuffer:any;
+		private _instanceVertex:any;
+		private _instanceBufferState:any;
+		private _meshIndexCount:any;
+		private _meshFloatCountPreVertex:any;
+
+		/**
+		 * 每个粒子数据 float 个数
+		 */
+		private _floatCountPerParticleData:any;
+
+		constructor(owner:ShuriKenParticle3D);
+
+		/**
+		 * *
+重排 mesh vb
+		 */
+		private _initMeshVertex:any;
+
+		/**
+		 * 初始化 buffer
+		 * @returns 
+		 */
+		_initBufferDatas():void;
+		protected _retireActiveParticles():void;
+		protected _freeRetiredParticles():void;
+		addParticle(position:Vector3,direction:Vector3,time:number):boolean;
+		addNewParticlesToVertexBuffer():void;
+		_render(stage:RenderContext3D):void;
 		destroy():void;
 	}
 
 	/**
-	 * <code>MeshRenderer</code> 类用于网格渲染器。
+	 * <code>ShurikenParticleMaterial</code> 类用于实现粒子材质。
 	 */
-	class MeshRenderer extends BaseRender  {
+	class ShurikenParticleMaterial extends Material  {
 
 		/**
-		 * 创建一个新的 <code>MeshRender</code> 实例。
+		 * 渲染状态_透明混合。
+		 */
+		static RENDERMODE_ALPHABLENDED:number;
+
+		/**
+		 * 渲染状态_加色法混合。
+		 */
+		static RENDERMODE_ADDTIVE:number;
+
+		/**
+		 * @interanl 
+		 */
+		static SHADERDEFINE_ADDTIVEFOG:ShaderDefine;
+
+		/**
+		 * 默认材质，禁止修改
+		 */
+		static defaultMaterial:ShurikenParticleMaterial;
+
+		/**
+		 * 渲染模式。
+		 */
+		set renderMode(value:number);
+
+		/**
+		 * 颜色R分量。
+		 */
+		get colorR():number;
+		set colorR(value:number);
+
+		/**
+		 * 颜色G分量。
+		 */
+		get colorG():number;
+		set colorG(value:number);
+
+		/**
+		 * 颜色B分量。
+		 */
+		get colorB():number;
+		set colorB(value:number);
+
+		/**
+		 * 颜色Z分量。
+		 */
+		get colorA():number;
+		set colorA(value:number);
+
+		/**
+		 * 颜色。
+		 */
+		get color():Vector4;
+		set color(value:Vector4);
+
+		/**
+		 * 纹理平铺和偏移X分量。
+		 */
+		get tilingOffsetX():number;
+		set tilingOffsetX(x:number);
+
+		/**
+		 * 纹理平铺和偏移Y分量。
+		 */
+		get tilingOffsetY():number;
+		set tilingOffsetY(y:number);
+
+		/**
+		 * 纹理平铺和偏移Z分量。
+		 */
+		get tilingOffsetZ():number;
+		set tilingOffsetZ(z:number);
+
+		/**
+		 * 纹理平铺和偏移W分量。
+		 */
+		get tilingOffsetW():number;
+		set tilingOffsetW(w:number);
+
+		/**
+		 * 纹理平铺和偏移。
+		 */
+		get tilingOffset():Vector4;
+		set tilingOffset(value:Vector4);
+
+		/**
+		 * 漫反射贴图。
+		 */
+		get texture():BaseTexture;
+		set texture(value:BaseTexture);
+
+		/**
+		 * 创建一个 <code>ShurikenParticleMaterial</code> 实例。
 		 */
 
-		constructor(owner:RenderableSprite3D);
+		constructor();
+
+		/**
+		 * 克隆。
+		 * @return 克隆副本。
+		 * @override 
+		 */
+		clone():any;
 	}
 
 	/**
-	 * <code>MeshSprite3D</code> 类用于创建网格。
+	 * <code>ShurikenParticleRender</code> 类用于创建3D粒子渲染器。
 	 */
-	class MeshSprite3D extends RenderableSprite3D  {
-		private _meshFilter:any;
+	class ShurikenParticleRenderer extends BaseRender  {
 
 		/**
-		 * 网格过滤器。
+		 * 拉伸广告牌模式摄像机速度缩放,暂不支持。
 		 */
-		get meshFilter():MeshFilter;
+		stretchedBillboardCameraSpeedScale:number;
 
 		/**
-		 * 网格渲染器。
+		 * 拉伸广告牌模式速度缩放。
 		 */
-		get meshRenderer():MeshRenderer;
+		stretchedBillboardSpeedScale:number;
 
 		/**
-		 * 创建一个 <code>MeshSprite3D</code> 实例。
-		 * @param mesh 网格,同时会加载网格所用默认材质。
-		 * @param name 名字。
+		 * 拉伸广告牌模式长度缩放。
+		 */
+		stretchedBillboardLengthScale:number;
+
+		/**
+		 * 获取渲染模式,0为BILLBOARD、1为STRETCHEDBILLBOARD、2为HORIZONTALBILLBOARD、3为VERTICALBILLBOARD、4为MESH。
+		 */
+		get renderMode():number;
+		set renderMode(value:number);
+
+		/**
+		 * 获取网格渲染模式所使用的Mesh,rendderMode为4时生效。
+		 */
+		get mesh():Mesh;
+		set mesh(value:Mesh);
+
+		/**
+		 * 创建一个 <code>ShurikenParticleRender</code> 实例。
 		 */
 
-		constructor(mesh?:Mesh,name?:string);
+		constructor(owner:ShuriKenParticle3D);
 
 		/**
 		 * @inheritDoc 
 		 * @override 
 		 */
-		destroy(destroyChild?:boolean):void;
+		get bounds():Bounds;
 	}
 
 	/**
-	 * 类用来记录精灵数据宏
+	 * <code>ShurikenParticleSystem</code> 类用于创建3D粒子数据模板。
 	 */
-	class MeshSprite3DShaderDeclaration  {
+	class ShurikenParticleSystem extends GeometryElement implements IClone  {
 
 		/**
-		 * UV0通道顶点数据宏
+		 * 粒子运行的总时长，单位为秒。
 		 */
-		static SHADERDEFINE_UV0:ShaderDefine;
+		duration:number;
 
 		/**
-		 * 顶点色顶点数据宏
+		 * 是否循环。
 		 */
-		static SHADERDEFINE_COLOR:ShaderDefine;
+		looping:boolean;
 
 		/**
-		 * UV1通道顶点数据宏
+		 * 是否预热。暂不支持
 		 */
-		static SHADERDEFINE_UV1:ShaderDefine;
+		prewarm:boolean;
 
 		/**
-		 * instance调用宏
+		 * 开始延迟类型，0为常量模式,1为随机随机双常量模式，不能和prewarm一起使用。
 		 */
-		static SHADERDEFINE_GPU_INSTANCE:ShaderDefine;
+		startDelayType:number;
 
 		/**
-		 * 盒子反射宏
+		 * 开始播放延迟，不能和prewarm一起使用。
 		 */
-		static SHADERDEFINE_SPECCUBE_BOX_PROJECTION:ShaderDefine;
-	}
-
-	/**
-	 * <code>TerrainMeshSprite3D</code> 类用于地形节点转换普通mesh渲染。
-	 */
-	class MeshTerrainSprite3D extends MeshSprite3D  {
-		private static _tempVector3:any;
-		private static _tempMatrix4x4:any;
+		startDelay:number;
 
 		/**
-		 * 从网格创建一个TerrainMeshSprite3D实例和其高度图属性。
-		 * @param mesh 网格。
-		 * @param heightMapWidth 高度图宽度。
-		 * @param heightMapHeight 高度图高度。
-		 * @param name 名字。
+		 * 开始播放最小延迟，不能和prewarm一起使用。
 		 */
-		static createFromMesh(mesh:Mesh,heightMapWidth:number,heightMapHeight:number,name?:string):MeshTerrainSprite3D;
+		startDelayMin:number;
 
 		/**
-		 * 从网格创建一个TerrainMeshSprite3D实例、图片读取高度图属性。
-		 * @param mesh 网格。
-		 * @param image 高度图。
-		 * @param name 名字。
-		 * @returns 地形渲染节点
+		 * 开始播放最大延迟，不能和prewarm一起使用。
 		 */
-		static createFromMeshAndHeightMap(mesh:Mesh,texture:Texture2D,minHeight:number,maxHeight:number,name?:string):MeshTerrainSprite3D;
-		private _minX:any;
-		private _minZ:any;
-		private _cellSize:any;
-		private _heightMap:any;
+		startDelayMax:number;
 
 		/**
-		 * 获取地形X轴最小位置。
-		 * @return 地形X轴最小位置。
+		 * 开始速度模式，0为恒定速度，2为两个恒定速度的随机插值。缺少1、3模式
 		 */
-		get minX():number;
+		startSpeedType:number;
 
 		/**
-		 * 获取地形Z轴最小位置。
-		 * @return 地形X轴最小位置。
+		 * 开始速度,0模式。
 		 */
-		get minZ():number;
+		startSpeedConstant:number;
 
 		/**
-		 * 获取地形X轴长度。
-		 * @return 地形X轴长度。
+		 * 最小开始速度,1模式。
 		 */
-		get width():number;
+		startSpeedConstantMin:number;
 
 		/**
-		 * 获取地形Z轴长度。
-		 * @return 地形Z轴长度。
+		 * 最大开始速度,1模式。
 		 */
-		get depth():number;
+		startSpeedConstantMax:number;
 
 		/**
-		 * 创建一个 <code>TerrainMeshSprite3D</code> 实例。
-		 * @param mesh 网格。
-		 * @param heightMap 高度图。
-		 * @param name 名字。
+		 * 阻力模式，0为恒定速度，2为两个恒定速度的随机插值
 		 */
-
-		constructor(mesh:Mesh,heightMap:HeightMap,name?:string);
-		private _disableRotation:any;
-		private _getScaleX:any;
-		private _getScaleZ:any;
-		private _initCreateFromMesh:any;
-		private _initCreateFromMeshHeightMap:any;
-		private _computeCellSize:any;
 
 		/**
-		 * 获取地形高度。
-		 * @param x X轴坐标。
-		 * @param z Z轴坐标。
+		 * 开始尺寸是否为3D模式。
 		 */
-		getHeight(x:number,z:number):number;
+		threeDStartSize:boolean;
+
+		/**
+		 * 开始尺寸模式,0为恒定尺寸，2为两个恒定尺寸的随机插值。缺少1、3模式和对应的二种3D模式
+		 */
+		startSizeType:number;
+
+		/**
+		 * 开始尺寸，0模式。
+		 */
+		startSizeConstant:number;
+
+		/**
+		 * 开始三维尺寸，0模式。
+		 */
+		startSizeConstantSeparate:Vector3;
+
+		/**
+		 * 最小开始尺寸，2模式。
+		 */
+		startSizeConstantMin:number;
+
+		/**
+		 * 最大开始尺寸，2模式。
+		 */
+		startSizeConstantMax:number;
+
+		/**
+		 * 最小三维开始尺寸，2模式。
+		 */
+		startSizeConstantMinSeparate:Vector3;
+
+		/**
+		 * 最大三维开始尺寸，2模式。
+		 */
+		startSizeConstantMaxSeparate:Vector3;
+
+		/**
+		 * 3D开始旋转。
+		 */
+		threeDStartRotation:boolean;
+
+		/**
+		 * 开始旋转模式,0为恒定尺寸，2为两个恒定旋转的随机插值,缺少2种模式,和对应的四种3D模式。
+		 */
+		startRotationType:number;
+
+		/**
+		 * 开始旋转，0模式。
+		 */
+		startRotationConstant:number;
+
+		/**
+		 * 开始三维旋转，0模式。
+		 */
+		startRotationConstantSeparate:Vector3;
+
+		/**
+		 * 最小开始旋转，1模式。
+		 */
+		startRotationConstantMin:number;
+
+		/**
+		 * 最大开始旋转，1模式。
+		 */
+		startRotationConstantMax:number;
+
+		/**
+		 * 最小开始三维旋转，1模式。
+		 */
+		startRotationConstantMinSeparate:Vector3;
+
+		/**
+		 * 最大开始三维旋转，1模式。
+		 */
+		startRotationConstantMaxSeparate:Vector3;
+
+		/**
+		 * 随机旋转方向，范围为0.0到1.0
+		 */
+		randomizeRotationDirection:number;
+
+		/**
+		 * 开始颜色模式，0为恒定颜色，2为两个恒定颜色的随机插值,缺少2种模式。
+		 */
+		startColorType:number;
+
+		/**
+		 * 开始颜色，0模式。
+		 */
+		startColorConstant:Vector4;
+
+		/**
+		 * 最小开始颜色，1模式。
+		 */
+		startColorConstantMin:Vector4;
+
+		/**
+		 * 最大开始颜色，1模式。
+		 */
+		startColorConstantMax:Vector4;
+
+		/**
+		 * 重力敏感度。
+		 */
+		gravityModifier:number;
+
+		/**
+		 * 模拟器空间,0为World,1为Local。暂不支持Custom。
+		 */
+		simulationSpace:number;
+
+		/**
+		 * 粒子的播放速度。
+		 */
+		simulationSpeed:number;
+
+		/**
+		 * 缩放模式，0为Hiercachy,1为Local,2为World。
+		 */
+		scaleMode:number;
+
+		/**
+		 * 激活时是否自动播放。
+		 */
+		playOnAwake:boolean;
+
+		/**
+		 * 随机种子,注:play()前设置有效。
+		 */
+		randomSeed:Uint32Array;
+
+		/**
+		 * 是否使用随机种子。
+		 */
+		autoRandomSeed:boolean;
+
+		/**
+		 * 是否为性能模式,性能模式下会延迟粒子释放。
+		 */
+		isPerformanceMode:boolean;
+
+		/**
+		 * 最大粒子数。
+		 */
+		get maxParticles():number;
+		set maxParticles(value:number);
+
+		/**
+		 * 获取发射器。
+		 */
+		get emission():Emission;
+
+		/**
+		 * 粒子存活个数。
+		 */
+		get aliveParticleCount():number;
+
+		/**
+		 * 一次循环内的累计时间。
+		 */
+		get emissionTime():number;
+
+		/**
+		 * 形状。
+		 */
+		get shape():BaseShape;
+		set shape(value:BaseShape);
+
+		/**
+		 * 是否存活。
+		 */
+		get isAlive():boolean;
+
+		/**
+		 * 是否正在发射。
+		 */
+		get isEmitting():boolean;
+
+		/**
+		 * 是否正在播放。
+		 */
+		get isPlaying():boolean;
+
+		/**
+		 * 是否已暂停。
+		 */
+		get isPaused():boolean;
+
+		/**
+		 * 开始生命周期模式,0为固定时间，1为渐变时间，2为两个固定之间的随机插值,3为两个渐变时间的随机插值。
+		 */
+		get startLifetimeType():number;
+		set startLifetimeType(value:number);
+
+		/**
+		 * 开始生命周期，0模式,单位为秒。
+		 */
+		get startLifetimeConstant():number;
+		set startLifetimeConstant(value:number);
+
+		/**
+		 * 开始渐变生命周期，1模式,单位为秒。
+		 */
+		get startLifeTimeGradient():GradientDataNumber;
+		set startLifeTimeGradient(value:GradientDataNumber);
+
+		/**
+		 * 最小开始生命周期，2模式,单位为秒。
+		 */
+		get startLifetimeConstantMin():number;
+		set startLifetimeConstantMin(value:number);
+
+		/**
+		 * 最大开始生命周期，2模式,单位为秒。
+		 */
+		get startLifetimeConstantMax():number;
+		set startLifetimeConstantMax(value:number);
+
+		/**
+		 * 开始渐变最小生命周期，3模式,单位为秒。
+		 */
+		get startLifeTimeGradientMin():GradientDataNumber;
+		set startLifeTimeGradientMin(value:GradientDataNumber);
+
+		/**
+		 * 开始渐变最大生命周期，3模式,单位为秒。
+		 */
+		get startLifeTimeGradientMax():GradientDataNumber;
+		set startLifeTimeGradientMax(value:GradientDataNumber);
+
+		/**
+		 * 生命周期速度,注意:如修改该值的某些属性,需重新赋值此属性才可生效。
+		 */
+		get velocityOverLifetime():VelocityOverLifetime;
+		set velocityOverLifetime(value:VelocityOverLifetime);
+
+		/**
+		 * 生命周期颜色,注意:如修改该值的某些属性,需重新赋值此属性才可生效。
+		 */
+		get colorOverLifetime():ColorOverLifetime;
+		set colorOverLifetime(value:ColorOverLifetime);
+
+		/**
+		 * 生命周期尺寸,注意:如修改该值的某些属性,需重新赋值此属性才可生效。
+		 */
+		get sizeOverLifetime():SizeOverLifetime;
+		set sizeOverLifetime(value:SizeOverLifetime);
+
+		/**
+		 * 生命周期旋转,注意:如修改该值的某些属性,需重新赋值此属性才可生效。
+		 */
+		get rotationOverLifetime():RotationOverLifetime;
+		set rotationOverLifetime(value:RotationOverLifetime);
+
+		/**
+		 * 生命周期纹理动画,注意:如修改该值的某些属性,需重新赋值此属性才可生效。
+		 */
+		get textureSheetAnimation():TextureSheetAnimation;
+		set textureSheetAnimation(value:TextureSheetAnimation);
+
+		constructor(owner:ShuriKenParticle3D);
+
+		/**
+		 * 设置 自定义 包围盒
+		 */
+		get customBounds():Bounds;
+		set customBounds(value:Bounds);
+
+		/**
+		 * 发射一个粒子。
+		 */
+		emit(time:number):boolean;
+		addParticle(position:Vector3,direction:Vector3,time:number):boolean;
+		addNewParticlesToVertexBuffer():void;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		_getType():number;
+
+		/**
+		 * 开始发射粒子。
+		 */
+		play():void;
+
+		/**
+		 * 暂停发射粒子。
+		 */
+		pause():void;
+
+		/**
+		 * 通过指定时间增加粒子播放进度，并暂停播放。
+		 * @param time 进度时间.如果restart为true,粒子播放时间会归零后再更新进度。
+		 * @param restart 是否重置播放状态。
+		 */
+		simulate(time:number,restart?:boolean):void;
+
+		/**
+		 * 停止发射粒子。
+		 */
+		stop():void;
+
+		/**
+		 * 克隆。
+		 * @param destObject 克隆源。
+		 */
+		cloneTo(destObject:any):void;
+
+		/**
+		 * 克隆。
+		 * @return 克隆副本。
+		 */
+		clone():any;
 	}
 
 	/**
@@ -6011,7 +7201,6 @@ enum PBRMetallicSmoothnessSource {
 	 * <code>Emission</code> 类用于粒子发射器。
 	 */
 	class Emission implements IClone,IDestroy  {
-		private _emissionRateOverDistance:any;
 
 		/**
 		 * 是否启用。
@@ -6029,8 +7218,6 @@ enum PBRMetallicSmoothnessSource {
 		 * @return 粒子发射速率 (个/秒)。
 		 */
 		get emissionRate():number;
-		get emissionRateOverDistance():number;
-		set emissionRateOverDistance(value:number);
 
 		/**
 		 * 获取是否已销毁。
@@ -7006,6 +8193,214 @@ enum PBRMetallicSmoothnessSource {
 		clone():any;
 	}
 
+	/**
+	 * <code>SizeOverLifetime</code> 类用于粒子的生命周期尺寸。
+	 */
+	class SizeOverLifetime implements IClone  {
+		private _size:any;
+
+		/**
+		 * 是否启用
+		 */
+		enable:boolean;
+
+		/**
+		 * 获取尺寸。
+		 */
+		get size():GradientSize;
+
+		/**
+		 * 创建一个 <code>SizeOverLifetime</code> 实例。
+		 */
+
+		constructor(size:GradientSize);
+
+		/**
+		 * 克隆。
+		 * @param destObject 克隆源。
+		 */
+		cloneTo(destObject:any):void;
+
+		/**
+		 * 克隆。
+		 * @return 克隆副本。
+		 */
+		clone():any;
+	}
+
+	/**
+	 * <code>StartFrame</code> 类用于创建开始帧。
+	 */
+	class StartFrame implements IClone  {
+
+		/**
+		 * 通过随机常量旋转创建一个 <code>StartFrame</code> 实例。
+		 * @param constant 固定帧。
+		 * @return 开始帧。
+		 */
+		static createByConstant(constant?:number):StartFrame;
+
+		/**
+		 * 通过随机双常量旋转创建一个 <code>StartFrame</code> 实例。
+		 * @param constantMin 最小固定帧。
+		 * @param constantMax 最大固定帧。
+		 * @return 开始帧。
+		 */
+		static createByRandomTwoConstant(constantMin?:number,constantMax?:number):StartFrame;
+		private _type:any;
+		private _constant:any;
+		private _constantMin:any;
+		private _constantMax:any;
+
+		/**
+		 * 开始帧类型,0常量模式，1随机双常量模式。
+		 */
+		get type():number;
+
+		/**
+		 * 固定帧。
+		 */
+		get constant():number;
+
+		/**
+		 * 最小固定帧。
+		 */
+		get constantMin():number;
+
+		/**
+		 * 最大固定帧。
+		 */
+		get constantMax():number;
+
+		/**
+		 * 创建一个 <code>StartFrame,不允许new，请使用静态创建函数。</code> 实例。
+		 */
+
+		constructor();
+
+		/**
+		 * 克隆。
+		 * @param destObject 克隆源。
+		 */
+		cloneTo(destObject:any):void;
+
+		/**
+		 * 克隆。
+		 * @return 克隆副本。
+		 */
+		clone():any;
+	}
+
+	/**
+	 * <code>TextureSheetAnimation</code> 类用于创建粒子帧动画。
+	 */
+	class TextureSheetAnimation implements IClone  {
+
+		/**
+		 * 纹理平铺。
+		 */
+		tiles:Vector2;
+
+		/**
+		 * 类型,0为whole sheet、1为singal row。
+		 */
+		type:number;
+
+		/**
+		 * 是否随机行，type为1时有效。
+		 */
+		randomRow:boolean;
+
+		/**
+		 * 行索引,type为1时有效。
+		 */
+		rowIndex:number;
+
+		/**
+		 * 循环次数。
+		 */
+		cycles:number;
+
+		/**
+		 * UV通道类型,0为Noting,1为Everything,待补充,暂不支持。
+		 */
+		enableUVChannels:number;
+
+		/**
+		 * 是否启用
+		 */
+		enable:boolean;
+
+		/**
+		 * 获取时间帧率。
+		 */
+		get frame():FrameOverTime;
+
+		/**
+		 * 获取开始帧率。
+		 */
+		get startFrame():StartFrame;
+
+		/**
+		 * 创建一个 <code>TextureSheetAnimation</code> 实例。
+		 * @param frame 动画帧。
+		 * @param startFrame 开始帧。
+		 */
+
+		constructor(frame:FrameOverTime,startFrame:StartFrame);
+
+		/**
+		 * 克隆。
+		 * @param destObject 克隆源。
+		 */
+		cloneTo(destObject:any):void;
+
+		/**
+		 * 克隆。
+		 * @return 克隆副本。
+		 */
+		clone():any;
+	}
+
+	/**
+	 * <code>VelocityOverLifetime</code> 类用于粒子的生命周期速度。
+	 */
+	class VelocityOverLifetime implements IClone  {
+
+		/**
+		 * 是否启用
+		 */
+		enable:boolean;
+
+		/**
+		 * 速度空间,0为local,1为world。
+		 */
+		space:number;
+
+		/**
+		 * 获取尺寸。
+		 */
+		get velocity():GradientVelocity;
+
+		/**
+		 * 创建一个 <code>VelocityOverLifetime</code> 实例。
+		 */
+
+		constructor(velocity:GradientVelocity);
+
+		/**
+		 * 克隆。
+		 * @param destObject 克隆源。
+		 */
+		cloneTo(destObject:any):void;
+
+		/**
+		 * 克隆。
+		 * @return 克隆副本。
+		 */
+		clone():any;
+	}
+
 enum ParticleSystemShapeType {
     /**盒体 */
     Box = 0,
@@ -7293,832 +8688,6 @@ enum ParticleSystemShapeType {
 	}
 
 	/**
-	 * <code>SizeOverLifetime</code> 类用于粒子的生命周期尺寸。
-	 */
-	class SizeOverLifetime implements IClone  {
-		private _size:any;
-
-		/**
-		 * 是否启用
-		 */
-		enable:boolean;
-
-		/**
-		 * 获取尺寸。
-		 */
-		get size():GradientSize;
-
-		/**
-		 * 创建一个 <code>SizeOverLifetime</code> 实例。
-		 */
-
-		constructor(size:GradientSize);
-
-		/**
-		 * 克隆。
-		 * @param destObject 克隆源。
-		 */
-		cloneTo(destObject:any):void;
-
-		/**
-		 * 克隆。
-		 * @return 克隆副本。
-		 */
-		clone():any;
-	}
-
-	/**
-	 * <code>StartFrame</code> 类用于创建开始帧。
-	 */
-	class StartFrame implements IClone  {
-
-		/**
-		 * 通过随机常量旋转创建一个 <code>StartFrame</code> 实例。
-		 * @param constant 固定帧。
-		 * @return 开始帧。
-		 */
-		static createByConstant(constant?:number):StartFrame;
-
-		/**
-		 * 通过随机双常量旋转创建一个 <code>StartFrame</code> 实例。
-		 * @param constantMin 最小固定帧。
-		 * @param constantMax 最大固定帧。
-		 * @return 开始帧。
-		 */
-		static createByRandomTwoConstant(constantMin?:number,constantMax?:number):StartFrame;
-		private _type:any;
-		private _constant:any;
-		private _constantMin:any;
-		private _constantMax:any;
-
-		/**
-		 * 开始帧类型,0常量模式，1随机双常量模式。
-		 */
-		get type():number;
-
-		/**
-		 * 固定帧。
-		 */
-		get constant():number;
-
-		/**
-		 * 最小固定帧。
-		 */
-		get constantMin():number;
-
-		/**
-		 * 最大固定帧。
-		 */
-		get constantMax():number;
-
-		/**
-		 * 创建一个 <code>StartFrame,不允许new，请使用静态创建函数。</code> 实例。
-		 */
-
-		constructor();
-
-		/**
-		 * 克隆。
-		 * @param destObject 克隆源。
-		 */
-		cloneTo(destObject:any):void;
-
-		/**
-		 * 克隆。
-		 * @return 克隆副本。
-		 */
-		clone():any;
-	}
-
-	/**
-	 * <code>TextureSheetAnimation</code> 类用于创建粒子帧动画。
-	 */
-	class TextureSheetAnimation implements IClone  {
-
-		/**
-		 * 纹理平铺。
-		 */
-		tiles:Vector2;
-
-		/**
-		 * 类型,0为whole sheet、1为singal row。
-		 */
-		type:number;
-
-		/**
-		 * 是否随机行，type为1时有效。
-		 */
-		randomRow:boolean;
-
-		/**
-		 * 行索引,type为1时有效。
-		 */
-		rowIndex:number;
-
-		/**
-		 * 循环次数。
-		 */
-		cycles:number;
-
-		/**
-		 * UV通道类型,0为Noting,1为Everything,待补充,暂不支持。
-		 */
-		enableUVChannels:number;
-
-		/**
-		 * 是否启用
-		 */
-		enable:boolean;
-
-		/**
-		 * 获取时间帧率。
-		 */
-		get frame():FrameOverTime;
-
-		/**
-		 * 获取开始帧率。
-		 */
-		get startFrame():StartFrame;
-
-		/**
-		 * 创建一个 <code>TextureSheetAnimation</code> 实例。
-		 * @param frame 动画帧。
-		 * @param startFrame 开始帧。
-		 */
-
-		constructor(frame:FrameOverTime,startFrame:StartFrame);
-
-		/**
-		 * 克隆。
-		 * @param destObject 克隆源。
-		 */
-		cloneTo(destObject:any):void;
-
-		/**
-		 * 克隆。
-		 * @return 克隆副本。
-		 */
-		clone():any;
-	}
-
-	/**
-	 * <code>VelocityOverLifetime</code> 类用于粒子的生命周期速度。
-	 */
-	class VelocityOverLifetime implements IClone  {
-
-		/**
-		 * 是否启用
-		 */
-		enable:boolean;
-
-		/**
-		 * 速度空间,0为local,1为world。
-		 */
-		space:number;
-
-		/**
-		 * 获取尺寸。
-		 */
-		get velocity():GradientVelocity;
-
-		/**
-		 * 创建一个 <code>VelocityOverLifetime</code> 实例。
-		 */
-
-		constructor(velocity:GradientVelocity);
-
-		/**
-		 * 克隆。
-		 * @param destObject 克隆源。
-		 */
-		cloneTo(destObject:any):void;
-
-		/**
-		 * 克隆。
-		 * @return 克隆副本。
-		 */
-		clone():any;
-	}
-
-	/**
-	 * <code>ShuriKenParticle3D</code> 3D粒子。
-	 */
-	class ShuriKenParticle3D extends RenderableSprite3D  {
-
-		/**
-		 * 粒子系统。
-		 */
-		get particleSystem():ShurikenParticleSystem;
-
-		/**
-		 * 粒子渲染器。
-		 */
-		get particleRenderer():ShurikenParticleRenderer;
-
-		/**
-		 * 创建一个 <code>Particle3D</code> 实例。
-		 */
-
-		constructor();
-
-		/**
-		 * <p>销毁此对象。</p>
-		 * @param destroyChild 是否同时销毁子节点，若值为true,则销毁子节点，否则不销毁子节点。
-		 * @override 
-		 */
-		destroy(destroyChild?:boolean):void;
-	}
-	class ShurikenParticleInstanceSystem extends ShurikenParticleSystem  {
-		private _instanceParticleVertexBuffer:any;
-		private _instanceVertex:any;
-		private _instanceBufferState:any;
-		private _meshIndexCount:any;
-		private _meshFloatCountPreVertex:any;
-
-		/**
-		 * 每个粒子数据 float 个数
-		 */
-		private _floatCountPerParticleData:any;
-
-		constructor(owner:ShuriKenParticle3D);
-
-		/**
-		 * *
-		 * 重排 mesh vb
-		 */
-		private _initMeshVertex:any;
-
-		/**
-		 * 初始化 buffer
-		 * @returns 
-		 */
-		_initBufferDatas():void;
-		protected _retireActiveParticles():void;
-		protected _freeRetiredParticles():void;
-		addParticle(position:Vector3,direction:Vector3,time:number):boolean;
-		addNewParticlesToVertexBuffer():void;
-		_render(stage:RenderContext3D):void;
-		destroy():void;
-	}
-
-	/**
-	 * <code>ShurikenParticleMaterial</code> 类用于实现粒子材质。
-	 */
-	class ShurikenParticleMaterial extends Material  {
-
-		/**
-		 * 渲染状态_透明混合。
-		 */
-		static RENDERMODE_ALPHABLENDED:number;
-
-		/**
-		 * 渲染状态_加色法混合。
-		 */
-		static RENDERMODE_ADDTIVE:number;
-
-		/**
-		 * @interanl 
-		 */
-		static SHADERDEFINE_ADDTIVEFOG:ShaderDefine;
-
-		/**
-		 * 默认材质，禁止修改
-		 */
-		static defaultMaterial:ShurikenParticleMaterial;
-
-		/**
-		 * 渲染模式。
-		 */
-		set renderMode(value:number);
-
-		/**
-		 * 颜色R分量。
-		 */
-		get colorR():number;
-		set colorR(value:number);
-
-		/**
-		 * 颜色G分量。
-		 */
-		get colorG():number;
-		set colorG(value:number);
-
-		/**
-		 * 颜色B分量。
-		 */
-		get colorB():number;
-		set colorB(value:number);
-
-		/**
-		 * 颜色Z分量。
-		 */
-		get colorA():number;
-		set colorA(value:number);
-
-		/**
-		 * 颜色。
-		 */
-		get color():Vector4;
-		set color(value:Vector4);
-
-		/**
-		 * 纹理平铺和偏移X分量。
-		 */
-		get tilingOffsetX():number;
-		set tilingOffsetX(x:number);
-
-		/**
-		 * 纹理平铺和偏移Y分量。
-		 */
-		get tilingOffsetY():number;
-		set tilingOffsetY(y:number);
-
-		/**
-		 * 纹理平铺和偏移Z分量。
-		 */
-		get tilingOffsetZ():number;
-		set tilingOffsetZ(z:number);
-
-		/**
-		 * 纹理平铺和偏移W分量。
-		 */
-		get tilingOffsetW():number;
-		set tilingOffsetW(w:number);
-
-		/**
-		 * 纹理平铺和偏移。
-		 */
-		get tilingOffset():Vector4;
-		set tilingOffset(value:Vector4);
-
-		/**
-		 * 漫反射贴图。
-		 */
-		get texture():BaseTexture;
-		set texture(value:BaseTexture);
-
-		/**
-		 * 创建一个 <code>ShurikenParticleMaterial</code> 实例。
-		 */
-
-		constructor();
-
-		/**
-		 * 克隆。
-		 * @return 克隆副本。
-		 * @override 
-		 */
-		clone():any;
-	}
-
-	/**
-	 * <code>ShurikenParticleRender</code> 类用于创建3D粒子渲染器。
-	 */
-	class ShurikenParticleRenderer extends BaseRender  {
-		private _dragConstant:any;
-
-		/**
-		 * 拉伸广告牌模式摄像机速度缩放,暂不支持。
-		 */
-		stretchedBillboardCameraSpeedScale:number;
-
-		/**
-		 * 拉伸广告牌模式速度缩放。
-		 */
-		stretchedBillboardSpeedScale:number;
-
-		/**
-		 * 拉伸广告牌模式长度缩放。
-		 */
-		stretchedBillboardLengthScale:number;
-
-		/**
-		 * 获取渲染模式,0为BILLBOARD、1为STRETCHEDBILLBOARD、2为HORIZONTALBILLBOARD、3为VERTICALBILLBOARD、4为MESH。
-		 */
-		get renderMode():number;
-		set renderMode(value:number);
-
-		/**
-		 * 获取网格渲染模式所使用的Mesh,rendderMode为4时生效。
-		 */
-		get mesh():Mesh;
-		set mesh(value:Mesh);
-
-		/**
-		 * 创建一个 <code>ShurikenParticleRender</code> 实例。
-		 */
-
-		constructor(owner:ShuriKenParticle3D);
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		get bounds():Bounds;
-	}
-
-	/**
-	 * <code>ShurikenParticleSystem</code> 类用于创建3D粒子数据模板。
-	 */
-	class ShurikenParticleSystem extends GeometryElement implements IClone  {
-		protected _emissionLastPosition:Vector3;
-
-		/**
-		 * 粒子运行的总时长，单位为秒。
-		 */
-		duration:number;
-
-		/**
-		 * 是否循环。
-		 */
-		looping:boolean;
-
-		/**
-		 * 是否预热。暂不支持
-		 */
-		prewarm:boolean;
-
-		/**
-		 * 开始延迟类型，0为常量模式,1为随机随机双常量模式，不能和prewarm一起使用。
-		 */
-		startDelayType:number;
-
-		/**
-		 * 开始播放延迟，不能和prewarm一起使用。
-		 */
-		startDelay:number;
-
-		/**
-		 * 开始播放最小延迟，不能和prewarm一起使用。
-		 */
-		startDelayMin:number;
-
-		/**
-		 * 开始播放最大延迟，不能和prewarm一起使用。
-		 */
-		startDelayMax:number;
-
-		/**
-		 * 开始速度模式，0为恒定速度，2为两个恒定速度的随机插值。缺少1、3模式
-		 */
-		startSpeedType:number;
-
-		/**
-		 * 开始速度,0模式。
-		 */
-		startSpeedConstant:number;
-
-		/**
-		 * 最小开始速度,1模式。
-		 */
-		startSpeedConstantMin:number;
-
-		/**
-		 * 最大开始速度,1模式。
-		 */
-		startSpeedConstantMax:number;
-
-		/**
-		 * 阻力模式，0为恒定速度，2为两个恒定速度的随机插值
-		 */
-		dragType:number;
-
-		/**
-		 * 开始速度,0模式。
-		 */
-		dragConstant:number;
-
-		/**
-		 * 最小开始速度,1模式。
-		 */
-		dragSpeedConstantMin:number;
-
-		/**
-		 * 最大开始速度,1模式。
-		 */
-		dragSpeedConstantMax:number;
-
-		/**
-		 * 开始尺寸是否为3D模式。
-		 */
-		threeDStartSize:boolean;
-
-		/**
-		 * 开始尺寸模式,0为恒定尺寸，2为两个恒定尺寸的随机插值。缺少1、3模式和对应的二种3D模式
-		 */
-		startSizeType:number;
-
-		/**
-		 * 开始尺寸，0模式。
-		 */
-		startSizeConstant:number;
-
-		/**
-		 * 开始三维尺寸，0模式。
-		 */
-		startSizeConstantSeparate:Vector3;
-
-		/**
-		 * 最小开始尺寸，2模式。
-		 */
-		startSizeConstantMin:number;
-
-		/**
-		 * 最大开始尺寸，2模式。
-		 */
-		startSizeConstantMax:number;
-
-		/**
-		 * 最小三维开始尺寸，2模式。
-		 */
-		startSizeConstantMinSeparate:Vector3;
-
-		/**
-		 * 最大三维开始尺寸，2模式。
-		 */
-		startSizeConstantMaxSeparate:Vector3;
-
-		/**
-		 * 3D开始旋转。
-		 */
-		threeDStartRotation:boolean;
-
-		/**
-		 * 开始旋转模式,0为恒定尺寸，2为两个恒定旋转的随机插值,缺少2种模式,和对应的四种3D模式。
-		 */
-		startRotationType:number;
-
-		/**
-		 * 开始旋转，0模式。
-		 */
-		startRotationConstant:number;
-
-		/**
-		 * 开始三维旋转，0模式。
-		 */
-		startRotationConstantSeparate:Vector3;
-
-		/**
-		 * 最小开始旋转，1模式。
-		 */
-		startRotationConstantMin:number;
-
-		/**
-		 * 最大开始旋转，1模式。
-		 */
-		startRotationConstantMax:number;
-
-		/**
-		 * 最小开始三维旋转，1模式。
-		 */
-		startRotationConstantMinSeparate:Vector3;
-
-		/**
-		 * 最大开始三维旋转，1模式。
-		 */
-		startRotationConstantMaxSeparate:Vector3;
-
-		/**
-		 * 随机旋转方向，范围为0.0到1.0
-		 */
-		randomizeRotationDirection:number;
-
-		/**
-		 * 开始颜色模式，0为恒定颜色，2为两个恒定颜色的随机插值,缺少2种模式。
-		 */
-		startColorType:number;
-
-		/**
-		 * 开始颜色，0模式。
-		 */
-		startColorConstant:Vector4;
-
-		/**
-		 * 最小开始颜色，1模式。
-		 */
-		startColorConstantMin:Vector4;
-
-		/**
-		 * 最大开始颜色，1模式。
-		 */
-		startColorConstantMax:Vector4;
-
-		/**
-		 * 重力敏感度。
-		 */
-		gravityModifier:number;
-
-		/**
-		 * 模拟器空间,0为World,1为Local。暂不支持Custom。
-		 */
-		simulationSpace:number;
-
-		/**
-		 * 粒子的播放速度。
-		 */
-		simulationSpeed:number;
-
-		/**
-		 * 缩放模式，0为Hiercachy,1为Local,2为World。
-		 */
-		scaleMode:number;
-
-		/**
-		 * 激活时是否自动播放。
-		 */
-		playOnAwake:boolean;
-
-		/**
-		 * 随机种子,注:play()前设置有效。
-		 */
-		randomSeed:Uint32Array;
-
-		/**
-		 * 是否使用随机种子。
-		 */
-		autoRandomSeed:boolean;
-
-		/**
-		 * 是否为性能模式,性能模式下会延迟粒子释放。
-		 */
-		isPerformanceMode:boolean;
-
-		/**
-		 * 最大粒子数。
-		 */
-		get maxParticles():number;
-		set maxParticles(value:number);
-
-		/**
-		 * 获取发射器。
-		 */
-		get emission():Emission;
-
-		/**
-		 * 粒子存活个数。
-		 */
-		get aliveParticleCount():number;
-
-		/**
-		 * 一次循环内的累计时间。
-		 */
-		get emissionTime():number;
-
-		/**
-		 * 形状。
-		 */
-		get shape():BaseShape;
-		set shape(value:BaseShape);
-
-		/**
-		 * 是否存活。
-		 */
-		get isAlive():boolean;
-
-		/**
-		 * 是否正在发射。
-		 */
-		get isEmitting():boolean;
-
-		/**
-		 * 是否正在播放。
-		 */
-		get isPlaying():boolean;
-
-		/**
-		 * 是否已暂停。
-		 */
-		get isPaused():boolean;
-
-		/**
-		 * 开始生命周期模式,0为固定时间，1为渐变时间，2为两个固定之间的随机插值,3为两个渐变时间的随机插值。
-		 */
-		get startLifetimeType():number;
-		set startLifetimeType(value:number);
-
-		/**
-		 * 开始生命周期，0模式,单位为秒。
-		 */
-		get startLifetimeConstant():number;
-		set startLifetimeConstant(value:number);
-
-		/**
-		 * 开始渐变生命周期，1模式,单位为秒。
-		 */
-		get startLifeTimeGradient():GradientDataNumber;
-		set startLifeTimeGradient(value:GradientDataNumber);
-
-		/**
-		 * 最小开始生命周期，2模式,单位为秒。
-		 */
-		get startLifetimeConstantMin():number;
-		set startLifetimeConstantMin(value:number);
-
-		/**
-		 * 最大开始生命周期，2模式,单位为秒。
-		 */
-		get startLifetimeConstantMax():number;
-		set startLifetimeConstantMax(value:number);
-
-		/**
-		 * 开始渐变最小生命周期，3模式,单位为秒。
-		 */
-		get startLifeTimeGradientMin():GradientDataNumber;
-		set startLifeTimeGradientMin(value:GradientDataNumber);
-
-		/**
-		 * 开始渐变最大生命周期，3模式,单位为秒。
-		 */
-		get startLifeTimeGradientMax():GradientDataNumber;
-		set startLifeTimeGradientMax(value:GradientDataNumber);
-
-		/**
-		 * 生命周期速度,注意:如修改该值的某些属性,需重新赋值此属性才可生效。
-		 */
-		get velocityOverLifetime():VelocityOverLifetime;
-		set velocityOverLifetime(value:VelocityOverLifetime);
-
-		/**
-		 * 生命周期颜色,注意:如修改该值的某些属性,需重新赋值此属性才可生效。
-		 */
-		get colorOverLifetime():ColorOverLifetime;
-		set colorOverLifetime(value:ColorOverLifetime);
-
-		/**
-		 * 生命周期尺寸,注意:如修改该值的某些属性,需重新赋值此属性才可生效。
-		 */
-		get sizeOverLifetime():SizeOverLifetime;
-		set sizeOverLifetime(value:SizeOverLifetime);
-
-		/**
-		 * 生命周期旋转,注意:如修改该值的某些属性,需重新赋值此属性才可生效。
-		 */
-		get rotationOverLifetime():RotationOverLifetime;
-		set rotationOverLifetime(value:RotationOverLifetime);
-
-		/**
-		 * 生命周期纹理动画,注意:如修改该值的某些属性,需重新赋值此属性才可生效。
-		 */
-		get textureSheetAnimation():TextureSheetAnimation;
-		set textureSheetAnimation(value:TextureSheetAnimation);
-
-		constructor(owner:ShuriKenParticle3D);
-
-		/**
-		 * 设置 自定义 包围盒
-		 */
-		get customBounds():Bounds;
-		set customBounds(value:Bounds);
-
-		/**
-		 * 发射一个粒子。
-		 */
-		emit(time:number):boolean;
-		addParticle(position:Vector3,direction:Vector3,time:number):boolean;
-		addNewParticlesToVertexBuffer():void;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		_getType():number;
-
-		/**
-		 * 开始发射粒子。
-		 */
-		play():void;
-
-		/**
-		 * 暂停发射粒子。
-		 */
-		pause():void;
-
-		/**
-		 * 通过指定时间增加粒子播放进度，并暂停播放。
-		 * @param time 进度时间.如果restart为true,粒子播放时间会归零后再更新进度。
-		 * @param restart 是否重置播放状态。
-		 */
-		simulate(time:number,restart?:boolean):void;
-
-		/**
-		 * 停止发射粒子。
-		 */
-		stop():void;
-
-		/**
-		 * 克隆。
-		 * @param destObject 克隆源。
-		 */
-		cloneTo(destObject:any):void;
-
-		/**
-		 * 克隆。
-		 * @return 克隆副本。
-		 */
-		clone():any;
-	}
-
-	/**
 	 * <code>PixelLineData</code> 类用于表示线数据。
 	 */
 	class PixelLineData  {
@@ -8326,55 +8895,6 @@ enum ParticleSystemShapeType {
 		 * 清除所有线段。
 		 */
 		clear():void;
-	}
-
-	/**
-	 * <code>QuaternionKeyframe</code> 类用于创建四元数关键帧实例。
-	 */
-	class QuaternionKeyframe extends Keyframe  {
-
-		/**
-		 * 内切线
-		 */
-		inTangent:Vector4;
-
-		/**
-		 * 外切线
-		 */
-		outTangent:Vector4;
-
-		/**
-		 * 帧数据
-		 */
-		value:Quaternion;
-
-		/**
-		 * 内权重
-		 */
-		inWeight:Vector4;
-
-		/**
-		 * 外权重
-		 */
-		outWeight:Vector4;
-
-		/**
-		 * 权重模式
-		 */
-		weightedMode:Vector4;
-
-		/**
-		 * 创建一个 <code>QuaternionKeyframe</code> 实例。
-		 */
-
-		constructor();
-
-		/**
-		 * 克隆。
-		 * @param destObject 克隆源。
-		 * @override 
-		 */
-		cloneTo(dest:any):void;
 	}
 
 enum ReflectionProbeMode {
@@ -8798,33 +9318,126 @@ enum ReflectionProbeMode {
 	}
 
 	/**
-	 * 类用于创建从渲染源输出到渲染目标的指令
+	 * <code>PostProcessEffect</code> 类用于创建后期处理渲染效果。
 	 */
-	class BlitFrameBufferCMD  {
+	class PostProcessEffect  {
 
 		/**
-		 * 渲染命令集
-		 * @param source 
-		 * @param dest 
-		 * @param viewport 
-		 * @param offsetScale 
-		 * @param shader 
-		 * @param shaderData 
-		 * @param subShader 
+		 * 创建一个 <code>PostProcessEffect</code> 实例。
 		 */
-		static create(source:BaseTexture,dest:RenderTexture,viewport:Viewport,offsetScale?:Vector4,shader?:Shader3D,shaderData?:ShaderData,subShader?:number):BlitFrameBufferCMD;
+
+		constructor();
+	}
+
+	/**
+	 * * <code>PostProcessRenderContext</code> 类用于创建后期处理渲染上下文。
+	 */
+	class PostProcessRenderContext  {
+
+		/**
+		 * 源纹理。
+		 */
+		source:RenderTexture|null;
+
+		/**
+		 * 输出纹理。
+		 */
+		destination:RenderTexture|null;
+
+		/**
+		 * 渲染相机。
+		 */
+		camera:Camera|null;
+
+		/**
+		 * 合成着色器数据。
+		 */
+		compositeShaderData:ShaderData|null;
+
+		/**
+		 * 后期处理指令流。
+		 */
+		command:CommandBuffer|null;
+
+		/**
+		 * 临时纹理数组。
+		 */
+		deferredReleaseTextures:RenderTexture[];
+	}
+
+	/**
+	 * <code>RenderContext3D</code> 类用于实现渲染状态。
+	 */
+	class RenderContext3D  {
+
+		/**
+		 * 渲染区宽度。
+		 */
+		static clientWidth:number;
+
+		/**
+		 * 渲染区高度。
+		 */
+		static clientHeight:number;
+
+		/**
+		 * 设置渲染管线
+		 */
+		configPipeLineMode:string;
+
+		/**
+		 * 创建一个 <code>RenderContext3D</code> 实例。
+		 */
+
+		constructor();
+	}
+
+	/**
+	 * <code>RenderElement</code> 类用于实现渲染元素。
+	 */
+	class RenderElement  {
+
+		/**
+		 * 创建一个 <code>RenderElement</code> 实例。
+		 */
+
+		constructor();
+	}
+
+	/**
+	 * <code>ScreenQuad</code> 类用于创建全屏四边形。
+	 */
+	class ScreenQuad extends Resource  {
+
+		/**
+		 * 创建一个 <code>ScreenQuad</code> 实例,禁止使用。
+		 */
+
+		constructor();
 
 		/**
 		 * @inheritDoc 
 		 * @override 
 		 */
-		run():void;
+		destroy():void;
+	}
+
+	/**
+	 * <code>ScreenTriangle</code> 类用于创建全屏三角形。
+	 */
+	class ScreenTriangle extends Resource  {
+
+		/**
+		 * 创建一个 <code>ScreenTriangle</code> 实例,禁止使用。
+		 */
+
+		constructor();
 
 		/**
 		 * @inheritDoc 
 		 * @override 
 		 */
-		recover():void;
+		destroy():void;
 	}
 
 	/**
@@ -8894,10 +9507,7 @@ enum ReflectionProbeMode {
 		 * 创建一个 <code>CommandBuffer</code> 实例。
 		 */
 
-		constructor(name?:string);
-		get name():string;
-		_applyOne():boolean;
-		getCommandsSize():number;
+		constructor();
 
 		/**
 		 * 设置shader图片数据
@@ -8996,7 +9606,6 @@ enum ReflectionProbeMode {
 		 * @param value 数据
 		 */
 		setShaderDataMatrix(shaderData:ShaderData,nameID:number,value:Matrix4x4):void;
-		setShaderDefine(shaderData:ShaderData,define:string,value:boolean):void;
 
 		/**
 		 * 设置全局Matrix属性
@@ -9219,222 +9828,8 @@ enum ShaderDataType {
     /**数组 */
     Buffer = 8,
     /**图片 */
-    Texture = 9,
-    /**宏定义 */
-    ShaderDefine = 10
+    Texture = 9
 }
-
-	/**
-	 * <code>PostProcessEffect</code> 类用于创建后期处理渲染效果。
-	 */
-	class PostProcessEffect  {
-
-		/**
-		 * 创建一个 <code>PostProcessEffect</code> 实例。
-		 */
-
-		constructor();
-	}
-
-	/**
-	 * * <code>PostProcessRenderContext</code> 类用于创建后期处理渲染上下文。
-	 */
-	class PostProcessRenderContext  {
-
-		/**
-		 * 源纹理。
-		 */
-		source:RenderTexture|null;
-
-		/**
-		 * 输出纹理。
-		 */
-		destination:RenderTexture|null;
-
-		/**
-		 * 渲染相机。
-		 */
-		camera:Camera|null;
-
-		/**
-		 * 合成着色器数据。
-		 */
-		compositeShaderData:ShaderData|null;
-
-		/**
-		 * 后期处理指令流。
-		 */
-		command:CommandBuffer|null;
-
-		/**
-		 * 临时纹理数组。
-		 */
-		deferredReleaseTextures:RenderTexture[];
-	}
-
-	/**
-	 * <code>RenderContext3D</code> 类用于实现渲染状态。
-	 */
-	class RenderContext3D  {
-
-		/**
-		 * 渲染区宽度。
-		 */
-		static clientWidth:number;
-
-		/**
-		 * 渲染区高度。
-		 */
-		static clientHeight:number;
-
-		/**
-		 * 设置渲染管线
-		 */
-		configPipeLineMode:string;
-
-		/**
-		 * 创建一个 <code>RenderContext3D</code> 实例。
-		 */
-
-		constructor();
-	}
-
-	/**
-	 * <code>RenderElement</code> 类用于实现渲染元素。
-	 */
-	class RenderElement  {
-
-		/**
-		 * 创建一个 <code>RenderElement</code> 实例。
-		 */
-
-		constructor();
-	}
-
-	/**
-	 * <code>ScreenQuad</code> 类用于创建全屏四边形。
-	 */
-	class ScreenQuad extends Resource  {
-
-		/**
-		 * 创建一个 <code>ScreenQuad</code> 实例,禁止使用。
-		 */
-
-		constructor();
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		destroy():void;
-	}
-
-	/**
-	 * <code>ScreenTriangle</code> 类用于创建全屏三角形。
-	 */
-	class ScreenTriangle extends Resource  {
-
-		/**
-		 * 创建一个 <code>ScreenTriangle</code> 实例,禁止使用。
-		 */
-
-		constructor();
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		destroy():void;
-	}
-
-	/**
-	 * <code>RenderableSprite3D</code> 类用于可渲染3D精灵的父类，抽象类不允许实例。
-	 */
-	class RenderableSprite3D extends Sprite3D  {
-
-		/**
-		 * 精灵级着色器宏定义,接收阴影。
-		 */
-		static SHADERDEFINE_RECEIVE_SHADOW:ShaderDefine;
-
-		/**
-		 * 精灵级着色器宏定义,光照贴图。
-		 */
-		static SAHDERDEFINE_LIGHTMAP:ShaderDefine;
-
-		/**
-		 * 精灵级着色器宏定义,光照贴图方向。
-		 */
-		static SHADERDEFINE_LIGHTMAP_DIRECTIONAL:ShaderDefine;
-
-		/**
-		 * 着色器变量名，光照贴图缩放和偏移。
-		 */
-		static LIGHTMAPSCALEOFFSET:number;
-
-		/**
-		 * 着色器变量名，光照贴图。
-		 */
-		static LIGHTMAP:number;
-
-		/**
-		 * 着色器变量名，光照贴图方向。
-		 */
-		static LIGHTMAP_DIRECTION:number;
-
-		/**
-		 * 拾取颜色。
-		 */
-		static PICKCOLOR:number;
-
-		/**
-		 * 反射贴图
-		 */
-		static REFLECTIONTEXTURE:number;
-
-		/**
-		 * 反射贴图参数
-		 */
-		static REFLECTIONCUBE_HDR_PARAMS:number;
-
-		/**
-		 * 反射探针位置 最大最小值
-		 */
-		static REFLECTIONCUBE_PROBEPOSITION:number;
-		static REFLECTIONCUBE_PROBEBOXMAX:number;
-		static REFLECTIONCUBE_PROBEBOXMIN:number;
-		pickColor:Vector4;
-
-		/**
-		 * 创建一个 <code>RenderableSprite3D</code> 实例。
-		 */
-
-		constructor(name:string);
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		protected _onInActive():void;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		protected _onActive():void;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		protected _onActiveInScene():void;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		destroy(destroyChild?:boolean):void;
-	}
 
 	/**
 	 * <code>BoundsOctree</code> 类用于创建八叉树。
@@ -9583,8 +9978,8 @@ enum ShaderDataType {
 
 		/**
 		 * 收缩八叉树节点。
-		 * -所有物体都在根节点的八分之一区域
-		 * -该节点无子节点或有子节点但1/8的子节点不包含物体
+-所有物体都在根节点的八分之一区域
+-该节点无子节点或有子节点但1/8的子节点不包含物体
 		 * @param minLength 最小尺寸。
 		 * @return 新的根节点。
 		 */
@@ -9701,9 +10096,7 @@ enum AmbientMode {
     /** 固定颜色。*/
     SolidColor = 0,
     /** 球谐光照, 通过天空盒生成的球谐数据。 */
-    SphericalHarmonics = 1,
-    /** 分别设置天空, 地平线, 地面的环境光颜色 */
-    TripleColor = 2
+    SphericalHarmonics = 1
 }
 
 	/**
@@ -9746,8 +10139,6 @@ enum AmbientMode {
 		static SCENERENDERFLAG_SKYBOX:number;
 		static SCENERENDERFLAG_RENDERTRANSPARENT:number;
 		static _blitTransRT:RenderTexture;
-		static _blitOffset:Vector4;
-		static mainCavansViewPort:Viewport;
 		static set _updateMark(value:number);
 		static get _updateMark():number;
 
@@ -9757,6 +10148,7 @@ enum AmbientMode {
 		 * @param complete 完成回调。
 		 */
 		static load(url:string,complete:Handler):void;
+		private _acc:any;
 
 		/**
 		 * 当前创建精灵所属遮罩层。
@@ -9800,7 +10192,7 @@ enum AmbientMode {
 
 		/**
 		 * 环境光模式。
-		 * 如果值为AmbientMode.SolidColor一般使用ambientColor作为环境光源，如果值为如果值为AmbientMode.SphericalHarmonics一般使用ambientSphericalHarmonics作为环境光源。
+如果值为AmbientMode.SolidColor一般使用ambientColor作为环境光源，如果值为如果值为AmbientMode.SphericalHarmonics一般使用ambientSphericalHarmonics作为环境光源。
 		 */
 		get ambientMode():AmbientMode;
 		set ambientMode(value:AmbientMode);
@@ -9810,21 +10202,6 @@ enum AmbientMode {
 		 */
 		get ambientColor():Vector3;
 		set ambientColor(value:Vector3);
-
-		/**
-		 * 天空环境光颜色
-		 */
-		get ambientSkyColor():Vector3;
-
-		/**
-		 * 地平线环境光颜色
-		 */
-		get ambientEquatorColor():Vector3;
-
-		/**
-		 * 地面环境光颜色
-		 */
-		get ambientGroundColor():Vector3;
 
 		/**
 		 * 球谐环境光,修改后必须重新赋值。
@@ -9892,11 +10269,6 @@ enum AmbientMode {
 		constructor();
 
 		/**
-		 * 设置 天空， 地平线， 地面 环境光颜色
-		 */
-		setGradientAmbient(skyColor:Vector3,equatorColor:Vector3,groundColor:Vector3):void;
-
-		/**
 		 * @param url 路径
 		 */
 		_setCreateURL(url:string):void;
@@ -9924,7 +10296,6 @@ enum AmbientMode {
 		 * 渲染入口
 		 */
 		renderSubmit():number;
-		blitMainCanvans(source:BaseTexture,normalizeViewPort:Viewport):void;
 
 		/**
 		 * 获得渲染类型
@@ -10021,248 +10392,6 @@ enum AmbientMode {
 		getCollidingWithFrustum(cameraCullInfo:CameraCullInfo,context:RenderContext3D,shader:Shader3D,replacementTag:string,isShadowCasterCull:boolean):void;
 	}
 
-	class SimpleSkinnedMeshRenderer extends SkinnedMeshRenderer  {
-
-		/**
-		 * 创建一个 <code>SkinnedMeshRender</code> 实例。
-		 */
-
-		constructor(owner:RenderableSprite3D);
-
-		/**
-		 * 删除节点
-		 */
-		_destroy():void;
-	}
-
-	/**
-	 * <code>SkinnedMeshSprite3D</code> 类用于创建网格。
-	 */
-	class SimpleSkinnedMeshSprite3D extends RenderableSprite3D  {
-
-		/**
-		 */
-		static SIMPLE_SIMPLEANIMATORTEXTURE:number;
-		static SIMPLE_SIMPLEANIMATORPARAMS:number;
-		static SIMPLE_SIMPLEANIMATORTEXTURESIZE:number;
-
-		/**
-		 * 网格过滤器。
-		 */
-		get meshFilter():MeshFilter;
-
-		/**
-		 * 网格渲染器。
-		 */
-		get simpleSkinnedMeshRenderer():SimpleSkinnedMeshRenderer;
-
-		/**
-		 * 创建一个 <code>MeshSprite3D</code> 实例。
-		 * @param mesh 网格,同时会加载网格所用默认材质。
-		 * @param name 名字。
-		 */
-
-		constructor(mesh?:Mesh,name?:string);
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		destroy(destroyChild?:boolean):void;
-	}
-
-	/**
-	 * <code>SkinMeshRenderer</code> 类用于蒙皮渲染器。
-	 */
-	class SkinnedMeshRenderer extends MeshRenderer  {
-
-		/**
-		 * 局部边界。
-		 */
-		get localBounds():Bounds;
-		set localBounds(value:Bounds);
-
-		/**
-		 * 根节点。
-		 */
-		get rootBone():Sprite3D;
-		set rootBone(value:Sprite3D);
-
-		/**
-		 * 用于蒙皮的骨骼。
-		 */
-		get bones():Sprite3D[];
-
-		/**
-		 * 创建一个 <code>SkinnedMeshRender</code> 实例。
-		 */
-
-		constructor(owner:RenderableSprite3D);
-		protected _computeSkinnedData():void;
-
-		/**
-		 * @override 包围盒。
-		 */
-		get bounds():Bounds;
-	}
-
-	/**
-	 * <code>SkinnedMeshSprite3D</code> 类用于绑点骨骼节点精灵。
-	 */
-	class SkinnedMeshSprite3D extends RenderableSprite3D  {
-
-		/**
-		 * 着色器变量名，蒙皮动画。
-		 */
-		static BONES:number;
-
-		/**
-		 * 简单动画变量名，贴图蒙皮动画
-		 */
-		static SIMPLE_SIMPLEANIMATORTEXTURE:number;
-		static SIMPLE_SIMPLEANIMATORPARAMS:number;
-		static SIMPLE_SIMPLEANIMATORTEXTURESIZE:number;
-
-		/**
-		 * 网格过滤器。
-		 */
-		get meshFilter():MeshFilter;
-
-		/**
-		 * 网格渲染器。
-		 */
-		get skinnedMeshRenderer():SkinnedMeshRenderer;
-
-		/**
-		 * 创建一个 <code>MeshSprite3D</code> 实例。
-		 * @param mesh 网格,同时会加载网格所用默认材质。
-		 * @param name 名字。
-		 */
-
-		constructor(mesh?:Mesh,name?:string);
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		destroy(destroyChild?:boolean):void;
-	}
-	class SkinnedMeshSprite3DShaderDeclaration  {
-
-		/**
-		 * 精灵级着色器宏定义,蒙皮动画。
-		 */
-		static SHADERDEFINE_BONE:ShaderDefine;
-		static SHADERDEFINE_SIMPLEBONE:ShaderDefine;
-	}
-
-	/**
-	 * <code>Sprite3D</code> 类用于实现3D精灵。
-	 */
-	class Sprite3D extends Node implements ICreateResource  {
-
-		/**
-		 * Hierarchy资源。
-		 */
-		static HIERARCHY:string;
-
-		/**
-		 * 创建精灵的克隆实例。
-		 * @param original 原始精灵。
-		 * @param parent 父节点。
-		 * @param worldPositionStays 是否保持自身世界变换。
-		 * @param position 世界位置,worldPositionStays为false时生效。
-		 * @param rotation 世界旋转,worldPositionStays为false时生效。
-		 * @return 克隆实例。
-		 */
-		static instantiate(original:Sprite3D,parent?:Node,worldPositionStays?:boolean,position?:Vector3,rotation?:Quaternion):Sprite3D;
-
-		/**
-		 * 加载网格模板。
-		 * @param url 模板地址。
-		 * @param complete 完成回掉。
-		 */
-		static load(url:string,complete:Handler):void;
-
-		/**
-		 * 唯一标识ID。
-		 */
-		get id():number;
-
-		/**
-		 * 蒙版层。
-		 */
-		get layer():number;
-		set layer(value:number);
-
-		/**
-		 * 资源的URL地址。
-		 */
-		get url():string;
-
-		/**
-		 * 是否为静态。
-		 */
-		get isStatic():boolean;
-
-		/**
-		 * 精灵变换。
-		 */
-		get transform():Transform3D;
-
-		/**
-		 * 创建一个 <code>Sprite3D</code> 实例。
-		 * @param name 精灵名称。
-		 * @param isStatic 是否为静态。
-		 */
-
-		constructor(name?:string,isStatic?:boolean);
-
-		/**
-		 */
-		_setCreateURL(url:string):void;
-
-		/**
-		 * @private 
-		 */
-		protected _onInActiveInScene():void;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		protected _onAdded():void;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		protected _onRemoved():void;
-
-		/**
-		 * 克隆。
-		 * @return 克隆副本。
-		 */
-		clone():Node;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		destroy(destroyChild?:boolean):void;
-	}
-	class TextureMode  {
-
-		/**
-		 * 拉伸模式。
-		 */
-		static Stretch:number;
-
-		/**
-		 * 平铺模式。
-		 */
-		static Tile:number;
-	}
 
 enum TrailAlignment {
     /** 使拖尾面向摄像机。*/
@@ -10639,314 +10768,6 @@ enum TrailAlignment {
 		get vertexDeclaration():VertexDeclaration;
 	}
 
-	/**
-	 * <code>Transform3D</code> 类用于实现3D变换。
-	 */
-	class Transform3D extends EventDispatcher  {
-
-		/**
-		 * 所属精灵。
-		 */
-		get owner():Sprite3D;
-
-		/**
-		 * 世界矩阵是否需要更新。
-		 */
-		get worldNeedUpdate():boolean;
-
-		/**
-		 * 局部位置X轴分量。
-		 */
-		get localPositionX():number;
-		set localPositionX(x:number);
-
-		/**
-		 * 局部位置Y轴分量。
-		 */
-		get localPositionY():number;
-		set localPositionY(y:number);
-
-		/**
-		 * 局部位置Z轴分量。
-		 */
-		get localPositionZ():number;
-		set localPositionZ(z:number);
-
-		/**
-		 * 局部位置。
-		 */
-		get localPosition():Vector3;
-		set localPosition(value:Vector3);
-
-		/**
-		 * 局部旋转四元数X分量。
-		 */
-		get localRotationX():number;
-		set localRotationX(x:number);
-
-		/**
-		 * 局部旋转四元数Y分量。
-		 */
-		get localRotationY():number;
-		set localRotationY(y:number);
-
-		/**
-		 * 局部旋转四元数Z分量。
-		 */
-		get localRotationZ():number;
-		set localRotationZ(z:number);
-
-		/**
-		 * 局部旋转四元数W分量。
-		 */
-		get localRotationW():number;
-		set localRotationW(w:number);
-
-		/**
-		 * 局部旋转。
-		 */
-		get localRotation():Quaternion;
-		set localRotation(value:Quaternion);
-
-		/**
-		 * 局部缩放X。
-		 */
-		get localScaleX():number;
-		set localScaleX(value:number);
-
-		/**
-		 * 局部缩放Y。
-		 */
-		get localScaleY():number;
-		set localScaleY(value:number);
-
-		/**
-		 * 局部缩放Z。
-		 */
-		get localScaleZ():number;
-		set localScaleZ(value:number);
-
-		/**
-		 * 局部缩放。
-		 */
-		get localScale():Vector3;
-		set localScale(value:Vector3);
-
-		/**
-		 * 局部空间的X轴欧拉角。
-		 */
-		get localRotationEulerX():number;
-		set localRotationEulerX(value:number);
-
-		/**
-		 * 局部空间的Y轴欧拉角。
-		 */
-		get localRotationEulerY():number;
-		set localRotationEulerY(value:number);
-
-		/**
-		 * 局部空间的Z轴欧拉角。
-		 */
-		get localRotationEulerZ():number;
-		set localRotationEulerZ(value:number);
-
-		/**
-		 * 局部空间欧拉角。
-		 */
-		get localRotationEuler():Vector3;
-		set localRotationEuler(value:Vector3);
-
-		/**
-		 * 局部矩阵。
-		 */
-		get localMatrix():Matrix4x4;
-		set localMatrix(value:Matrix4x4);
-
-		/**
-		 * 世界位置。
-		 */
-		get position():Vector3;
-		set position(value:Vector3);
-
-		/**
-		 * 世界旋转。
-		 */
-		get rotation():Quaternion;
-		set rotation(value:Quaternion);
-
-		/**
-		 * 世界空间的旋转角度，顺序为x、y、z。
-		 */
-		get rotationEuler():Vector3;
-		set rotationEuler(value:Vector3);
-
-		/**
-		 * 世界矩阵。
-		 */
-		get worldMatrix():Matrix4x4;
-		set worldMatrix(value:Matrix4x4);
-
-		/**
-		 * 创建一个 <code>Transform3D</code> 实例。
-		 * @param owner 所属精灵。
-		 */
-
-		constructor(owner:Sprite3D);
-
-		/**
-		 * 平移变换。
-		 * @param translation 移动距离。
-		 * @param isLocal 是否局部空间。
-		 */
-		translate(translation:Vector3,isLocal?:boolean):void;
-
-		/**
-		 * 旋转变换。
-		 * @param rotations 旋转幅度。
-		 * @param isLocal 是否局部空间。
-		 * @param isRadian 是否弧度制。
-		 */
-		rotate(rotation:Vector3,isLocal?:boolean,isRadian?:boolean):void;
-
-		/**
-		 * 获取向前方向。
-		 * @param forward 前方向。
-		 */
-		getForward(forward:Vector3):void;
-
-		/**
-		 * 获取向上方向。
-		 * @param up 上方向。
-		 */
-		getUp(up:Vector3):void;
-
-		/**
-		 * 获取向右方向。
-		 * @param 右方向 。
-		 */
-		getRight(right:Vector3):void;
-
-		/**
-		 * 观察目标位置。
-		 * @param target 观察目标。
-		 * @param up 向上向量。
-		 * @param isLocal 是否局部空间。
-		 */
-		lookAt(target:Vector3,up:Vector3,isLocal?:boolean,isCamera?:boolean):void;
-
-		/**
-		 * 对象朝向目标
-		 * @param target 
-		 * @param up 
-		 * @param isLocal 
-		 */
-		objLookat(target:Vector3,up:Vector3,isLocal?:boolean):void;
-
-		/**
-		 * 世界缩放。
-		 * 某种条件下获取该值可能不正确（例如：父节点有缩放，子节点有旋转），缩放会倾斜，无法使用Vector3正确表示,必须使用Matrix3x3矩阵才能正确表示。
-		 * @return 世界缩放。
-		 */
-		getWorldLossyScale():Vector3;
-
-		/**
-		 * 设置世界缩放。
-		 * 某种条件下设置该值可能不正确（例如：父节点有缩放，子节点有旋转），缩放会倾斜，无法使用Vector3正确表示,必须使用Matrix3x3矩阵才能正确表示。
-		 * @return 世界缩放。
-		 */
-		setWorldLossyScale(value:Vector3):void;
-
-		/**
-		 * @deprecated 
-		 */
-		get scale():Vector3;
-
-		/**
-		 * @deprecated 
-		 */
-		set scale(value:Vector3);
-		localToGlobal(value:Vector3,out:Vector3):void;
-
-		/**
-		 * 转化成局部坐标
-		 * @param pos 
-		 * @param out 
-		 */
-		globalToLocal(pos:Vector3,out:Vector3):void;
-
-		/**
-		 * 转化成局部向量
-		 * @param pos 
-		 * @param out 
-		 */
-		toLocalNormal(pos:Vector3,out:Vector3):void;
-		toDir(forward:Vector3,dir:Vector3):void;
-		static tmpVec3:Vector3;
-
-		/**
-		 * 这是一个 glmatrix中的函数
-		 * a,b都是规格化以后的向量
-		 * Sets a quaternion to represent the shortest rotation from one
-		 * vector to another.
-		 * 
-		 * Both vectors are assumed to be unit length.
-		 * @param out the receiving quaternion.
-		 * @param a the initial vector
-		 * @param b the destination vector
-		 * @returns out
-		 */
-		rotationTo(out:Quaternion,a:Vector3,b:Vector3):boolean;
-	}
-
-	/**
-	 * <code>Vector3Keyframe</code> 类用于创建三维向量关键帧实例。
-	 */
-	class Vector3Keyframe extends Keyframe  {
-
-		/**
-		 * 内切线
-		 */
-		inTangent:Vector3;
-
-		/**
-		 * 外切线
-		 */
-		outTangent:Vector3;
-
-		/**
-		 * 帧数据
-		 */
-		value:Vector3;
-
-		/**
-		 * 内权重
-		 */
-		inWeight:Vector3;
-
-		/**
-		 * 外权重
-		 */
-		outWeight:Vector3;
-
-		/**
-		 * 权重模式
-		 */
-		weightedMode:Vector3;
-
-		/**
-		 * 创建一个 <code>Vector3Keyframe</code> 实例。
-		 */
-
-		constructor();
-
-		/**
-		 * 克隆。
-		 * @param destObject 克隆源。
-		 * @override 
-		 */
-		cloneTo(dest:any):void;
-	}
-
 enum DepthTextureMode {
     /**不生成深度贴图 */
     None = 0,
@@ -11017,6 +10838,15 @@ enum DepthTextureMode {
 		cullPlaneCount:number;
 		direction:Vector3;
 	}
+
+	interface IVertex{
+
+		/**
+		 * 顶点声明
+		 */
+		vertexDeclaration:VertexDeclaration;
+	}
+
 
 	/**
 	 * <code>IndexBuffer3D</code> 类用于创建索引缓冲。
@@ -11096,15 +10926,6 @@ enum IndexFormat {
     UInt32 = 2
 }
 
-	interface IVertex{
-
-		/**
-		 * 顶点声明
-		 */
-		vertexDeclaration:VertexDeclaration;
-	}
-
-
 	/**
 	 * 二阶球谐函数。
 	 */
@@ -11153,8 +10974,8 @@ enum IndexFormat {
 
 		/**
 		 * 静态批处理合并，合并后子节点修改Transform属性无效，根节点staticBatchRoot可为null,如果根节点不为null，根节点可移动。
-		 * 如果renderableSprite3Ds为null，合并staticBatchRoot以及其所有子节点为静态批处理，staticBatchRoot作为静态根节点。
-		 * 如果renderableSprite3Ds不为null,合并renderableSprite3Ds为静态批处理，staticBatchRoot作为静态根节点。
+如果renderableSprite3Ds为null，合并staticBatchRoot以及其所有子节点为静态批处理，staticBatchRoot作为静态根节点。
+如果renderableSprite3Ds不为null,合并renderableSprite3Ds为静态批处理，staticBatchRoot作为静态根节点。
 		 * @param staticBatchRoot 静态批处理根节点。
 		 * @param renderableSprite3Ds 静态批处理子节点队列。
 		 */
@@ -11503,37 +11324,6 @@ enum IndexFormat {
 	}
 
 	/**
-	 * <code>Input3D</code> 类用于实现3D输入。
-	 */
-	class Input3D  {
-
-		/**
-		 * 获取触摸点个数。
-		 * @return 触摸点个数。
-		 */
-		touchCount():number;
-
-		/**
-		 * 获取是否可以使用多点触摸。
-		 * @return 是否可以使用多点触摸。
-		 */
-		get multiTouchEnabled():boolean;
-
-		/**
-		 * 设置是否可以使用多点触摸。
-		 * @param 是否可以使用多点触摸 。
-		 */
-		set multiTouchEnabled(value:boolean);
-
-		/**
-		 * 获取触摸点。
-		 * @param index 索引。
-		 * @return 触摸点。
-		 */
-		getTouch(index:number):Touch;
-	}
-
-	/**
 	 * <code>BoundBox</code> 类用于创建包围盒。
 	 */
 	class BoundBox implements IClone  {
@@ -11683,12 +11473,12 @@ enum IndexFormat {
 
 		/**
 		 * 获取锥截体的任意一平面。
-		 * 0:近平面
-		 * 1:远平面
-		 * 2:左平面
-		 * 3:右平面
-		 * 4:顶平面
-		 * 5:底平面
+0:近平面
+1:远平面
+2:左平面
+3:右平面
+4:顶平面
+5:底平面
 		 * @param index 索引。
 		 */
 		getPlane(index:number):Plane;
@@ -12671,7 +12461,6 @@ enum IndexFormat {
 		 * @param destObject 克隆源。
 		 */
 		cloneTo(destObject:any):void;
-		cloneByArray(destObject:Float32Array):void;
 
 		/**
 		 * 克隆。
@@ -13668,14 +13457,6 @@ enum IndexFormat {
 		constructor(x?:number,y?:number,z?:number,w?:number);
 
 		/**
-		 * 设置四元数的值。
-		 * @param x X值。
-		 * @param y Y值。
-		 * @param z Z值。
-		 */
-		setValue(x:number,y:number,z:number,w:number):void;
-
-		/**
 		 * 根据缩放值缩放四元数
 		 * @param scale 缩放值
 		 * @param out 输出四元数
@@ -14652,279 +14433,6 @@ enum IndexFormat {
 	}
 
 	/**
-	 * <code>ConfigurableConstraint</code>类用于可设置的约束组件
-	 */
-	class ConfigurableConstraint extends ConstraintComponent  {
-
-		/**
-		 * 约束限制模式  完全限制
-		 */
-		static CONFIG_MOTION_TYPE_LOCKED:number;
-
-		/**
-		 * 约束限制模式  范围限制
-		 */
-		static CONFIG_MOTION_TYPE_LIMITED:number;
-
-		/**
-		 * 约束限制模式  不限制
-		 */
-		static CONFIG_MOTION_TYPE_FREE:number;
-
-		/**
-		 * 创建一个<code>ConfigurableConstraint</code>实例	可设置的约束组件
-		 */
-
-		constructor();
-
-		/**
-		 * 主轴
-		 */
-		get axis():Vector3;
-
-		/**
-		 * 副轴
-		 */
-		get secondaryAxis():Vector3;
-
-		/**
-		 * 旋转角度最大值
-		 */
-		set maxAngularLimit(value:Vector3);
-
-		/**
-		 * 旋转角度最小值
-		 */
-		set minAngularLimit(value:Vector3);
-		get maxAngularLimit():Vector3;
-		get minAngularLimit():Vector3;
-
-		/**
-		 * 最大线性位置
-		 */
-		set maxLinearLimit(value:Vector3);
-
-		/**
-		 * 最小线性位置
-		 */
-		set minLinearLimit(value:Vector3);
-		get maxLinearLimit():Vector3;
-		get minLinearLimit():Vector3;
-
-		/**
-		 * X轴线性约束模式
-		 */
-		set XMotion(value:number);
-		get XMotion():number;
-
-		/**
-		 * Y轴线性约束模式
-		 */
-		set YMotion(value:number);
-		get YMotion():number;
-
-		/**
-		 * Z轴线性约束模式
-		 */
-		set ZMotion(value:number);
-		get ZMotion():number;
-
-		/**
-		 * X轴旋转约束模式
-		 */
-		set angularXMotion(value:number);
-		get angularXMotion():number;
-
-		/**
-		 * Y轴旋转约束模式
-		 */
-		set angularYMotion(value:number);
-		get angularYMotion():number;
-
-		/**
-		 * Z轴旋转约束模式
-		 */
-		set angularZMotion(value:number);
-		get angularZMotion():number;
-
-		/**
-		 * 线性弹簧
-		 */
-		set linearLimitSpring(value:Vector3);
-		get linearLimitSpring():Vector3;
-
-		/**
-		 * 角度弹簧
-		 */
-		set angularLimitSpring(value:Vector3);
-		get angularLimitSpring():Vector3;
-
-		/**
-		 * 线性弹力
-		 */
-		set linearBounce(value:Vector3);
-		get linearBounce():Vector3;
-
-		/**
-		 * 角度弹力
-		 */
-		set angularBounce(value:Vector3);
-		get angularBounce():Vector3;
-
-		/**
-		 * 线性阻力
-		 */
-		set linearDamp(value:Vector3);
-		get linearDamp():Vector3;
-
-		/**
-		 * 角度阻力
-		 */
-		set angularDamp(value:Vector3);
-		get angularDamp():Vector3;
-
-		/**
-		 * 设置锚点
-		 */
-		set anchor(value:Vector3);
-		get anchor():Vector3;
-
-		/**
-		 * 设置链接锚点
-		 */
-		set connectAnchor(value:Vector3);
-		get connectAnchor():Vector3;
-
-		/**
-		 * 设置对象自然旋转的局部轴主轴，axis2为副轴
-		 * @param axis1 
-		 * @param axis2 
-		 */
-		setAxis(axis:Vector3,secondaryAxis:Vector3):void;
-		_initAllConstraintInfo():void;
-		_onDisable():void;
-	}
-
-	/**
-	 * <code>ConstraintComponent</code> 类用于创建约束的父类。
-	 */
-	class ConstraintComponent extends Component  {
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		get enabled():boolean;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		set enabled(value:boolean);
-
-		/**
-		 * 获取应用的冲力。
-		 */
-		get appliedImpulse():number;
-
-		/**
-		 * 获取连接的刚体B。
-		 * @return 已连接刚体B。
-		 */
-		get connectedBody():Rigidbody3D;
-
-		/**
-		 * 获取连接的刚体A。
-		 * @return 已连接刚体A。
-		 */
-		get ownBody():Rigidbody3D;
-
-		/**
-		 * 获得收到的总力
-		 */
-		get currentForce():Vector3;
-
-		/**
-		 * 获取的总力矩
-		 */
-		get currentTorque():Vector3;
-
-		/**
-		 * 设置最大承受力
-		 * @param value 最大承受力
-		 */
-		get breakForce():number;
-		set breakForce(value:number);
-
-		/**
-		 * 设置最大承受力矩
-		 * @param value 最大承受力矩
-		 */
-		get breakTorque():number;
-		set breakTorque(value:number);
-
-		/**
-		 * 设置锚点
-		 */
-		set anchor(value:Vector3);
-		get anchor():Vector3;
-
-		/**
-		 * 设置链接锚点
-		 */
-		set connectAnchor(value:Vector3);
-		get connectAnchor():Vector3;
-
-		/**
-		 * 创建一个 <code>ConstraintComponent</code> 实例。
-		 */
-
-		constructor(constraintType:number);
-
-		/**
-		 * 设置迭代的次数，次数越高，越精确
-		 * @param overideNumIterations 
-		 */
-		setOverrideNumSolverIterations(overideNumIterations:number):void;
-
-		/**
-		 * 设置约束是否可用
-		 * @param enable 
-		 */
-		setConstraintEnabled(enable:boolean):void;
-		_onDisable():void;
-
-		/**
-		 * 设置约束刚体
-		 * @param ownerRigid 
-		 * @param connectRigidBody 
-		 * @override 
-		 */
-		setConnectRigidBody(ownerRigid:Rigidbody3D,connectRigidBody:Rigidbody3D):void;
-
-		/**
-		 * 获得当前力
-		 * @param out 
-		 */
-		getcurrentForce(out:Vector3):void;
-
-		/**
-		 * 获得当前力矩
-		 * @param out 
-		 */
-		getcurrentTorque(out:Vector3):void;
-	}
-	class FixedConstraint extends ConstraintComponent  {
-
-		/**
-		 * 创建一个<code>FixedConstraint</code>实例
-		 */
-
-		constructor();
-		_onDisable():void;
-	}
-
-	/**
 	 * <code>ContactPoint</code> 类用于创建物理碰撞信息。
 	 */
 	class ContactPoint  {
@@ -15430,6 +14938,279 @@ enum IndexFormat {
 	}
 
 	/**
+	 * <code>ConfigurableConstraint</code>类用于可设置的约束组件
+	 */
+	class ConfigurableConstraint extends ConstraintComponent  {
+
+		/**
+		 * 约束限制模式  完全限制
+		 */
+		static CONFIG_MOTION_TYPE_LOCKED:number;
+
+		/**
+		 * 约束限制模式  范围限制
+		 */
+		static CONFIG_MOTION_TYPE_LIMITED:number;
+
+		/**
+		 * 约束限制模式  不限制
+		 */
+		static CONFIG_MOTION_TYPE_FREE:number;
+
+		/**
+		 * 创建一个<code>ConfigurableConstraint</code>实例	可设置的约束组件
+		 */
+
+		constructor();
+
+		/**
+		 * 主轴
+		 */
+		get axis():Vector3;
+
+		/**
+		 * 副轴
+		 */
+		get secondaryAxis():Vector3;
+
+		/**
+		 * 旋转角度最大值
+		 */
+		set maxAngularLimit(value:Vector3);
+
+		/**
+		 * 旋转角度最小值
+		 */
+		set minAngularLimit(value:Vector3);
+		get maxAngularLimit():Vector3;
+		get minAngularLimit():Vector3;
+
+		/**
+		 * 最大线性位置
+		 */
+		set maxLinearLimit(value:Vector3);
+
+		/**
+		 * 最小线性位置
+		 */
+		set minLinearLimit(value:Vector3);
+		get maxLinearLimit():Vector3;
+		get minLinearLimit():Vector3;
+
+		/**
+		 * X轴线性约束模式
+		 */
+		set XMotion(value:number);
+		get XMotion():number;
+
+		/**
+		 * Y轴线性约束模式
+		 */
+		set YMotion(value:number);
+		get YMotion():number;
+
+		/**
+		 * Z轴线性约束模式
+		 */
+		set ZMotion(value:number);
+		get ZMotion():number;
+
+		/**
+		 * X轴旋转约束模式
+		 */
+		set angularXMotion(value:number);
+		get angularXMotion():number;
+
+		/**
+		 * Y轴旋转约束模式
+		 */
+		set angularYMotion(value:number);
+		get angularYMotion():number;
+
+		/**
+		 * Z轴旋转约束模式
+		 */
+		set angularZMotion(value:number);
+		get angularZMotion():number;
+
+		/**
+		 * 线性弹簧
+		 */
+		set linearLimitSpring(value:Vector3);
+		get linearLimitSpring():Vector3;
+
+		/**
+		 * 角度弹簧
+		 */
+		set angularLimitSpring(value:Vector3);
+		get angularLimitSpring():Vector3;
+
+		/**
+		 * 线性弹力
+		 */
+		set linearBounce(value:Vector3);
+		get linearBounce():Vector3;
+
+		/**
+		 * 角度弹力
+		 */
+		set angularBounce(value:Vector3);
+		get angularBounce():Vector3;
+
+		/**
+		 * 线性阻力
+		 */
+		set linearDamp(value:Vector3);
+		get linearDamp():Vector3;
+
+		/**
+		 * 角度阻力
+		 */
+		set angularDamp(value:Vector3);
+		get angularDamp():Vector3;
+
+		/**
+		 * 设置锚点
+		 */
+		set anchor(value:Vector3);
+		get anchor():Vector3;
+
+		/**
+		 * 设置链接锚点
+		 */
+		set connectAnchor(value:Vector3);
+		get connectAnchor():Vector3;
+
+		/**
+		 * 设置对象自然旋转的局部轴主轴，axis2为副轴
+		 * @param axis1 
+		 * @param axis2 
+		 */
+		setAxis(axis:Vector3,secondaryAxis:Vector3):void;
+		_initAllConstraintInfo():void;
+		_onDisable():void;
+	}
+
+	/**
+	 * <code>ConstraintComponent</code> 类用于创建约束的父类。
+	 */
+	class ConstraintComponent extends Component  {
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		get enabled():boolean;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		set enabled(value:boolean);
+
+		/**
+		 * 获取应用的冲力。
+		 */
+		get appliedImpulse():number;
+
+		/**
+		 * 获取连接的刚体B。
+		 * @return 已连接刚体B。
+		 */
+		get connectedBody():Rigidbody3D;
+
+		/**
+		 * 获取连接的刚体A。
+		 * @return 已连接刚体A。
+		 */
+		get ownBody():Rigidbody3D;
+
+		/**
+		 * 获得收到的总力
+		 */
+		get currentForce():Vector3;
+
+		/**
+		 * 获取的总力矩
+		 */
+		get currentTorque():Vector3;
+
+		/**
+		 * 设置最大承受力
+		 * @param value 最大承受力
+		 */
+		get breakForce():number;
+		set breakForce(value:number);
+
+		/**
+		 * 设置最大承受力矩
+		 * @param value 最大承受力矩
+		 */
+		get breakTorque():number;
+		set breakTorque(value:number);
+
+		/**
+		 * 设置锚点
+		 */
+		set anchor(value:Vector3);
+		get anchor():Vector3;
+
+		/**
+		 * 设置链接锚点
+		 */
+		set connectAnchor(value:Vector3);
+		get connectAnchor():Vector3;
+
+		/**
+		 * 创建一个 <code>ConstraintComponent</code> 实例。
+		 */
+
+		constructor(constraintType:number);
+
+		/**
+		 * 设置迭代的次数，次数越高，越精确
+		 * @param overideNumIterations 
+		 */
+		setOverrideNumSolverIterations(overideNumIterations:number):void;
+
+		/**
+		 * 设置约束是否可用
+		 * @param enable 
+		 */
+		setConstraintEnabled(enable:boolean):void;
+		_onDisable():void;
+
+		/**
+		 * 设置约束刚体
+		 * @param ownerRigid 
+		 * @param connectRigidBody 
+		 * @override 
+		 */
+		setConnectRigidBody(ownerRigid:Rigidbody3D,connectRigidBody:Rigidbody3D):void;
+
+		/**
+		 * 获得当前力
+		 * @param out 
+		 */
+		getcurrentForce(out:Vector3):void;
+
+		/**
+		 * 获得当前力矩
+		 * @param out 
+		 */
+		getcurrentTorque(out:Vector3):void;
+	}
+	class FixedConstraint extends ConstraintComponent  {
+
+		/**
+		 * 创建一个<code>FixedConstraint</code>实例
+		 */
+
+		constructor();
+		_onDisable():void;
+	}
+
+	/**
 	 * <code>BoxColliderShape</code> 类用于创建盒子形状碰撞器。
 	 */
 	class BoxColliderShape extends ColliderShape  {
@@ -15775,13 +15556,6 @@ enum IndexFormat {
 		 * @override 
 		 */
 		clone():any;
-	}
-
-	/**
-	 * Laya物理类
-	 * internal
-	 */
-	class Physics3D  {
 	}
 
 	/**
@@ -16440,6 +16214,248 @@ enum IndexFormat {
 
 
 	/**
+	 * <code>MulSampleRenderTexture</code>类用于创建多重采样渲染目标
+webGL2.0多重采样才会生效
+	 */
+	class MulSampleRenderTexture extends RenderTexture  {
+
+		/**
+		 * 多重采样次数
+		 */
+		protected _mulSampler:number;
+
+		/**
+		 * 是否为多重采样贴图
+		 */
+		protected _mulSamplerRT:boolean;
+
+		/**
+		 * 创建一个 <code>MulSampleRenderTexture</code> 实例。
+		 * @param width 宽度。
+		 * @param height 高度。
+		 * @param format 纹理格式。
+		 * @param depthStencilFormat 深度格式。
+		 * @param mulSampler 多重采样点个数。
+		 * @param mipmap 是否生成mipmap。
+		 */
+
+		constructor(width:number,height:number,format?:RenderTextureFormat,depthStencilFormat?:RenderTextureDepthFormat,mulSampler?:number);
+		protected _create(width:number,height:number):void;
+		protected _createGLDepthRenderbuffer(width:number,height:number):void;
+		_createGLDepthTexture(width:number,height:number):void;
+		_end():void;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		protected _disposeResource():void;
+	}
+
+	/**
+	 * <code>RenderTexture</code> 类用于创建渲染目标。
+	 */
+	class RenderTexture extends BaseTexture  {
+
+		/**
+		 * 获取当前激活的Rendertexture。
+		 */
+		static get currentActive():RenderTexture;
+
+		/**
+		 * 从对象池获取临时渲染目标。
+		 */
+		static createFromPool(width:number,height:number,format?:number,depthStencilFormat?:number,mulSamples?:number):RenderTexture;
+
+		/**
+		 * 回收渲染目标到对象池,释放后可通过createFromPool复用。
+		 */
+		static recoverToPool(renderTexture:RenderTexture):void;
+
+		/**
+		 * 绑定到主画布上的RenderTexture
+		 */
+		static get bindCanvasRender():RenderTexture;
+		static set bindCanvasRender(value:RenderTexture);
+		protected _mulSampler:number;
+
+		/**
+		 * @inrernal 是否使用多重采样
+		 */
+		protected _mulSamplerRT:boolean;
+		protected _depthAttachMode:RTDEPTHATTACHMODE;
+
+		/**
+		 * 深度格式。
+		 */
+		get depthStencilFormat():number;
+
+		/**
+		 * @override 
+		 */
+		get defaulteTexture():BaseTexture;
+		get mulSampler():number;
+		get depthStencilTexture():BaseTexture;
+
+		/**
+		 * FramBuffer的DepthAttach绑定模式
+		 */
+		set depthAttachMode(value:RTDEPTHATTACHMODE);
+		get depthAttachMode():RTDEPTHATTACHMODE;
+
+		/**
+		 * 创建一个 <code>RenderTexture</code> 实例。
+		 * @param width 宽度。
+		 * @param height 高度。
+		 * @param format 纹理格式。
+		 * @param depthStencilFormat 深度格式。
+		 * @param mipmap 是否生成mipmap。
+		 */
+
+		constructor(width:number,height:number,format?:RenderTextureFormat,depthStencilFormat?:RenderTextureDepthFormat);
+
+		/**
+		 * 创建gl_Texture的类型，当渲染器拿到此RT时，会将gl_texture的值传给渲染
+		 * @param width 
+		 * @param height 
+		 */
+		protected _creatGlTexture(width:number,height:number):void;
+
+		/**
+		 * 创建gl_DepthTexture的类型，用来存储深度信息，可以拷贝出来当贴图用
+		 * @param width 
+		 * @param height 
+		 */
+		protected _createGLDepthTexture(width:number,height:number):void;
+
+		/**
+		 * 创建gl_DepthRender的类型，用来存储深度信息
+		 * @param width 
+		 * @param height 
+		 */
+		protected _createGLDepthRenderbuffer(width:number,height:number):void;
+
+		/**
+		 * 获得像素数据。
+		 * @param x X像素坐标。
+		 * @param y Y像素坐标。
+		 * @param width 宽度。
+		 * @param height 高度。
+		 * @return 像素数据。
+		 */
+		getData(x:number,y:number,width:number,height:number,out:Uint8Array|Float32Array):Uint8Array|Float32Array;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		protected _disposeResource():void;
+	}
+
+enum TextureCubeFace {
+    /**+x */
+    PositiveX = 0,
+    /**-x */
+    NegativeX = 1,
+    /**+y */
+    PositiveY = 2,
+    /**-y */
+    NegativeY = 3,
+    /**+z */
+    PositiveZ = 4,
+    /**-z */
+    NegativeZ = 5
+}
+
+	/**
+	 * <code>TextureCube</code> 类用于生成立方体纹理。
+	 */
+	class TextureCube extends BaseTexture  {
+
+		/**
+		 * TextureCube资源。
+		 */
+		static TEXTURECUBE:string;
+		static TEXTURECUBEBIN:string;
+
+		/**
+		 * @private 
+		 */
+		private static _blackTexture:any;
+
+		/**
+		 * @private 
+		 */
+		private static _grayTexture:any;
+
+		/**
+		 * 黑色纯色纹理。
+		 */
+		static get blackTexture():TextureCube;
+
+		/**
+		 * 灰色纯色纹理。
+		 */
+		static get grayTexture():TextureCube;
+
+		/**
+		 * @inheritDoc 
+		 */
+		static _parse(data:any,propertyParams?:any,constructParams?:any[]):TextureCube;
+
+		/**
+		 * @inheritDoc 
+		 */
+		static _parseBin(data:any,propertyParams?:any,constructParams?:any[]):TextureCube;
+
+		/**
+		 * 加载TextureCube。
+		 * @param url TextureCube地址。
+		 * @param complete 完成回调。
+		 */
+		static load(url:string,complete:Handler):void;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		get defaulteTexture():BaseTexture;
+
+		/**
+		 * 创建一个 <code>TextureCube</code> 实例。
+		 * @param format 贴图格式。
+		 * @param mipmap 是否生成mipmap。
+		 */
+
+		constructor(size:number,format?:number,mipmap?:boolean);
+
+		/**
+		 * @private 
+		 */
+		private _setPixels:any;
+
+		/**
+		 * 通过六张图片源填充纹理。
+		 * @param 图片源数组 。
+		 */
+		setSixSideImageSources(source:any[],premultiplyAlpha?:boolean):void;
+
+		/**
+		 * 通过六张图片源填充纹理。
+		 * @param 图片源数组 。
+		 */
+		setSixSidePixels(pixels:Array<Uint8Array>,miplevel?:number):void;
+
+		/**
+		 * 通过图源设置一个面的颜色。
+		 * @param face 面。
+		 * @param imageSource 图源。
+		 * @param miplevel 层级。
+		 */
+		setImageSource(face:TextureCubeFace,imageSource:HTMLImageElement|HTMLCanvasElement,miplevel?:number):void;
+	}
+
+	/**
 	 * <code>Mesh</code> 类用于创建文件网格数据模板。
 	 */
 	class Mesh extends Resource implements IClone  {
@@ -16823,249 +16839,6 @@ enum IndexFormat {
 	}
 
 	/**
-	 * <code>MulSampleRenderTexture</code>类用于创建多重采样渲染目标
-	 * webGL2.0多重采样才会生效
-	 */
-	class MulSampleRenderTexture extends RenderTexture  {
-
-		/**
-		 * 多重采样次数
-		 */
-		protected _mulSampler:number;
-
-		/**
-		 * 是否为多重采样贴图
-		 */
-		protected _mulSamplerRT:boolean;
-		static createFromPool(width:number,height:number,format?:number,depthStencilFormat?:number,mulSamples?:number,mipmap?:boolean):MulSampleRenderTexture;
-
-		/**
-		 * 创建一个 <code>MulSampleRenderTexture</code> 实例。
-		 * @param width 宽度。
-		 * @param height 高度。
-		 * @param format 纹理格式。
-		 * @param depthStencilFormat 深度格式。
-		 * @param mulSampler 多重采样点个数。
-		 * @param mipmap 是否生成mipmap。
-		 */
-
-		constructor(width:number,height:number,format?:RenderTextureFormat,depthStencilFormat?:RenderTextureDepthFormat,mulSampler?:number,mipmap?:boolean);
-		protected _create(width:number,height:number):void;
-		protected _createGLDepthRenderbuffer(width:number,height:number):void;
-		protected(width:number,height:number):void;
-		_end():void;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		protected _disposeResource():void;
-	}
-
-	/**
-	 * <code>RenderTexture</code> 类用于创建渲染目标。
-	 */
-	class RenderTexture extends BaseTexture  {
-
-		/**
-		 * 获取当前激活的Rendertexture。
-		 */
-		static get currentActive():RenderTexture;
-
-		/**
-		 * 从对象池获取临时渲染目标。
-		 */
-		static createFromPool(width:number,height:number,format?:number,depthStencilFormat?:number,mulSamples?:number,mipmap?:boolean):RenderTexture;
-
-		/**
-		 * 回收渲染目标到对象池,释放后可通过createFromPool复用。
-		 */
-		static recoverToPool(renderTexture:RenderTexture):void;
-
-		/**
-		 * 绑定到主画布上的RenderTexture
-		 */
-		static get bindCanvasRender():RenderTexture;
-		static set bindCanvasRender(value:RenderTexture);
-		protected _mulSampler:number;
-
-		/**
-		 * @inrernal 是否使用多重采样
-		 */
-		protected _mulSamplerRT:boolean;
-		protected _depthAttachMode:RTDEPTHATTACHMODE;
-
-		/**
-		 * 深度格式。
-		 */
-		get depthStencilFormat():number;
-
-		/**
-		 * @override 
-		 */
-		get defaulteTexture():BaseTexture;
-		get mulSampler():number;
-		get depthStencilTexture():BaseTexture;
-
-		/**
-		 * FramBuffer的DepthAttach绑定模式
-		 */
-		set depthAttachMode(value:RTDEPTHATTACHMODE);
-		get depthAttachMode():RTDEPTHATTACHMODE;
-
-		/**
-		 * 创建一个 <code>RenderTexture</code> 实例。
-		 * @param width 宽度。
-		 * @param height 高度。
-		 * @param format 纹理格式。
-		 * @param depthStencilFormat 深度格式。
-		 * @param mipmap 是否生成mipmap。
-		 */
-
-		constructor(width:number,height:number,format?:RenderTextureFormat,depthStencilFormat?:RenderTextureDepthFormat,mipmap?:boolean);
-
-		/**
-		 * 创建gl_Texture的类型，当渲染器拿到此RT时，会将gl_texture的值传给渲染
-		 * @param width 
-		 * @param height 
-		 */
-		protected _creatGlTexture(width:number,height:number):void;
-
-		/**
-		 * 创建gl_DepthTexture的类型，用来存储深度信息，可以拷贝出来当贴图用
-		 * @param width 
-		 * @param height 
-		 */
-		protected _createGLDepthTexture(width:number,height:number):void;
-
-		/**
-		 * 创建gl_DepthRender的类型，用来存储深度信息
-		 * @param width 
-		 * @param height 
-		 */
-		protected _createGLDepthRenderbuffer(width:number,height:number):void;
-
-		/**
-		 * 获得像素数据。
-		 * @param x X像素坐标。
-		 * @param y Y像素坐标。
-		 * @param width 宽度。
-		 * @param height 高度。
-		 * @return 像素数据。
-		 */
-		getData(x:number,y:number,width:number,height:number,out:Uint8Array|Float32Array):Uint8Array|Float32Array;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		protected _disposeResource():void;
-	}
-
-enum TextureCubeFace {
-    /**+x */
-    PositiveX = 0,
-    /**-x */
-    NegativeX = 1,
-    /**+y */
-    PositiveY = 2,
-    /**-y */
-    NegativeY = 3,
-    /**+z */
-    PositiveZ = 4,
-    /**-z */
-    NegativeZ = 5
-}
-
-	/**
-	 * <code>TextureCube</code> 类用于生成立方体纹理。
-	 */
-	class TextureCube extends BaseTexture  {
-
-		/**
-		 * TextureCube资源。
-		 */
-		static TEXTURECUBE:string;
-		static TEXTURECUBEBIN:string;
-
-		/**
-		 * @private 
-		 */
-		private static _blackTexture:any;
-
-		/**
-		 * @private 
-		 */
-		private static _grayTexture:any;
-
-		/**
-		 * 黑色纯色纹理。
-		 */
-		static get blackTexture():TextureCube;
-
-		/**
-		 * 灰色纯色纹理。
-		 */
-		static get grayTexture():TextureCube;
-
-		/**
-		 * @inheritDoc 
-		 */
-		static _parse(data:any,propertyParams?:any,constructParams?:any[]):TextureCube;
-
-		/**
-		 * @inheritDoc 
-		 */
-		static _parseBin(data:any,propertyParams?:any,constructParams?:any[]):TextureCube;
-
-		/**
-		 * 加载TextureCube。
-		 * @param url TextureCube地址。
-		 * @param complete 完成回调。
-		 */
-		static load(url:string,complete:Handler):void;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		get defaulteTexture():BaseTexture;
-
-		/**
-		 * 创建一个 <code>TextureCube</code> 实例。
-		 * @param format 贴图格式。
-		 * @param mipmap 是否生成mipmap。
-		 */
-
-		constructor(size:number,format?:number,mipmap?:boolean);
-
-		/**
-		 * @private 
-		 */
-		private _setPixels:any;
-
-		/**
-		 * 通过六张图片源填充纹理。
-		 * @param 图片源数组 。
-		 */
-		setSixSideImageSources(source:any[],premultiplyAlpha?:boolean):void;
-
-		/**
-		 * 通过六张图片源填充纹理。
-		 * @param 图片源数组 。
-		 */
-		setSixSidePixels(pixels:Array<Uint8Array>,miplevel?:number):void;
-
-		/**
-		 * 通过图源设置一个面的颜色。
-		 * @param face 面。
-		 * @param imageSource 图源。
-		 * @param miplevel 层级。
-		 */
-		setImageSource(face:TextureCubeFace,imageSource:HTMLImageElement|HTMLCanvasElement,miplevel?:number):void;
-	}
-
-	/**
 	 * <code>DefineDatas</code> 类用于创建宏定义数据集合。
 	 */
 	class DefineDatas implements IClone  {
@@ -17198,26 +16971,6 @@ enum TextureCubeFace {
 		 * 渲染状态_深度写入。
 		 */
 		static RENDER_STATE_DEPTH_WRITE:number;
-
-		/**
-		 * 渲染状态_模板测试。
-		 */
-		static RENDER_STATE_STENCIL_TEST:number;
-
-		/**
-		 * 渲染状态_模板写入
-		 */
-		static RENDER_STATE_STENCIL_WRITE:number;
-
-		/**
-		 * 渲染状态_模板写入值
-		 */
-		static RENDER_STATE_STENCIL_REF:number;
-
-		/**
-		 * 渲染状态_模板写入设置
-		 */
-		static RENDER_STATE_STENCIL_OP:number;
 
 		/**
 		 * shader变量提交周期，自定义。
@@ -17802,39 +17555,6 @@ enum ShadowLightType {
 	}
 
 	/**
-	 * <code>Touch</code> 类用于实现触摸描述。
-	 */
-	class Touch implements ISingletonElement  {
-
-		/**
-		 * [实现IListPool接口]
-		 */
-		private _indexInList:any;
-
-		/**
-		 * 获取唯一识别ID。
-		 * @return 唯一识别ID。
-		 */
-		get identifier():number;
-
-		/**
-		 * 获取触摸点的像素坐标。
-		 * @return 触摸点的像素坐标 [只读]。
-		 */
-		get position():Vector2;
-
-		/**
-		 * [实现ISingletonElement接口]
-		 */
-		_getIndexInList():number;
-
-		/**
-		 * [实现ISingletonElement接口]
-		 */
-		_setIndexInList(index:number):void;
-	}
-
-	/**
 	 * <code>Physics</code> 类用于简单物理检测。
 	 */
 	class Physics3DUtils  {
@@ -18157,666 +17877,35 @@ enum ShadowLightType {
 	}
 
 	/**
-	 * 类用来描述gamepad Axis
+	 * Shake只能在支持此操作的设备上有效。
 	 */
-	class AxiGamepad extends EventDispatcher  {
-		static EVENT_OUTPUT:string;
-
-		/**
-		 * 轴设备名字
-		 */
-		handness:string;
-
-		/**
-		 * 轴数量
-		 */
-		axisLength:number;
-
-		/**
-		 * axis Array
-		 */
-		private axisData:any;
-
-		/**
-		 * destroy
-		 */
-		destroy():void;
-	}
-
-	/**
-	 * 类用来描述gamepad Button
-	 */
-	class ButtonGamepad extends EventDispatcher  {
-		static EVENT_TOUCH_ENTER:string;
-		static EVENT_TOUCH_STAY:string;
-		static EVENT_TOUCH_OUT:string;
-		static EVENT_PRESS_ENTER:string;
-		static EVENT_PRESS_STAY:string;
-		static EVENT_PRESS_OUT:string;
-		static EVENT_PRESS_VALUE:string;
-
-		/**
-		 * The id of the gamepad
-		 */
-		handness:string;
-
-		/**
-		 * The index of the gamepad
-		 */
-		index:number;
-
-		/**
-		 * front touch state
-		 */
-		private lastTouch:any;
-		private lastPress:any;
-		private lastPressValue:any;
-
-		/**
-		 * current touch state
-		 */
-		private touch:any;
-		private press:any;
-		private pressValue:any;
-
-		/**
-		 * 类用于创建Button对象
-		 * @param handness 设备名称
-		 * @param index button缩影
-		 */
-
-		constructor(handness:string,index:number);
-
-		/**
-		 * destroy
-		 */
-		destroy():void;
-	}
-
-	/**
-	 * @author miner
-类用于创建WebXR摄像机。
-	 */
-	class WebXRCamera extends Camera  {
-
-		/**
-		 * WebXRSessionManager
-		 */
-		private _webXRManager:any;
-
-		/**
-		 * override client
-		 */
-		private _clientWidth:any;
-
-		/**
-		 * override client
-		 */
-		private _clientHeight:any;
-
-		/**
-		 * 自定义渲染场景的渲染目标。
-		 */
-		get renderTarget():RenderTexture;
-
-		/**
-		 * 渲染
-		 * @override 
-		 * @param shader 
-		 * @param replacementTag 
-		 */
-		render(shader?:Shader3D,replacementTag?:string):void;
-
-		/**
-		 * null function
-		 */
-		protected _calculateProjectionMatrix():void;
-
-		/**
-		 * destroy
-		 */
-		destroy():void;
-	}
-
-	/**
-	 * @author miner
-此类用来管理XRCamera
-	 */
-	class WebXRCameraManager  {
-
-		/**
-		 * reference Quaternin
-		 */
-		private _referenceQuaternion:any;
-
-		/**
-		 * reference Position
-		 */
-		private _referencedPosition:any;
-
-		/**
-		 * WebXR Session Manager
-		 */
-		private _webXRSessionManager:any;
-
-		/**
-		 * first Frame Flag
-		 */
-		private _firstFrame:any;
-
-		/**
-		 * WebXR RenderTexture
-		 */
-		private _XRRenderTexture:any;
-
-		/**
-		 * WebXRCamera Array
-		 */
-		private _rigCameras:any;
-
-		/**
-		 * Reference position
-		 */
-		private _position:any;
-
-		/**
-		 * parent
-		 */
-		owner:any;
-		get position():Vector3;
-		set position(newPosition:Vector3);
-		set rotationQuaternion(value:Quaternion);
-		get rotationQuaternion():Quaternion;
-		get rigCameras():WebXRCamera[];
-
-		/**
-		 * 用来创建XRCamera管理类
-		 * @param camera 
-		 * @param manager 
-		 */
-
-		constructor(camera:any,manager?:WebXRSessionManager);
-
-		/**
-		 * updateFrame by WebXR Session
-		 */
-		_updateFromXRSession():void;
-
-		/**
-		 * update number of WebXRCamera
-		 * @param viewCount 
-		 */
-		private _updateNumberOfRigCameras:any;
-
-		/**
-		 * TODO:update of Reference Space
-		 */
-		private _updateReferenceSpace:any;
-
-		/**
-		 * destroy
-		 */
-		destroy():void;
-	}
-	class WebXRCameraInfo  {
-
-		/**
-		 * depth far
-		 */
-		depthFar:number;
-
-		/**
-		 * depth near
-		 */
-		depthNear:number;
-
-		/**
-		 * camera
-		 */
-		camera:any;
-	}
-
-	/**
-	 * 类用来管理WebXR
-	 * @author miner
-	 */
-	class WebXRExperienceHelper  {
-
-		/**
-		 * single XRManager
-		 */
-		static xr_Manager:WebXRSessionManager;
-
-		/**
-		 * support webXR
-		 */
-		static supported:boolean;
-
-		/**
-		 * default WebLayer option
-		 * XRWebGLLayerInit
-		 */
-		static canvasOptions:{boolean;boolean;boolean;boolean;boolean;boolean;};
-
-		/**
-		 * 支持XRSession模式
-		 * @param sessionMode XRSessionMode = "inline" | "immersive-vr" | "immersive-ar";
-		 * @returns 
-		 */
-		static supportXR(sessionMode:string):Promise;
-
-		/**
-		 * 申请WewXR交互
-		 * @param sessionMode XRSessionMode
-		 * @param referenceSpaceType referenceType = "viewer" | "local" | "local-floor" | "unbounded";
-		 * @param cameraInfo WebXRCameraInfo webXRCamera设置
-		 * @returns Promise<WebXRSessionManager>
-		 */
-		static enterXRAsync(sessionMode:string,referenceSpaceType:string,cameraInfo:WebXRCameraInfo):Promise;
-
-		/**
-		 * config WebXRCameraManager
-		 * @param camera Camera
-		 * @param manager WebXRSessionManager
-		 * @returns 
-		 */
-		static setWebXRCamera(camera:Camera,manager:WebXRSessionManager):WebXRCameraManager;
-
-		/**
-		 * config WebXRInputManager
-		 * @param sessionManager WebXRSessionManager
-		 * @param cameraManager WebXRCameraManager
-		 * @returns 
-		 */
-		static setWebXRInput(sessionManager:WebXRSessionManager,cameraManager:WebXRCameraManager):WebXRInputManager;
-	}
-
-	/**
-	 * @author miner
-类用来描述输入设备
-	 */
-	class WebXRInput extends EventDispatcher  {
-		static HANDNESS_LEFT:string;
-		static HANDNESS_RIGHT:string;
-		static EVENT_FRAMEUPDATA_WEBXRINPUT:string;
-		private static tempQua:any;
-
-		/**
-		 * 预处理Button事件
-		 */
-		private preButtonEventList:any;
-
-		/**
-		 * 预处理axis事件
-		 */
-		private preAxisEventList:any;
-		lastXRPose:any;
-
-		/**
-		 * handMode
-		 */
-		handness:string;
-
-		/**
-		 * input Ray
-		 */
-		ray:Ray;
-
-		/**
-		 * hand Pos
-		 */
-		position:Vector3;
-
-		/**
-		 * hand Rotate
-		 */
-		rotation:Quaternion;
-
-		/**
-		 * lastRayPos
-		 */
-		_lastXRPose:any;
-
-		/**
-		 * gamepad Button info
-		 */
-		gamepadButton:Array<ButtonGamepad>;
-
-		/**
-		 * gamepad axis Info
-		 */
-		gamepadAxis:AxiGamepad;
-
-		constructor(handness:string);
-
-		/**
-		 * handle gamepad Event
-		 */
-		private _handleProcessGamepad:any;
-
-		/**
-		 * add button event
-		 * @param index button索引
-		 * @param type 事件类型
-		 * @param caller 事件侦听函数的执行域。
-		 * @param listener 事件侦听函数。
-		 */
-		addButtonEvent(index:number,type:string,caller:any,listener:Function):void;
-
-		/**
-		 * add axis event
-		 * @param index axis索引
-		 * @param type 事件类型
-		 * @param caller 事件侦听函数的执行域。
-		 * @param listener 事件侦听函数。
-		 */
-		addAxisEvent(index:number,type:string,caller:any,listener:Function):void;
-
-		/**
-		 * remove axis event
-		 * @param index axis索引
-		 * @param type 事件类型
-		 * @param caller 事件侦听函数的执行域。
-		 * @param listener 事件侦听函数。
-		 */
-		offAxisEvent(index:number,type:string,caller:any,listener:Function):void;
-
-		/**
-		 * remove Button event
-		 * @param index axis索引
-		 * @param type 事件类型
-		 * @param caller 事件侦听函数的执行域。
-		 * @param listener 事件侦听函数。
-		 */
-		offButtonEvent(index:number,type:string,caller:any,listener:Function):void;
-
-		/**
-		 * 销毁
-		 */
-		destroy():void;
-	}
-
-	/**
-	 * @author miner
-类用来管理输入设备
-The path of the CDN the sample will fetch controller models from：
-MeshSource https://cdn.jsdelivr.net/npm/
-	 * @webxr-input-profiles /assets
-	 * @ 1.0.9/dist/profiles/
-	 */
-	class WebXRInputManager  {
-		static tempVec:Vector3;
-		static tempVec1:Vector3;
-
-		/**
-		 * Session Manager
-		 */
-		private webXRSessionManager:any;
-
-		/**
-		 * webXRCamera Manager
-		 */
-		private webXRCameraManager:any;
-
-		/**
-		 * array of XRInput
-		 */
-		private controllers:any;
-
-		/**
-		 * bind of XRInput Node Render
-		 */
-		private controllerHandMesh:any;
-
-		/**
-		 * bind of XRInput Ray Render
-		 */
-		private controllerLineRender:any;
-
-		/**
-		 * line Color
-		 */
-		private lineColor:any;
-
-		/**
-		 * Ray length
-		 */
-		private rayLength:any;
-
-		/**
-		 * 类用于创建WebXRInput管理类
-		 * @param webxrManager WebXR Session manager
-		 * @param webXRCamera WebXR Manager
-		 */
-
-		constructor(webxrManager:WebXRSessionManager,webXRCamera:WebXRCameraManager);
-
-		/**
-		 * 更新输入挂点
-		 * @param xrInput 
-		 */
-		private _updataMeshRender:any;
-
-		/**
-		 * WebXRInput帧循环
-		 * @param xrFrame 
-		 */
-		private _updateFromXRFrame:any;
-
-		/**
-		 * 绑定输入设备渲染节点
-		 * @param meshSprite 渲染挂点
-		 * @param handness 设备名称left/right
-		 */
-		bindMeshNode(meshSprite:Sprite3D,handness:string):void;
-
-		/**
-		 * 绑定输入设备射线
-		 * @param lineSprite 线
-		 * @param handness 设备名称left/right
-		 */
-		bindRayNode(lineSprite:PixelLineSprite3D,handness:string):void;
-
-		/**
-		 * 获得输入设备
-		 * @param handness 设备名称left/right
-		 * @returns 
-		 */
-		getController(handness:string):WebXRInput;
-	}
-
-	/**
-	 * @author miner
-类用来创建WebXRRenderTexture
-	 */
-	class WebXRRenderTexture extends RenderTexture  {
-
-		/**
-		 * update mask
-		 */
-		frameLoop:number;
-
-		/**
-		 * 创建WebXRFrameBuffer
-		 * @param frameBuffer 
-		 */
+	class Shake extends EventDispatcher  {
+		private throushold:any;
+		private shakeInterval:any;
+		private callback:any;
+		private lastX:any;
+		private lastY:any;
+		private lastZ:any;
+		private lastMillSecond:any;
 
 		constructor();
+		private static _instance:any;
+		static get instance():Shake;
 
 		/**
-		 * set frameBuffer
+		 * 开始响应设备摇晃。
+		 * @param throushold 响应的瞬时速度阈值，轻度摇晃的值约在5~10间。
+		 * @param timeout 设备摇晃的响应间隔时间。
+		 * @param callback 在设备摇晃触发时调用的处理器。
 		 */
-		set frameBuffer(value:any);
+		start(throushold:number,interval:number):void;
 
 		/**
-		 * No glframeBuffer create
-		 * @param width 
-		 * @param height 
+		 * 停止响应设备摇晃。
 		 */
-		protected _create(width:number,height:number):void;
-	}
-
-	/**
-	 * Manages an XRSession to work with layaAir engine
-	 * @author miner
-	 */
-	class WebXRSessionManager extends EventDispatcher  {
-		static EVENT_MANAGER_END:string;
-		static EVENT_FRAME_LOOP:string;
-
-		/**
-		 * Underlying xr session
-		 */
-		session:any;
-
-		/**
-		 * XRReferenceSpace TODO
-		 */
-		viewerReferenceSpace:any;
-
-		/**
-		 * baseRefernceSpace
-		 */
-		baseReferenceSpace:any;
-
-		/**
-		 * Current XR  XRFrame
-		 */
-		currentFrame:any;
-
-		/**
-		 * WebXR timestamp updated every frame
-		 */
-		currentTimestamp:number;
-
-		/**
-		 * 默认高度补偿,在init失败后使用
-		 */
-		defaultHeightCompensation:number;
-
-		/**
-		 * XRReferenceSpace
-		 */
-		private _referenceSpace:any;
-
-		/**
-		 * "inline" | "immersive-vr" | "immersive-ar"
-		 */
-		private _sessionMode:any;
-
-		/**
-		 * session enable state
-		 */
-		private _sessionEnded:any;
-
-		/**
-		 * WebXR Base Layer
-		 */
-		private _baseLayer:any;
-
-		/**
-		 * web XRSystem
-		 */
-		private _xrNavigator:any;
-
-		/**
-		 * The current reference space used in this session.
-		 * @returns XRReferenceSpace;
-		 */
-		get referenceSpace():any;
-
-		/**
-		 * set 参考空间
-		 */
-		set referenceSpace(newReferenceSpace:any);
-
-		/**
-		 * The mode for the managed XR session
-		 */
-		get sessionMode():any;
-
-		/**
-		 * Stops the xrSession and restores the render loop
-		 */
-		exitXR():void;
-
-		/**
-		 * Initializes the xr layer for the session
-		 * @param xrSession 
-		 * @param gl 
-		 * @returns 
-		 */
-		initializeXRGL(xrSession:any,gl:WebGLRenderingContext):Promise;
-
-		/**
-		 * 浏览器是否支持WebXR
-		 * @returns WebXR
-		 */
-		initializeAsync():Promise;
-
-		/**
-		 * Sessiopn模式是否支持
-		 * @param sessionMode "inline" | "immersive-vr" | "immersive-ar"
-		 * @returns A Promise that resolves to true if supported and false if not
-		 */
-		isSessionSupportedAsync(sessionMode:string):Promise;
-
-		/**
-		 * 初始化Session
-		 * @param xrSessionMode xrsessionMode
-		 * @param xrSessionInit any initInfo
-		 * @returns 
-		 */
-		initializeSessionAsync(xrSessionMode?:string,xrSessionInit?:{}):Promise;
-
-		/**
-		 * Resets the reference space to the one started the session
-		 */
-		resetReferenceSpace():void;
-
-		/**
-		 * Starts rendering to the xr layer
-		 */
-		runXRRenderLoop():void;
-		endXRRenderLoop():void;
-
-		/**
-		 * Update
-		 * @param xrFrame 
-		 */
-		private _updateByXrFrame:any;
-
-		/**
-		 * Sets the reference space on the xr session
-		 * @param referenceSpaceType space to set
-		 * @returns a promise that will resolve once the reference space has been set
-		 */
-		setReferenceSpaceTypeAsync(referenceSpaceType?:string):Promise;
-
-		/**
-		 * Updates the render state of the session
-		 * @param state state to set
-		 * @returns a promise that resolves once the render state has been updated
-		 */
-		updateRenderStateAsync(state:any):any;
-
-		/**
-		 * The current frame rate as reported by the device
-		 */
-		get currentFrameRate():number|undefined;
-
-		/**
-		 * A list of supported frame rates (only available in-session!
-		 */
-		get supportedFrameRates():Float32Array|undefined;
-
-		/**
-		 * Set the framerate of the session.
-		 * @param rate the new framerate. This value needs to be in the supportedFrameRates array
-		 * @returns a promise that resolves once the framerate has been set
-		 */
-		updateTargetFrameRate(rate:number):Promise;
-		destroy():void;
+		stop():void;
+		private onShake:any;
+		private isShaked:any;
 	}
 
 	/**
@@ -18848,9 +17937,9 @@ MeshSource https://cdn.jsdelivr.net/npm/
 
 		/**
 		 * 如果<code>enableHighAccuracy</code>为true，并且设备能够提供一个更精确的位置，则会获取最佳可能的结果。
-		 * 请注意,这可能会导致较慢的响应时间或增加电量消耗（如使用GPS）。
-		 * 另一方面，如果设置为false，将会得到更快速的响应和更少的电量消耗。
-		 * 默认值为false。
+请注意,这可能会导致较慢的响应时间或增加电量消耗（如使用GPS）。
+另一方面，如果设置为false，将会得到更快速的响应和更少的电量消耗。
+默认值为false。
 		 */
 		static enableHighAccuracy:boolean;
 
@@ -18861,8 +17950,8 @@ MeshSource https://cdn.jsdelivr.net/npm/
 
 		/**
 		 * 表示可被返回的缓存位置信息的最大时限。
-		 * 如果设置为0，意味着设备不使用缓存位置，并且尝试获取实时位置。
-		 * 如果设置为Infinity，设备必须返回缓存位置而无论其时限。
+如果设置为0，意味着设备不使用缓存位置，并且尝试获取实时位置。
+如果设置为Infinity，设备必须返回缓存位置而无论其时限。
 		 */
 		static maximumAge:number;
 
@@ -18978,8 +18067,8 @@ MeshSource https://cdn.jsdelivr.net/npm/
 
 	/**
 	 * Media用于捕捉摄像头和麦克风。可以捕捉任意之一，或者同时捕捉两者。<code>getCamera</code>前可以使用<code>supported()</code>检查当前浏览器是否支持。
-	 * <b>NOTE:</b>
-	 * <p>目前Media在移动平台只支持Android，不支持IOS。只可在FireFox完整地使用，Chrome测试时无法捕捉视频。</p>
+<b>NOTE:</b>
+<p>目前Media在移动平台只支持Android，不支持IOS。只可在FireFox完整地使用，Chrome测试时无法捕捉视频。</p>
 	 */
 	class Media  {
 
@@ -19008,13 +18097,13 @@ const enum VIDEOTYPE {
 
 	/**
 	 * <code>Video</code>将视频显示到Canvas上。<code>Video</code>可能不会在所有浏览器有效。
-	 * <p>关于Video支持的所有事件参见：<i>http://www.w3school.com.cn/tags/html_ref_audio_video_dom.asp</i>。</p>
-	 * <p>
-	 * <b>注意：</b><br/>
-	 * 在PC端可以在任何时机调用<code>play()</code>因此，可以在程序开始运行时就使Video开始播放。但是在移动端，只有在用户第一次触碰屏幕后才可以调用play()，所以移动端不可能在程序开始运行时就自动开始播放Video。
-	 * </p>
-	 * 
-	 * <p>MDN Video链接： <i>https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video</i></p>
+<p>关于Video支持的所有事件参见：<i>http://www.w3school.com.cn/tags/html_ref_audio_video_dom.asp</i>。</p>
+<p>
+<b>注意：</b><br/>
+在PC端可以在任何时机调用<code>play()</code>因此，可以在程序开始运行时就使Video开始播放。但是在移动端，只有在用户第一次触碰屏幕后才可以调用play()，所以移动端不可能在程序开始运行时就自动开始播放Video。
+</p>
+
+<p>MDN Video链接： <i>https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video</i></p>
 	 */
 	class Video extends Sprite  {
 		static MP4:number;
@@ -19102,7 +18191,7 @@ const enum VIDEOTYPE {
 
 		/**
 		 * buffered 属性返回 TimeRanges(JS)对象。TimeRanges 对象表示用户的音视频缓冲范围。缓冲范围指的是已缓冲音视频的时间范围。如果用户在音视频中跳跃播放，会得到多个缓冲范围。
-		 * <p>buffered.length返回缓冲范围个数。如获取第一个缓冲范围则是buffered.start(0)和buffered.end(0)。以秒计。</p>
+<p>buffered.length返回缓冲范围个数。如获取第一个缓冲范围则是buffered.start(0)和buffered.end(0)。以秒计。</p>
 		 * @return TimeRanges(JS)对象
 		 */
 		get buffered():any;
@@ -19126,13 +18215,13 @@ const enum VIDEOTYPE {
 
 		/**
 		 * 表示视频元素的就绪状态：
-		 * <ul>
-		 * <li>0 = HAVE_NOTHING - 没有关于音频/视频是否就绪的信息</li>
-		 * <li>1 = HAVE_METADATA - 关于音频/视频就绪的元数据</li>
-		 * <li>2 = HAVE_CURRENT_DATA - 关于当前播放位置的数据是可用的，但没有足够的数据来播放下一帧/毫秒</li>
-		 * <li>3 = HAVE_FUTURE_DATA - 当前及至少下一帧的数据是可用的</li>
-		 * <li>4 = HAVE_ENOUGH_DATA - 可用数据足以开始播放</li>
-		 * </ul>
+<ul>
+<li>0 = HAVE_NOTHING - 没有关于音频/视频是否就绪的信息</li>
+<li>1 = HAVE_METADATA - 关于音频/视频就绪的元数据</li>
+<li>2 = HAVE_CURRENT_DATA - 关于当前播放位置的数据是可用的，但没有足够的数据来播放下一帧/毫秒</li>
+<li>3 = HAVE_FUTURE_DATA - 当前及至少下一帧的数据是可用的</li>
+<li>4 = HAVE_ENOUGH_DATA - 可用数据足以开始播放</li>
+</ul>
 		 */
 		get readyState():any;
 
@@ -19187,14 +18276,14 @@ const enum VIDEOTYPE {
 
 		/**
 		 * playbackRate 属性设置或返回音频/视频的当前播放速度。如：
-		 * <ul>
-		 * <li>1.0 正常速度</li>
-		 * <li>0.5 半速（更慢）</li>
-		 * <li>2.0 倍速（更快）</li>
-		 * <li>-1.0 向后，正常速度</li>
-		 * <li>-0.5 向后，半速</li>
-		 * </ul>
-		 * <p>只有 Google Chrome 和 Safari 支持 playbackRate 属性。</p>
+<ul>
+<li>1.0 正常速度</li>
+<li>0.5 半速（更慢）</li>
+<li>2.0 倍速（更快）</li>
+<li>-1.0 向后，正常速度</li>
+<li>-0.5 向后，半速</li>
+</ul>
+<p>只有 Google Chrome 和 Safari 支持 playbackRate 属性。</p>
 		 */
 		get playbackRate():number;
 		set playbackRate(value:number);
@@ -19212,11 +18301,11 @@ const enum VIDEOTYPE {
 
 		/**
 		 * preload 属性设置或返回是否在页面加载后立即加载视频。可赋值如下：
-		 * <ul>
-		 * <li>auto	指示一旦页面加载，则开始加载视频。</li>
-		 * <li>metadata	指示当页面加载后仅加载音频/视频的元数据。</li>
-		 * <li>none	指示页面加载后不应加载音频/视频。</li>
-		 * </ul>
+<ul>
+<li>auto	指示一旦页面加载，则开始加载视频。</li>
+<li>metadata	指示当页面加载后仅加载音频/视频的元数据。</li>
+<li>none	指示页面加载后不应加载音频/视频。</li>
+</ul>
 		 */
 		get preload():string;
 		set preload(value:string);
@@ -19228,7 +18317,7 @@ const enum VIDEOTYPE {
 
 		/**
 		 * seeking 属性返回用户目前是否在音频/视频中寻址。
-		 * 寻址中（Seeking）指的是用户在音频/视频中移动/跳跃到新的位置。
+寻址中（Seeking）指的是用户在音频/视频中移动/跳跃到新的位置。
 		 */
 		get seeking():boolean;
 
@@ -19269,7 +18358,7 @@ const enum VIDEOTYPE {
 
 	/**
 	 * 加速度x/y/z的单位均为m/s²。
-	 * 在硬件（陀螺仪）不支持的情况下，alpha、beta和gamma值为null。
+在硬件（陀螺仪）不支持的情况下，alpha、beta和gamma值为null。
 	 * @author Survivor
 	 */
 	class AccelerationInfo  {
@@ -19294,27 +18383,27 @@ const enum VIDEOTYPE {
 
 	/**
 	 * Accelerator.instance获取唯一的Accelerator引用，请勿调用构造函数。
-	 * 
-	 * <p>
-	 * listen()的回调处理器接受四个参数：
-	 * <ol>
-	 * <li><b>acceleration</b>: 表示用户给予设备的加速度。</li>
-	 * <li><b>accelerationIncludingGravity</b>: 设备受到的总加速度（包含重力）。</li>
-	 * <li><b>rotationRate</b>: 设备的自转速率。</li>
-	 * <li><b>interval</b>: 加速度获取的时间间隔（毫秒）。</li>
-	 * </ol>
-	 * </p>
-	 * <p>
-	 * <b>NOTE</b><br/>
-	 * 如，rotationRate的alpha在apple和moz文档中都是z轴旋转角度，但是实测是x轴旋转角度。为了使各属性表示的值与文档所述相同，实际值与其他属性进行了对调。
-	 * 其中：
-	 * <ul>
-	 * <li>alpha使用gamma值。</li>
-	 * <li>beta使用alpha值。</li>
-	 * <li>gamma使用beta。</li>
-	 * </ul>
-	 * 目前孰是孰非尚未可知，以此为注。
-	 * </p>
+
+<p>
+listen()的回调处理器接受四个参数：
+<ol>
+<li><b>acceleration</b>: 表示用户给予设备的加速度。</li>
+<li><b>accelerationIncludingGravity</b>: 设备受到的总加速度（包含重力）。</li>
+<li><b>rotationRate</b>: 设备的自转速率。</li>
+<li><b>interval</b>: 加速度获取的时间间隔（毫秒）。</li>
+</ol>
+</p>
+<p>
+<b>NOTE</b><br/>
+如，rotationRate的alpha在apple和moz文档中都是z轴旋转角度，但是实测是x轴旋转角度。为了使各属性表示的值与文档所述相同，实际值与其他属性进行了对调。
+其中：
+<ul>
+<li>alpha使用gamma值。</li>
+<li>beta使用alpha值。</li>
+<li>gamma使用beta。</li>
+</ul>
+目前孰是孰非尚未可知，以此为注。
+</p>
 	 */
 	class Accelerator extends EventDispatcher  {
 
@@ -19355,19 +18444,19 @@ const enum VIDEOTYPE {
 
 	/**
 	 * 使用Gyroscope.instance获取唯一的Gyroscope引用，请勿调用构造函数。
-	 * 
-	 * <p>
-	 * listen()的回调处理器接受两个参数：
-	 * <code>function onOrientationChange(absolute:Boolean, info:RotationInfo):void</code>
-	 * <ol>
-	 * <li><b>absolute</b>: 指示设备是否可以提供绝对方位数据（指向地球坐标系），或者设备决定的任意坐标系。关于坐标系参见<i>https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Orientation_and_motion_data_explained</i>。</li>
-	 * <li><b>info</b>: <code>RotationInfo</code>类型参数，保存设备的旋转值。</li>
-	 * </ol>
-	 * </p>
-	 * 
-	 * <p>
-	 * 浏览器兼容性参见：<i>http://caniuse.com/#search=deviceorientation</i>
-	 * </p>
+
+<p>
+listen()的回调处理器接受两个参数：
+<code>function onOrientationChange(absolute:Boolean, info:RotationInfo):void</code>
+<ol>
+<li><b>absolute</b>: 指示设备是否可以提供绝对方位数据（指向地球坐标系），或者设备决定的任意坐标系。关于坐标系参见<i>https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Orientation_and_motion_data_explained</i>。</li>
+<li><b>info</b>: <code>RotationInfo</code>类型参数，保存设备的旋转值。</li>
+</ol>
+</p>
+
+<p>
+浏览器兼容性参见：<i>http://caniuse.com/#search=deviceorientation</i>
+</p>
 	 */
 	class Gyroscope extends EventDispatcher  {
 		private static info:any;
@@ -19404,16 +18493,16 @@ const enum VIDEOTYPE {
 
 		/**
 		 * <p>
-		 * 指示设备是否可以提供绝对方位数据（指向地球坐标系），或者设备决定的任意坐标系。
-		 * 关于坐标系参见<i>https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Orientation_and_motion_data_explained</i>。
-		 * </p>
-		 * 需要注意的是，IOS环境下，该值始终为false。即使如此，你依旧可以从<code>alpha</code>中取得正确的值。
+指示设备是否可以提供绝对方位数据（指向地球坐标系），或者设备决定的任意坐标系。
+关于坐标系参见<i>https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Orientation_and_motion_data_explained</i>。
+</p>
+需要注意的是，IOS环境下，该值始终为false。即使如此，你依旧可以从<code>alpha</code>中取得正确的值。
 		 */
 		absolute:boolean;
 
 		/**
 		 * Z轴旋转角度，其值范围从0至360。
-		 * 若<code>absolute</code>为true或者在IOS中，alpha值是从北方到当前设备方向的角度值。
+若<code>absolute</code>为true或者在IOS中，alpha值是从北方到当前设备方向的角度值。
 		 */
 		alpha:number;
 
@@ -19436,38 +18525,6 @@ const enum VIDEOTYPE {
 	}
 
 	/**
-	 * Shake只能在支持此操作的设备上有效。
-	 */
-	class Shake extends EventDispatcher  {
-		private throushold:any;
-		private shakeInterval:any;
-		private callback:any;
-		private lastX:any;
-		private lastY:any;
-		private lastZ:any;
-		private lastMillSecond:any;
-
-		constructor();
-		private static _instance:any;
-		static get instance():Shake;
-
-		/**
-		 * 开始响应设备摇晃。
-		 * @param throushold 响应的瞬时速度阈值，轻度摇晃的值约在5~10间。
-		 * @param timeout 设备摇晃的响应间隔时间。
-		 * @param callback 在设备摇晃触发时调用的处理器。
-		 */
-		start(throushold:number,interval:number):void;
-
-		/**
-		 * 停止响应设备摇晃。
-		 */
-		stop():void;
-		private onShake:any;
-		private isShaked:any;
-	}
-
-	/**
 	 * 动画播放完毕后调度。
 	 * @eventType Event.COMPLETE
 	 */
@@ -19479,9 +18536,9 @@ const enum VIDEOTYPE {
 
 	/**
 	 * <p> <code>Animation</code> 是Graphics动画类。实现了基于Graphics的动画创建、播放、控制接口。</p>
-	 * <p>本类使用了动画模版缓存池，它以一定的内存开销来节省CPU开销，当相同的动画模版被多次使用时，相比于每次都创建新的动画模版，使用动画模版缓存池，只需创建一次，缓存之后多次复用，从而节省了动画模版创建的开销。</p>
-	 * <p>动画模版缓存池，以key-value键值对存储，key可以自定义，也可以从指定的配置文件中读取，value为对应的动画模版，是一个Graphics对象数组，每个Graphics对象对应一个帧图像，动画的播放实质就是定时切换Graphics对象。</p>
-	 * <p>使用set source、loadImages(...)、loadAtlas(...)、loadAnimation(...)方法可以创建动画模版。使用play(...)可以播放指定动画。</p>
+<p>本类使用了动画模版缓存池，它以一定的内存开销来节省CPU开销，当相同的动画模版被多次使用时，相比于每次都创建新的动画模版，使用动画模版缓存池，只需创建一次，缓存之后多次复用，从而节省了动画模版创建的开销。</p>
+<p>动画模版缓存池，以key-value键值对存储，key可以自定义，也可以从指定的配置文件中读取，value为对应的动画模版，是一个Graphics对象数组，每个Graphics对象对应一个帧图像，动画的播放实质就是定时切换Graphics对象。</p>
+<p>使用set source、loadImages(...)、loadAtlas(...)、loadAnimation(...)方法可以创建动画模版。使用play(...)可以播放指定动画。</p>
 	 * @example <caption>以下示例代码，创建了一个 <code>Text</code> 实例。</caption>
 package
 {
@@ -19547,7 +18604,7 @@ new Animation_Example();
 
 		/**
 		 * <p>动画模版缓存池，以key-value键值对存储，key可以自定义，也可以从指定的配置文件中读取，value为对应的动画模版，是一个Graphics对象数组，每个Graphics对象对应一个帧图像，动画的播放实质就是定时切换Graphics对象。</p>
-		 * <p>使用loadImages(...)、loadAtlas(...)、loadAnimation(...)、set source方法可以创建动画模版。使用play(...)可以播放指定动画。</p>
+<p>使用loadImages(...)、loadAtlas(...)、loadAnimation(...)、set source方法可以创建动画模版。使用play(...)可以播放指定动画。</p>
 		 */
 		static framesMap:any;
 
@@ -19575,8 +18632,8 @@ new Animation_Example();
 
 		/**
 		 * <p>开始播放动画。会在动画模版缓存池中查找key值为name的动画模版，存在则用此动画模版初始化当前序列帧， 如果不存在，则使用当前序列帧。</p>
-		 * <p>play(...)方法被设计为在创建实例后的任何时候都可以被调用，调用后就处于播放状态，当相应的资源加载完毕、调用动画帧填充方法(set frames)或者将实例显示在舞台上时，会判断是否处于播放状态，如果是，则开始播放。</p>
-		 * <p>配合wrapMode属性，可设置动画播放顺序类型。</p>
+<p>play(...)方法被设计为在创建实例后的任何时候都可以被调用，调用后就处于播放状态，当相应的资源加载完毕、调用动画帧填充方法(set frames)或者将实例显示在舞台上时，会判断是否处于播放状态，如果是，则开始播放。</p>
+<p>配合wrapMode属性，可设置动画播放顺序类型。</p>
 		 * @param start （可选）指定动画播放开始的索引(int)或帧标签(String)。帧标签可以通过addLabel(...)和removeLabel(...)进行添加和删除。
 		 * @param loop （可选）是否循环播放。
 		 * @param name （可选）动画模板在动画模版缓存池中的key，也可认为是动画名称。如果name为空，则播放当前动画序列帧；如果不为空，则在动画模版缓存池中寻找key值为name的动画模版，如果存在则用此动画模版初始化当前序列帧并播放，如果不存在，则仍然播放当前动画序列帧；如果没有当前动画的帧数据，则不播放，但该实例仍然处于播放状态。
@@ -19614,10 +18671,10 @@ new Animation_Example();
 
 		/**
 		 * <p>动画数据源。</p>
-		 * <p>类型如下：<br/>
-		 * 1. LayaAir IDE动画文件路径：使用此类型需要预加载所需的图集资源，否则会创建失败，如果不想预加载或者需要创建完毕的回调，请使用loadAnimation(...)方法；<br/>
-		 * 2. 图集路径：使用此类型创建的动画模版不会被缓存到动画模版缓存池中，如果需要缓存或者创建完毕的回调，请使用loadAtlas(...)方法；<br/>
-		 * 3. 图片路径集合：使用此类型创建的动画模版不会被缓存到动画模版缓存池中，如果需要缓存，请使用loadImages(...)方法。</p>
+<p>类型如下：<br/>
+1. LayaAir IDE动画文件路径：使用此类型需要预加载所需的图集资源，否则会创建失败，如果不想预加载或者需要创建完毕的回调，请使用loadAnimation(...)方法；<br/>
+2. 图集路径：使用此类型创建的动画模版不会被缓存到动画模版缓存池中，如果需要缓存或者创建完毕的回调，请使用loadAtlas(...)方法；<br/>
+3. 图片路径集合：使用此类型创建的动画模版不会被缓存到动画模版缓存池中，如果需要缓存，请使用loadImages(...)方法。</p>
 		 * @param value 数据源。比如：图集："xx/a1.atlas"；图片集合："a1.png,a2.png,a3.png"；LayaAir IDE动画"xx/a1.ani"。
 		 */
 		set source(value:string);
@@ -19640,8 +18697,8 @@ new Animation_Example();
 
 		/**
 		 * <p>根据指定的动画模版初始化当前动画序列帧。选择动画模版的过程如下：1. 动画模版缓存池中key为cacheName的动画模版；2. 如果不存在，则加载指定的图片集合并创建动画模版。注意：只有指定不为空的cacheName，才能将创建好的动画模版以此为key缓存到动画模版缓存池，否则不进行缓存。</p>
-		 * <p>动画模版缓存池是以一定的内存开销来节省CPU开销，当相同的动画模版被多次使用时，相比于每次都创建新的动画模版，使用动画模版缓存池，只需创建一次，缓存之后多次复用，从而节省了动画模版创建的开销。</p>
-		 * <p>因为返回值为Animation对象本身，所以可以使用如下语法：loadImages(...).loadImages(...).play(...);。</p>
+<p>动画模版缓存池是以一定的内存开销来节省CPU开销，当相同的动画模版被多次使用时，相比于每次都创建新的动画模版，使用动画模版缓存池，只需创建一次，缓存之后多次复用，从而节省了动画模版创建的开销。</p>
+<p>因为返回值为Animation对象本身，所以可以使用如下语法：loadImages(...).loadImages(...).play(...);。</p>
 		 * @param urls 图片路径集合。需要创建动画模版时，会以此为数据源。参数形如：[url1,url2,url3,...]。
 		 * @param cacheName （可选）动画模板在动画模版缓存池中的key。如果此参数不为空，表示使用动画模版缓存池。如果动画模版缓存池中存在key为cacheName的动画模版，则使用此模版。否则，创建新的动画模版，如果cacheName不为空，则以cacheName为key缓存到动画模版缓存池中，如果cacheName为空，不进行缓存。
 		 * @return 返回Animation对象本身。
@@ -19650,9 +18707,9 @@ new Animation_Example();
 
 		/**
 		 * <p>根据指定的动画模版初始化当前动画序列帧。选择动画模版的过程如下：1. 动画模版缓存池中key为cacheName的动画模版；2. 如果不存在，则加载指定的图集并创建动画模版。</p>
-		 * <p>注意：只有指定不为空的cacheName，才能将创建好的动画模版以此为key缓存到动画模版缓存池，否则不进行缓存。</p>
-		 * <p>动画模版缓存池是以一定的内存开销来节省CPU开销，当相同的动画模版被多次使用时，相比于每次都创建新的动画模版，使用动画模版缓存池，只需创建一次，缓存之后多次复用，从而节省了动画模版创建的开销。</p>
-		 * <p>因为返回值为Animation对象本身，所以可以使用如下语法：loadAtlas(...).loadAtlas(...).play(...);。</p>
+<p>注意：只有指定不为空的cacheName，才能将创建好的动画模版以此为key缓存到动画模版缓存池，否则不进行缓存。</p>
+<p>动画模版缓存池是以一定的内存开销来节省CPU开销，当相同的动画模版被多次使用时，相比于每次都创建新的动画模版，使用动画模版缓存池，只需创建一次，缓存之后多次复用，从而节省了动画模版创建的开销。</p>
+<p>因为返回值为Animation对象本身，所以可以使用如下语法：loadAtlas(...).loadAtlas(...).play(...);。</p>
 		 * @param url 图集路径。需要创建动画模版时，会以此为数据源。
 		 * @param loaded （可选）使用指定图集初始化动画完毕的回调。
 		 * @param cacheName （可选）动画模板在动画模版缓存池中的key。如果此参数不为空，表示使用动画模版缓存池。如果动画模版缓存池中存在key为cacheName的动画模版，则使用此模版。否则，创建新的动画模版，如果cacheName不为空，则以cacheName为key缓存到动画模版缓存池中，如果cacheName为空，不进行缓存。
@@ -19662,9 +18719,9 @@ new Animation_Example();
 
 		/**
 		 * <p>加载并解析由LayaAir IDE制作的动画文件，此文件中可能包含多个动画。默认帧率为在IDE中设计的帧率，如果调用过set interval，则使用此帧间隔对应的帧率。加载后创建动画模版，并缓存到动画模版缓存池，key "url#动画名称" 对应相应动画名称的动画模板，key "url#" 对应动画模版集合的默认动画模版。</p>
-		 * <p>注意：如果调用本方法前，还没有预加载动画使用的图集，请将atlas参数指定为对应的图集路径，否则会导致动画创建失败。</p>
-		 * <p>动画模版缓存池是以一定的内存开销来节省CPU开销，当相同的动画模版被多次使用时，相比于每次都创建新的动画模版，使用动画模版缓存池，只需创建一次，缓存之后多次复用，从而节省了动画模版创建的开销。</p>
-		 * <p>因为返回值为Animation对象本身，所以可以使用如下语法：loadAnimation(...).loadAnimation(...).play(...);。</p>
+<p>注意：如果调用本方法前，还没有预加载动画使用的图集，请将atlas参数指定为对应的图集路径，否则会导致动画创建失败。</p>
+<p>动画模版缓存池是以一定的内存开销来节省CPU开销，当相同的动画模版被多次使用时，相比于每次都创建新的动画模版，使用动画模版缓存池，只需创建一次，缓存之后多次复用，从而节省了动画模版创建的开销。</p>
+<p>因为返回值为Animation对象本身，所以可以使用如下语法：loadAnimation(...).loadAnimation(...).play(...);。</p>
 		 * @param url 动画文件路径。可由LayaAir IDE创建并发布。
 		 * @param loaded （可选）使用指定动画资源初始化动画完毕的回调。
 		 * @param atlas （可选）动画用到的图集地址（可选）。
@@ -19687,7 +18744,7 @@ new Animation_Example();
 
 		/**
 		 * <p>从动画模版缓存池中清除指定key值的动画数据。</p>
-		 * <p>开发者在调用创建动画模版函数时，可以手动指定此值。而如果是由LayaAir IDE创建的动画集，解析后的key格式为："url#"：表示动画集的默认动画模版，如果以此值为参数，会清除整个动画集数据；"url#aniName"：表示相应名称的动画模版。</p>
+<p>开发者在调用创建动画模版函数时，可以手动指定此值。而如果是由LayaAir IDE创建的动画集，解析后的key格式为："url#"：表示动画集的默认动画模版，如果以此值为参数，会清除整个动画集数据；"url#aniName"：表示相应名称的动画模版。</p>
 		 * @param key 动画模板在动画模版缓存池中的key。
 		 */
 		static clearCache(key:string):void;
@@ -19705,7 +18762,7 @@ new Animation_Example();
 
 	/**
 	 * <p>动画基类，提供了基础的动画播放控制方法和帧标签事件相关功能。</p>
-	 * <p>可以继承此类，但不要直接实例化此类，因为有些方法需要由子类实现。</p>
+<p>可以继承此类，但不要直接实例化此类，因为有些方法需要由子类实现。</p>
 	 */
 	class AnimationBase extends Sprite  {
 
@@ -19787,7 +18844,7 @@ new Animation_Example();
 
 		/**
 		 * <p>开始播放动画。play(...)方法被设计为在创建实例后的任何时候都可以被调用，当相应的资源加载完毕、调用动画帧填充方法(set frames)或者将实例显示在舞台上时，会判断是否正在播放中，如果是，则进行播放。</p>
-		 * <p>配合wrapMode属性，可设置动画播放顺序类型。</p>
+<p>配合wrapMode属性，可设置动画播放顺序类型。</p>
 		 * @param start （可选）指定动画播放开始的索引(int)或帧标签(String)。帧标签可以通过addLabel(...)和removeLabel(...)进行添加和删除。
 		 * @param loop （可选）是否循环播放。
 		 * @param name （可选）动画名称。
@@ -19796,7 +18853,7 @@ new Animation_Example();
 
 		/**
 		 * <p>动画播放的帧间隔时间(单位：毫秒)。默认值依赖于Config.animationInterval=50，通过Config.animationInterval可以修改默认帧间隔时间。</p>
-		 * <p>要想为某动画设置独立的帧间隔时间，可以使用set interval，注意：如果动画正在播放，设置后会重置帧循环定时器的起始时间为当前时间，也就是说，如果频繁设置interval，会导致动画帧更新的时间间隔会比预想的要慢，甚至不更新。</p>
+<p>要想为某动画设置独立的帧间隔时间，可以使用set interval，注意：如果动画正在播放，设置后会重置帧循环定时器的起始时间为当前时间，也就是说，如果频繁设置interval，会导致动画帧更新的时间间隔会比预想的要慢，甚至不更新。</p>
 		 */
 		get interval():number;
 		set interval(value:number);
@@ -19876,7 +18933,7 @@ new Animation_Example();
 
 	/**
 	 * <code>BitmapFont</code> 是位图字体类，用于定义位图字体信息。
-	 * 字体制作及使用方法，请参考文章
+字体制作及使用方法，请参考文章
 	 * @see http://ldc2.layabox.com/doc/?nav=ch-js-1-2-5
 	 */
 	class BitmapFont  {
@@ -19971,6 +19028,3555 @@ new Animation_Example();
 		 * 获取最大字符高度。
 		 */
 		getMaxHeight():number;
+	}
+
+	/**
+	 * <p> 动效模板。用于为指定目标对象添加动画效果。每个动效有唯一的目标对象，而同一个对象可以添加多个动效。 当一个动效开始播放时，其他动效会自动停止播放。</p>
+<p> 可以通过LayaAir IDE创建。 </p>
+	 */
+	class EffectAnimation extends FrameAnimation  {
+
+		/**
+		 * @private 动效开始事件。
+		 */
+		private static EFFECT_BEGIN:any;
+
+		/**
+		 * 本实例的目标对象。通过本实例控制目标对象的属性变化。
+		 * @param v 指定的目标对象。
+		 */
+		set target(v:any);
+		get target():any;
+
+		/**
+		 * @private 
+		 */
+		private _onOtherBegin:any;
+
+		/**
+		 * 设置开始播放的事件。本实例会侦听目标对象的指定事件，触发后播放相应动画效果。
+		 * @param event 
+		 */
+		set playEvent(event:string);
+
+		/**
+		 * @param start 
+		 * @param loop 
+		 * @param name 
+		 * @override 
+		 */
+		play(start?:any,loop?:boolean,name?:string):void;
+
+		/**
+		 * @private 
+		 */
+		private _recordInitData:any;
+
+		/**
+		 * 设置提供数据的类。
+		 * @param classStr 类路径
+		 */
+		set effectClass(classStr:string);
+
+		/**
+		 * 设置动画数据。
+		 * @param uiData 
+		 */
+		set effectData(uiData:any);
+
+		/**
+		 * @override 
+		 */
+		protected _displayNodeToFrame(node:any,frame:number,targetDic?:any):void;
+	}
+
+	/**
+	 * 动画播放完毕后调度。
+	 * @eventType Event.COMPLETE
+	 */
+
+	/**
+	 * 播放到某标签后调度。
+	 * @eventType Event.LABEL
+	 */
+
+	/**
+	 * 节点关键帧动画播放类。解析播放IDE内制作的节点动画。
+	 */
+	class FrameAnimation extends AnimationBase  {
+
+		/**
+		 * @private 
+		 */
+		private static _sortIndexFun:any;
+
+		/**
+		 * @private 
+		 */
+		protected _usedFrames:any[];
+
+		constructor();
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		clear():AnimationBase;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		protected _displayToIndex(value:number):void;
+
+		/**
+		 * @private 将节点设置到某一帧的状态
+		 * @param node 节点ID
+		 * @param frame 
+		 * @param targetDic 节点表
+		 */
+		protected _displayNodeToFrame(node:any,frame:number,targetDic?:any):void;
+
+		/**
+		 * @private 计算帧数据
+		 */
+		private _calculateDatas:any;
+
+		/**
+		 * @private 计算某个节点的帧数据
+		 */
+		protected _calculateKeyFrames(node:any):void;
+
+		/**
+		 * 重置节点，使节点恢复到动画之前的状态，方便其他动画控制
+		 */
+		resetNodes():void;
+
+		/**
+		 * @private 计算节点某个属性的帧数据
+		 */
+		private _calculateNodePropFrames:any;
+
+		/**
+		 * @private 
+		 */
+		private _dealKeyFrame:any;
+
+		/**
+		 * @private 计算两个关键帧直接的帧数据
+		 */
+		private _calculateFrameValues:any;
+	}
+
+	/**
+	 * <code>Graphics</code> 类用于创建绘图显示对象。Graphics可以同时绘制多个位图或者矢量图，还可以结合save，restore，transform，scale，rotate，translate，alpha等指令对绘图效果进行变化。
+Graphics以命令流方式存储，可以通过cmds属性访问所有命令流。Graphics是比Sprite更轻量级的对象，合理使用能提高应用性能(比如把大量的节点绘图改为一个节点的Graphics命令集合，能减少大量节点创建消耗)。
+	 * @see laya.display.Sprite#graphics
+	 */
+	class Graphics  {
+
+		/**
+		 * @private 
+		 */
+		private _cmds:any;
+
+		/**
+		 * @private 
+		 */
+		protected _vectorgraphArray:any[]|null;
+
+		/**
+		 * @private 
+		 */
+		private _graphicBounds:any;
+
+		/**
+		 * @private 
+		 */
+		autoDestroy:boolean;
+
+		constructor();
+
+		/**
+		 * <p>销毁此对象。</p>
+		 */
+		destroy():void;
+
+		/**
+		 * <p>清空绘制命令。</p>
+		 * @param recoverCmds 是否回收绘图指令数组，设置为true，则对指令数组进行回收以节省内存开销，建议设置为true进行回收，但如果手动引用了数组，不建议回收
+		 */
+		clear(recoverCmds?:boolean):void;
+
+		/**
+		 * @private 
+		 */
+		private _clearBoundsCache:any;
+
+		/**
+		 * @private 
+		 */
+		private _initGraphicBounds:any;
+
+		/**
+		 * @private 命令流。存储了所有绘制命令。
+		 */
+		get cmds():any[];
+		set cmds(value:any[]);
+
+		/**
+		 * 获取位置及宽高信息矩阵(比较耗CPU，频繁使用会造成卡顿，尽量少用)。
+		 * @param realSize （可选）使用图片的真实大小，默认为false
+		 * @return 位置与宽高组成的 一个 Rectangle 对象。
+		 */
+		getBounds(realSize?:boolean):Rectangle;
+
+		/**
+		 * @private 
+		 * @param realSize （可选）使用图片的真实大小，默认为false
+获取端点列表。
+		 */
+		getBoundPoints(realSize?:boolean):any[];
+
+		/**
+		 * 绘制单独图片
+		 * @param texture 纹理。
+		 * @param x （可选）X轴偏移量。
+		 * @param y （可选）Y轴偏移量。
+		 * @param width （可选）宽度。
+		 * @param height （可选）高度。
+		 */
+		drawImage(texture:Texture,x?:number,y?:number,width?:number,height?:number):DrawImageCmd|null;
+
+		/**
+		 * 绘制纹理，相比drawImage功能更强大，性能会差一些
+		 * @param texture 纹理。
+		 * @param x （可选）X轴偏移量。
+		 * @param y （可选）Y轴偏移量。
+		 * @param width （可选）宽度。
+		 * @param height （可选）高度。
+		 * @param matrix （可选）矩阵信息。
+		 * @param alpha （可选）透明度。
+		 * @param color （可选）颜色滤镜。
+		 * @param blendMode （可选）混合模式。
+		 */
+		drawTexture(texture:Texture|null,x?:number,y?:number,width?:number,height?:number,matrix?:Matrix|null,alpha?:number,color?:string|null,blendMode?:string|null,uv?:number[]):DrawTextureCmd|null;
+
+		/**
+		 * 批量绘制同样纹理。
+		 * @param texture 纹理。
+		 * @param pos 绘制次数和坐标。
+		 */
+		drawTextures(texture:Texture,pos:any[]):DrawTexturesCmd|null;
+
+		/**
+		 * 绘制一组三角形
+		 * @param texture 纹理。
+		 * @param x X轴偏移量。
+		 * @param y Y轴偏移量。
+		 * @param vertices 顶点数组。
+		 * @param indices 顶点索引。
+		 * @param uvData UV数据。
+		 * @param matrix 缩放矩阵。
+		 * @param alpha alpha
+		 * @param color 颜色变换
+		 * @param blendMode blend模式
+		 */
+		drawTriangles(texture:Texture,x:number,y:number,vertices:Float32Array,uvs:Float32Array,indices:Uint16Array,matrix?:Matrix|null,alpha?:number,color?:string|null,blendMode?:string|null,colorNum?:number):DrawTrianglesCmd;
+
+		/**
+		 * 用texture填充。
+		 * @param texture 纹理。
+		 * @param x X轴偏移量。
+		 * @param y Y轴偏移量。
+		 * @param width （可选）宽度。
+		 * @param height （可选）高度。
+		 * @param type （可选）填充类型 repeat|repeat-x|repeat-y|no-repeat
+		 * @param offset （可选）贴图纹理偏移
+		 */
+		fillTexture(texture:Texture,x:number,y:number,width?:number,height?:number,type?:string,offset?:Point|null):FillTextureCmd|null;
+
+		/**
+		 * 设置剪裁区域，超出剪裁区域的坐标不显示。
+		 * @param x X 轴偏移量。
+		 * @param y Y 轴偏移量。
+		 * @param width 宽度。
+		 * @param height 高度。
+		 */
+		clipRect(x:number,y:number,width:number,height:number):ClipRectCmd;
+
+		/**
+		 * 在画布上绘制文本。
+		 * @param text 在画布上输出的文本。
+		 * @param x 开始绘制文本的 x 坐标位置（相对于画布）。
+		 * @param y 开始绘制文本的 y 坐标位置（相对于画布）。
+		 * @param font 定义字号和字体，比如"20px Arial"。
+		 * @param color 定义文本颜色，比如"#ff0000"。
+		 * @param textAlign 文本对齐方式，可选值："left"，"center"，"right"。
+		 */
+		fillText(text:string,x:number,y:number,font:string,color:string,textAlign:string):FillTextCmd;
+
+		/**
+		 * 在画布上绘制“被填充且镶边的”文本。
+		 * @param text 在画布上输出的文本。
+		 * @param x 开始绘制文本的 x 坐标位置（相对于画布）。
+		 * @param y 开始绘制文本的 y 坐标位置（相对于画布）。
+		 * @param font 定义字体和字号，比如"20px Arial"。
+		 * @param fillColor 定义文本颜色，比如"#ff0000"。
+		 * @param textAlign 文本对齐方式，可选值："left"，"center"，"right"。
+		 * @param lineWidth 镶边线条宽度。
+		 * @param borderColor 定义镶边文本颜色。
+		 */
+		fillBorderText(text:string,x:number,y:number,font:string,fillColor:string,textAlign:string,lineWidth:number,borderColor:string):FillTextCmd;
+
+		/**
+		 * * @private
+		 */
+		fillWords(words:any[],x:number,y:number,font:string,color:string):FillTextCmd;
+
+		/**
+		 * * @private
+		 */
+		fillBorderWords(words:any[],x:number,y:number,font:string,fillColor:string,borderColor:string,lineWidth:number):FillTextCmd;
+
+		/**
+		 * 在画布上绘制文本（没有填色）。文本的默认颜色是黑色。
+		 * @param text 在画布上输出的文本。
+		 * @param x 开始绘制文本的 x 坐标位置（相对于画布）。
+		 * @param y 开始绘制文本的 y 坐标位置（相对于画布）。
+		 * @param font 定义字体和字号，比如"20px Arial"。
+		 * @param color 定义文本颜色，比如"#ff0000"。
+		 * @param lineWidth 线条宽度。
+		 * @param textAlign 文本对齐方式，可选值："left"，"center"，"right"。
+		 */
+		strokeText(text:string,x:number,y:number,font:string,color:string,lineWidth:number,textAlign:string):FillTextCmd;
+
+		/**
+		 * 设置透明度。
+		 * @param value 透明度。
+		 */
+		alpha(alpha:number):AlphaCmd;
+
+		/**
+		 * 替换绘图的当前转换矩阵。
+		 * @param mat 矩阵。
+		 * @param pivotX （可选）水平方向轴心点坐标。
+		 * @param pivotY （可选）垂直方向轴心点坐标。
+		 */
+		transform(matrix:Matrix,pivotX?:number,pivotY?:number):TransformCmd;
+
+		/**
+		 * 旋转当前绘图。(推荐使用transform，性能更高)
+		 * @param angle 旋转角度，以弧度计。
+		 * @param pivotX （可选）水平方向轴心点坐标。
+		 * @param pivotY （可选）垂直方向轴心点坐标。
+		 */
+		rotate(angle:number,pivotX?:number,pivotY?:number):RotateCmd;
+
+		/**
+		 * 缩放当前绘图至更大或更小。(推荐使用transform，性能更高)
+		 * @param scaleX 水平方向缩放值。
+		 * @param scaleY 垂直方向缩放值。
+		 * @param pivotX （可选）水平方向轴心点坐标。
+		 * @param pivotY （可选）垂直方向轴心点坐标。
+		 */
+		scale(scaleX:number,scaleY:number,pivotX?:number,pivotY?:number):ScaleCmd;
+
+		/**
+		 * 重新映射画布上的 (0,0) 位置。
+		 * @param x 添加到水平坐标（x）上的值。
+		 * @param y 添加到垂直坐标（y）上的值。
+		 */
+		translate(tx:number,ty:number):TranslateCmd;
+
+		/**
+		 * 保存当前环境的状态。
+		 */
+		save():SaveCmd;
+
+		/**
+		 * 返回之前保存过的路径状态和属性。
+		 */
+		restore():RestoreCmd;
+
+		/**
+		 * @private 替换文本内容。
+		 * @param text 文本内容。
+		 * @return 替换成功则值为true，否则值为flase。
+		 */
+		replaceText(text:string):boolean;
+
+		/**
+		 * @private 
+		 */
+		private _isTextCmd:any;
+
+		/**
+		 * @private 替换文本颜色。
+		 * @param color 颜色。
+		 */
+		replaceTextColor(color:string):void;
+
+		/**
+		 * @private 
+		 */
+		private _setTextCmdColor:any;
+
+		/**
+		 * 加载并显示一个图片。
+		 * @param url 图片地址。
+		 * @param x （可选）显示图片的x位置。
+		 * @param y （可选）显示图片的y位置。
+		 * @param width （可选）显示图片的宽度，设置为0表示使用图片默认宽度。
+		 * @param height （可选）显示图片的高度，设置为0表示使用图片默认高度。
+		 * @param complete （可选）加载完成回调。
+		 */
+		loadImage(url:string,x?:number,y?:number,width?:number,height?:number,complete?:Function|null):void;
+
+		/**
+		 * 绘制一条线。
+		 * @param fromX X轴开始位置。
+		 * @param fromY Y轴开始位置。
+		 * @param toX X轴结束位置。
+		 * @param toY Y轴结束位置。
+		 * @param lineColor 颜色。
+		 * @param lineWidth （可选）线条宽度。
+		 */
+		drawLine(fromX:number,fromY:number,toX:number,toY:number,lineColor:string,lineWidth?:number):DrawLineCmd;
+
+		/**
+		 * 绘制一系列线段。
+		 * @param x 开始绘制的X轴位置。
+		 * @param y 开始绘制的Y轴位置。
+		 * @param points 线段的点集合。格式:[x1,y1,x2,y2,x3,y3...]。
+		 * @param lineColor 线段颜色，或者填充绘图的渐变对象。
+		 * @param lineWidth （可选）线段宽度。
+		 */
+		drawLines(x:number,y:number,points:any[],lineColor:any,lineWidth?:number):DrawLinesCmd|null;
+
+		/**
+		 * 绘制一系列曲线。
+		 * @param x 开始绘制的 X 轴位置。
+		 * @param y 开始绘制的 Y 轴位置。
+		 * @param points 线段的点集合，格式[controlX, controlY, anchorX, anchorY...]。
+		 * @param lineColor 线段颜色，或者填充绘图的渐变对象。
+		 * @param lineWidth （可选）线段宽度。
+		 */
+		drawCurves(x:number,y:number,points:any[],lineColor:any,lineWidth?:number):DrawCurvesCmd;
+
+		/**
+		 * 绘制矩形。
+		 * @param x 开始绘制的 X 轴位置。
+		 * @param y 开始绘制的 Y 轴位置。
+		 * @param width 矩形宽度。
+		 * @param height 矩形高度。
+		 * @param fillColor 填充颜色，或者填充绘图的渐变对象。
+		 * @param lineColor （可选）边框颜色，或者填充绘图的渐变对象。
+		 * @param lineWidth （可选）边框宽度。
+		 */
+		drawRect(x:number,y:number,width:number,height:number,fillColor:any,lineColor?:any,lineWidth?:number):DrawRectCmd;
+
+		/**
+		 * 绘制圆形。
+		 * @param x 圆点X 轴位置。
+		 * @param y 圆点Y 轴位置。
+		 * @param radius 半径。
+		 * @param fillColor 填充颜色，或者填充绘图的渐变对象。
+		 * @param lineColor （可选）边框颜色，或者填充绘图的渐变对象。
+		 * @param lineWidth （可选）边框宽度。
+		 */
+		drawCircle(x:number,y:number,radius:number,fillColor:any,lineColor?:any,lineWidth?:number):DrawCircleCmd;
+
+		/**
+		 * 绘制扇形。
+		 * @param x 开始绘制的 X 轴位置。
+		 * @param y 开始绘制的 Y 轴位置。
+		 * @param radius 扇形半径。
+		 * @param startAngle 开始角度。
+		 * @param endAngle 结束角度。
+		 * @param fillColor 填充颜色，或者填充绘图的渐变对象。
+		 * @param lineColor （可选）边框颜色，或者填充绘图的渐变对象。
+		 * @param lineWidth （可选）边框宽度。
+		 */
+		drawPie(x:number,y:number,radius:number,startAngle:number,endAngle:number,fillColor:any,lineColor?:any,lineWidth?:number):DrawPieCmd;
+
+		/**
+		 * 绘制多边形。
+		 * @param x 开始绘制的 X 轴位置。
+		 * @param y 开始绘制的 Y 轴位置。
+		 * @param points 多边形的点集合。
+		 * @param fillColor 填充颜色，或者填充绘图的渐变对象。
+		 * @param lineColor （可选）边框颜色，或者填充绘图的渐变对象。
+		 * @param lineWidth （可选）边框宽度。
+		 */
+		drawPoly(x:number,y:number,points:any[],fillColor:any,lineColor?:any,lineWidth?:number):DrawPolyCmd;
+
+		/**
+		 * 绘制路径。
+		 * @param x 开始绘制的 X 轴位置。
+		 * @param y 开始绘制的 Y 轴位置。
+		 * @param paths 路径集合，路径支持以下格式：[["moveTo",x,y],["lineTo",x,y],["arcTo",x1,y1,x2,y2,r],["closePath"]]。
+		 * @param brush （可选）刷子定义，支持以下设置{fillStyle:"#FF0000"}。
+		 * @param pen （可选）画笔定义，支持以下设置{strokeStyle,lineWidth,lineJoin:"bevel|round|miter",lineCap:"butt|round|square",miterLimit}。
+		 */
+		drawPath(x:number,y:number,paths:any[],brush?:any,pen?:any):DrawPathCmd;
+
+		/**
+		 * @private 绘制带九宫格的图片
+		 * @param texture 
+		 * @param x 
+		 * @param y 
+		 * @param width 
+		 * @param height 
+		 * @param sizeGrid 
+		 */
+		draw9Grid(texture:Texture,x:number,y:number,width:number,height:number,sizeGrid:any[]):void;
+	}
+
+	/**
+	 * @private Graphic bounds数据类
+	 */
+	class GraphicsBounds  {
+
+		/**
+		 * @private 
+		 */
+		private static _tempMatrix:any;
+
+		/**
+		 * @private 
+		 */
+		private static _initMatrix:any;
+
+		/**
+		 * @private 
+		 */
+		private static _tempPoints:any;
+
+		/**
+		 * @private 
+		 */
+		private static _tempMatrixArrays:any;
+
+		/**
+		 * @private 
+		 */
+		private static _tempCmds:any;
+
+		/**
+		 * @private 
+		 */
+		private _temp:any;
+
+		/**
+		 * @private 
+		 */
+		private _bounds:any;
+
+		/**
+		 * @private 
+		 */
+		private _rstBoundPoints:any;
+
+		/**
+		 * @private 
+		 */
+		private _cacheBoundsType:any;
+
+		/**
+		 * 销毁
+		 */
+		destroy():void;
+
+		/**
+		 * 创建
+		 */
+		static create():GraphicsBounds;
+
+		/**
+		 * 重置数据
+		 */
+		reset():void;
+
+		/**
+		 * 获取位置及宽高信息矩阵(比较耗CPU，频繁使用会造成卡顿，尽量少用)。
+		 * @param realSize （可选）使用图片的真实大小，默认为false
+		 * @return 位置与宽高组成的 一个 Rectangle 对象。
+		 */
+		getBounds(realSize?:boolean):Rectangle;
+
+		/**
+		 * @private 
+		 * @param realSize （可选）使用图片的真实大小，默认为false
+获取端点列表。
+		 */
+		getBoundPoints(realSize?:boolean):any[];
+		private _getCmdPoints:any;
+		private _switchMatrix:any;
+		private static _addPointArrToRst:any;
+		private static _addPointToRst:any;
+
+		/**
+		 * 获得drawPie命令可能的产生的点。注意 这里只假设用在包围盒计算上。
+		 * @param x 
+		 * @param y 
+		 * @param radius 
+		 * @param startAngle 
+		 * @param endAngle 
+		 * @return 
+		 */
+		private _getPiePoints:any;
+		private _getTriAngBBXPoints:any;
+		private _getDraw9GridBBXPoints:any;
+		private _getPathPoints:any;
+	}
+
+	/**
+	 * 用户输入一个或多个文本字符时后调度。
+	 * @eventType Event.INPUT
+	 */
+
+	/**
+	 * 文本发生变化后调度。
+	 * @eventType Event.CHANGE
+	 */
+
+	/**
+	 * 用户在输入框内敲回车键后，将会调度 <code>enter</code> 事件。
+	 * @eventType Event.ENTER
+	 */
+
+	/**
+	 * 显示对象获得焦点后调度。
+	 * @eventType Event.FOCUS
+	 */
+
+	/**
+	 * 显示对象失去焦点后调度。
+	 * @eventType Event.BLUR
+	 */
+
+	/**
+	 * <p><code>Input</code> 类用于创建显示对象以显示和输入文本。</p>
+<p>Input 类封装了原生的文本输入框，由于不同浏览器的差异，会导致此对象的默认文本的位置与用户点击输入时的文本的位置有少许的偏差。</p>
+	 */
+	class Input extends Text  {
+
+		/**
+		 * 常规文本域。
+		 */
+		static TYPE_TEXT:string;
+
+		/**
+		 * password 类型用于密码域输入。
+		 */
+		static TYPE_PASSWORD:string;
+
+		/**
+		 * email 类型用于应该包含 e-mail 地址的输入域。
+		 */
+		static TYPE_EMAIL:string;
+
+		/**
+		 * url 类型用于应该包含 URL 地址的输入域。
+		 */
+		static TYPE_URL:string;
+
+		/**
+		 * number 类型用于应该包含数值的输入域。
+		 */
+		static TYPE_NUMBER:string;
+
+		/**
+		 * <p>range 类型用于应该包含一定范围内数字值的输入域。</p>
+<p>range 类型显示为滑动条。</p>
+<p>您还能够设定对所接受的数字的限定。</p>
+		 */
+		static TYPE_RANGE:string;
+
+		/**
+		 * 选取日、月、年。
+		 */
+		static TYPE_DATE:string;
+
+		/**
+		 * month - 选取月、年。
+		 */
+		static TYPE_MONTH:string;
+
+		/**
+		 * week - 选取周和年。
+		 */
+		static TYPE_WEEK:string;
+
+		/**
+		 * time - 选取时间（小时和分钟）。
+		 */
+		static TYPE_TIME:string;
+
+		/**
+		 * datetime - 选取时间、日、月、年（UTC 时间）。
+		 */
+		static TYPE_DATE_TIME:string;
+
+		/**
+		 * datetime-local - 选取时间、日、月、年（本地时间）。
+		 */
+		static TYPE_DATE_TIME_LOCAL:string;
+
+		/**
+		 * <p>search 类型用于搜索域，比如站点搜索或 Google 搜索。</p>
+<p>search 域显示为常规的文本域。</p>
+		 */
+		static TYPE_SEARCH:string;
+
+		/**
+		 * @private 
+		 */
+		protected static input:HTMLInputElement;
+
+		/**
+		 * @private 
+		 */
+		protected static area:HTMLTextAreaElement;
+
+		/**
+		 * @private 
+		 */
+		protected static inputElement:HTMLInputElement|HTMLTextAreaElement;
+
+		/**
+		 * @private 
+		 */
+		protected static inputContainer:HTMLDivElement;
+
+		/**
+		 * @private 
+		 */
+		protected static confirmButton:any;
+
+		/**
+		 * @private 
+		 */
+		protected static promptStyleDOM:any;
+
+		/**
+		 * @private 
+		 */
+		protected _focus:boolean;
+
+		/**
+		 * @private 
+		 */
+		protected _multiline:boolean;
+
+		/**
+		 * @private 
+		 */
+		protected _editable:boolean;
+
+		/**
+		 * @private 
+		 */
+		protected _restrictPattern:any;
+
+		/**
+		 * @private 
+		 */
+		protected _maxChars:number;
+		private _type:any;
+
+		/**
+		 * 输入提示符。
+		 */
+		private _prompt:any;
+
+		/**
+		 * 输入提示符颜色。
+		 */
+		private _promptColor:any;
+		private _originColor:any;
+		private _content:any;
+
+		/**
+		 * @private 
+		 */
+		static IOS_IFRAME:boolean;
+		private static inputHeight:any;
+
+		/**
+		 * 表示是否处于输入状态。
+		 */
+		static isInputting:boolean;
+
+		/**
+		 * 创建一个新的 <code>Input</code> 类实例。
+		 */
+
+		constructor();
+		private static _popupInputMethod:any;
+		private static _createInputElement:any;
+		private static _initInput:any;
+		private static _processInputting:any;
+		private static _stopEvent:any;
+
+		/**
+		 * 设置光标位置和选取字符。
+		 * @param startIndex 光标起始位置。
+		 * @param endIndex 光标结束位置。
+		 */
+		setSelection(startIndex:number,endIndex:number):void;
+
+		/**
+		 * 表示是否是多行输入框。
+		 */
+		get multiline():boolean;
+		set multiline(value:boolean);
+
+		/**
+		 * 获取对输入框的引用实例。
+		 */
+		get nativeInput():HTMLInputElement|HTMLTextAreaElement;
+		private _onUnDisplay:any;
+		private _onMouseDown:any;
+		private static stageMatrix:any;
+
+		/**
+		 * 在输入期间，如果 Input 实例的位置改变，调用_syncInputTransform同步输入框的位置。
+		 */
+		private _syncInputTransform:any;
+
+		/**
+		 * 选中当前实例的所有文本。
+		 */
+		select():void;
+
+		/**
+		 * 表示焦点是否在此实例上。
+		 */
+		get focus():boolean;
+		set focus(value:boolean);
+		private _setInputMethod:any;
+		private _focusIn:any;
+		private _setPromptColor:any;
+
+		/**
+		 * @private 
+		 */
+		private _focusOut:any;
+
+		/**
+		 * @private 
+		 */
+		private _onKeyDown:any;
+
+		/**
+		 * 小游戏专用(解决键盘输入框内容和游戏输入框内容不同步的bug)
+		 * @param value 
+		 */
+		miniGameTxt(value:string):void;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		set text(value:string);
+
+		/**
+		 * @override 
+		 */
+		get text():string;
+
+		/**
+		 * @param text 
+		 * @override 
+		 */
+		changeText(text:string):void;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		set color(value:string);
+		get color():string;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		set bgColor(value:string);
+		get bgColor():string;
+
+		/**
+		 * 限制输入的字符。
+		 */
+		get restrict():string;
+		set restrict(pattern:string);
+
+		/**
+		 * 是否可编辑。
+		 */
+		set editable(value:boolean);
+		get editable():boolean;
+
+		/**
+		 * <p>字符数量限制，默认为10000。</p>
+<p>设置字符数量限制时，小于等于0的值将会限制字符数量为10000。</p>
+		 */
+		get maxChars():number;
+		set maxChars(value:number);
+
+		/**
+		 * 设置输入提示符。
+		 */
+		get prompt():string;
+		set prompt(value:string);
+
+		/**
+		 * 设置输入提示符颜色。
+		 */
+		get promptColor():string;
+		set promptColor(value:string);
+
+		/**
+		 * <p>输入框类型为Input静态常量之一。</p>
+<ul>
+<li>TYPE_TEXT</li>
+<li>TYPE_PASSWORD</li>
+<li>TYPE_EMAIL</li>
+<li>TYPE_URL</li>
+<li>TYPE_NUMBER</li>
+<li>TYPE_RANGE</li>
+<li>TYPE_DATE</li>
+<li>TYPE_MONTH</li>
+<li>TYPE_WEEK</li>
+<li>TYPE_TIME</li>
+<li>TYPE_DATE_TIME</li>
+<li>TYPE_DATE_TIME_LOCAL</li>
+</ul>
+<p>平台兼容性参见http://www.w3school.com.cn/html5/html_5_form_input_types.asp。</p>
+		 */
+		get type():string;
+		set type(value:string);
+	}
+
+	/**
+	 * 添加到父对象后调度。
+	 * @eventType Event.ADDED
+	 */
+
+	/**
+	 * 被父对象移除后调度。
+	 * @eventType Event.REMOVED
+	 */
+
+	/**
+	 * 加入节点树时调度。
+	 * @eventType Event.DISPLAY
+	 */
+
+	/**
+	 * 从节点树移除时调度。
+	 * @eventType Event.UNDISPLAY
+	 */
+
+	/**
+	 * <code>Node</code> 类是可放在显示列表中的所有对象的基类。该显示列表管理 Laya 运行时中显示的所有对象。使用 Node 类排列显示列表中的显示对象。Node 对象可以有子显示对象。
+	 */
+	class Node extends EventDispatcher  {
+
+		/**
+		 * @private 
+		 */
+		protected static ARRAY_EMPTY:any[];
+
+		/**
+		 * @private 
+		 */
+		private _bits:any;
+
+		/**
+		 * 节点名称。
+		 */
+		name:string;
+
+		/**
+		 * [只读]是否已经销毁。对象销毁后不能再使用。
+		 */
+		destroyed:boolean;
+
+		constructor();
+		createGLBuffer():void;
+
+		/**
+		 * <p>增加事件侦听器，以使侦听器能够接收事件通知。</p>
+<p>如果侦听鼠标事件，则会自动设置自己和父亲节点的属性 mouseEnabled 的值为 true(如果父节点mouseEnabled=false，则停止设置父节点mouseEnabled属性)。</p>
+		 * @param type 事件的类型。
+		 * @param caller 事件侦听函数的执行域。
+		 * @param listener 事件侦听函数。
+		 * @param args （可选）事件侦听函数的回调参数。
+		 * @return 此 EventDispatcher 对象。
+		 * @override 
+		 */
+		on(type:string,caller:any,listener:Function,args?:any[]):EventDispatcher;
+
+		/**
+		 * <p>增加事件侦听器，以使侦听器能够接收事件通知，此侦听事件响应一次后则自动移除侦听。</p>
+<p>如果侦听鼠标事件，则会自动设置自己和父亲节点的属性 mouseEnabled 的值为 true(如果父节点mouseEnabled=false，则停止设置父节点mouseEnabled属性)。</p>
+		 * @param type 事件的类型。
+		 * @param caller 事件侦听函数的执行域。
+		 * @param listener 事件侦听函数。
+		 * @param args （可选）事件侦听函数的回调参数。
+		 * @return 此 EventDispatcher 对象。
+		 * @override 
+		 */
+		once(type:string,caller:any,listener:Function,args?:any[]):EventDispatcher;
+
+		/**
+		 * <p>销毁此对象。destroy对象默认会把自己从父节点移除，并且清理自身引用关系，等待js自动垃圾回收机制回收。destroy后不能再使用。</p>
+<p>destroy时会移除自身的事情监听，自身的timer监听，移除子对象及从父节点移除自己。</p>
+		 * @param destroyChild （可选）是否同时销毁子节点，若值为true,则销毁子节点，否则不销毁子节点。
+		 */
+		destroy(destroyChild?:boolean):void;
+
+		/**
+		 * 销毁时执行
+此方法为虚方法，使用时重写覆盖即可
+		 */
+		onDestroy():void;
+
+		/**
+		 * 销毁所有子对象，不销毁自己本身。
+		 */
+		destroyChildren():void;
+
+		/**
+		 * 添加子节点。
+		 * @param node 节点对象
+		 * @return 返回添加的节点
+		 */
+		addChild(node:Node):Node;
+		addInputChild(node:Node):Node;
+		removeInputChild(node:Node):void;
+
+		/**
+		 * 批量增加子节点
+		 * @param ...args 无数子节点。
+		 */
+		addChildren(...args:any[]):void;
+
+		/**
+		 * 添加子节点到指定的索引位置。
+		 * @param node 节点对象。
+		 * @param index 索引位置。
+		 * @return 返回添加的节点。
+		 */
+		addChildAt(node:Node,index:number):Node;
+
+		/**
+		 * 根据子节点对象，获取子节点的索引位置。
+		 * @param node 子节点。
+		 * @return 子节点所在的索引位置。
+		 */
+		getChildIndex(node:Node):number;
+
+		/**
+		 * 根据子节点的名字，获取子节点对象。
+		 * @param name 子节点的名字。
+		 * @return 节点对象。
+		 */
+		getChildByName(name:string):Node;
+
+		/**
+		 * 根据子节点的索引位置，获取子节点对象。
+		 * @param index 索引位置
+		 * @return 子节点
+		 */
+		getChildAt(index:number):Node;
+
+		/**
+		 * 设置子节点的索引位置。
+		 * @param node 子节点。
+		 * @param index 新的索引。
+		 * @return 返回子节点本身。
+		 */
+		setChildIndex(node:Node,index:number):Node;
+
+		/**
+		 * 子节点发生改变。
+		 * @private 
+		 * @param child 子节点。
+		 */
+		protected _childChanged(child?:Node):void;
+
+		/**
+		 * 删除子节点。
+		 * @param node 子节点
+		 * @return 被删除的节点
+		 */
+		removeChild(node:Node):Node;
+
+		/**
+		 * 从父容器删除自己，如已经被删除不会抛出异常。
+		 * @return 当前节点（ Node ）对象。
+		 */
+		removeSelf():Node;
+
+		/**
+		 * 根据子节点名字删除对应的子节点对象，如果找不到不会抛出异常。
+		 * @param name 对象名字。
+		 * @return 查找到的节点（ Node ）对象。
+		 */
+		removeChildByName(name:string):Node;
+
+		/**
+		 * 根据子节点索引位置，删除对应的子节点对象。
+		 * @param index 节点索引位置。
+		 * @return 被删除的节点。
+		 */
+		removeChildAt(index:number):Node;
+
+		/**
+		 * 删除指定索引区间的所有子对象。
+		 * @param beginIndex 开始索引。
+		 * @param endIndex 结束索引。
+		 * @return 当前节点对象。
+		 */
+		removeChildren(beginIndex?:number,endIndex?:number):Node;
+
+		/**
+		 * 替换子节点。
+将传入的新节点对象替换到已有子节点索引位置处。
+		 * @param newNode 新节点。
+		 * @param oldNode 老节点。
+		 * @return 返回新节点。
+		 */
+		replaceChild(newNode:Node,oldNode:Node):Node;
+
+		/**
+		 * 子对象数量。
+		 */
+		get numChildren():number;
+
+		/**
+		 * 父节点。
+		 */
+		get parent():Node;
+
+		/**
+		 * @private 
+		 */
+		protected _setParent(value:Node):void;
+
+		/**
+		 * 表示是否在显示列表中显示。
+		 */
+		get displayedInStage():boolean;
+
+		/**
+		 * @private 
+		 */
+		private _updateDisplayedInstage:any;
+
+		/**
+		 * 设置指定节点对象是否可见(是否在渲染列表中)。
+		 * @private 
+		 * @param node 节点。
+		 * @param display 是否可见。
+		 */
+		private _displayChild:any;
+
+		/**
+		 * 当前容器是否包含指定的 <code>Node</code> 节点对象 。
+		 * @param node 指定的 <code>Node</code> 节点对象 。
+		 * @return 一个布尔值表示是否包含指定的 <code>Node</code> 节点对象 。
+		 */
+		contains(node:Node):boolean;
+
+		/**
+		 * 定时重复执行某函数。功能同Laya.timer.timerLoop()。
+		 * @param delay 间隔时间(单位毫秒)。
+		 * @param caller 执行域(this)。
+		 * @param method 结束时的回调方法。
+		 * @param args （可选）回调参数。
+		 * @param coverBefore （可选）是否覆盖之前的延迟执行，默认为true。
+		 * @param jumpFrame 时钟是否跳帧。基于时间的循环回调，单位时间间隔内，如能执行多次回调，出于性能考虑，引擎默认只执行一次，设置jumpFrame=true后，则回调会连续执行多次
+		 */
+		timerLoop(delay:number,caller:any,method:Function,args?:any[],coverBefore?:boolean,jumpFrame?:boolean):void;
+
+		/**
+		 * 定时执行某函数一次。功能同Laya.timer.timerOnce()。
+		 * @param delay 延迟时间(单位毫秒)。
+		 * @param caller 执行域(this)。
+		 * @param method 结束时的回调方法。
+		 * @param args （可选）回调参数。
+		 * @param coverBefore （可选）是否覆盖之前的延迟执行，默认为true。
+		 */
+		timerOnce(delay:number,caller:any,method:Function,args?:any[],coverBefore?:boolean):void;
+
+		/**
+		 * 定时重复执行某函数(基于帧率)。功能同Laya.timer.frameLoop()。
+		 * @param delay 间隔几帧(单位为帧)。
+		 * @param caller 执行域(this)。
+		 * @param method 结束时的回调方法。
+		 * @param args （可选）回调参数。
+		 * @param coverBefore （可选）是否覆盖之前的延迟执行，默认为true。
+		 */
+		frameLoop(delay:number,caller:any,method:Function,args?:any[],coverBefore?:boolean):void;
+
+		/**
+		 * 定时执行一次某函数(基于帧率)。功能同Laya.timer.frameOnce()。
+		 * @param delay 延迟几帧(单位为帧)。
+		 * @param caller 执行域(this)
+		 * @param method 结束时的回调方法
+		 * @param args （可选）回调参数
+		 * @param coverBefore （可选）是否覆盖之前的延迟执行，默认为true
+		 */
+		frameOnce(delay:number,caller:any,method:Function,args?:any[],coverBefore?:boolean):void;
+
+		/**
+		 * 清理定时器。功能同Laya.timer.clearTimer()。
+		 * @param caller 执行域(this)。
+		 * @param method 结束时的回调方法。
+		 */
+		clearTimer(caller:any,method:Function):void;
+
+		/**
+		 * <p>延迟运行指定的函数。</p>
+<p>在控件被显示在屏幕之前调用，一般用于延迟计算数据。</p>
+		 * @param method 要执行的函数的名称。例如，functionName。
+		 * @param args 传递给 <code>method</code> 函数的可选参数列表。
+		 * @see #runCallLater()
+		 */
+		callLater(method:Function,args?:any[]):void;
+
+		/**
+		 * <p>如果有需要延迟调用的函数（通过 <code>callLater</code> 函数设置），则立即执行延迟调用函数。</p>
+		 * @param method 要执行的函数名称。例如，functionName。
+		 * @see #callLater()
+		 */
+		runCallLater(method:Function):void;
+
+		/**
+		 * @private 
+		 */
+		private _components:any;
+
+		/**
+		 * @private 
+		 */
+		private _activeChangeScripts:any;
+
+		/**
+		 * 获得所属场景。
+		 * @return 场景。
+		 */
+		get scene():any;
+
+		/**
+		 * 获取自身是否激活。
+		 * @return 自身是否激活。
+		 */
+		get active():boolean;
+
+		/**
+		 * 设置是否激活。
+		 * @param value 是否激活。
+		 */
+		set active(value:boolean);
+
+		/**
+		 * 获取在场景中是否激活。
+		 * @return 在场景中是否激活。
+		 */
+		get activeInHierarchy():boolean;
+
+		/**
+		 * @private 
+		 */
+		protected _onActive():void;
+
+		/**
+		 * @private 
+		 */
+		protected _onInActive():void;
+
+		/**
+		 * @private 
+		 */
+		protected _onActiveInScene():void;
+
+		/**
+		 * @private 
+		 */
+		protected _onInActiveInScene():void;
+
+		/**
+		 * 组件被激活后执行，此时所有节点和组件均已创建完毕，次方法只执行一次
+此方法为虚方法，使用时重写覆盖即可
+		 */
+		onAwake():void;
+
+		/**
+		 * 组件被启用后执行，比如节点被添加到舞台后
+此方法为虚方法，使用时重写覆盖即可
+		 */
+		onEnable():void;
+
+		/**
+		 * @private 
+		 */
+		private _activeScripts:any;
+
+		/**
+		 * @private 
+		 */
+		private _processInActive:any;
+
+		/**
+		 * @private 
+		 */
+		private _inActiveScripts:any;
+
+		/**
+		 * 组件被禁用时执行，比如从节点从舞台移除后
+此方法为虚方法，使用时重写覆盖即可
+		 */
+		onDisable():void;
+
+		/**
+		 * @private 
+		 */
+		protected _onAdded():void;
+
+		/**
+		 * @private 
+		 */
+		protected _onRemoved():void;
+
+		/**
+		 * 添加组件实例。
+		 * @param component 组建实例。
+		 * @return 组件。
+		 */
+		addComponentIntance(component:Component):any;
+
+		/**
+		 * 添加组件。
+		 * @param componentType 组件类型。
+		 * @return 组件。
+		 */
+		addComponent(componentType:typeof Component):any;
+
+		/**
+		 * 获得组件实例，如果没有则返回为null
+		 * @param componentType 组建类型
+		 * @return 返回组件
+		 */
+		getComponent(componentType:typeof Component):any;
+
+		/**
+		 * 获得组件实例，如果没有则返回为null
+		 * @param componentType 组建类型
+		 * @return 返回组件数组
+		 */
+		getComponents(componentType:typeof Component):any[];
+
+		/**
+		 * @private 获取timer
+		 */
+		get timer():Timer;
+	}
+
+	/**
+	 * 场景类，负责场景创建，加载，销毁等功能
+场景被从节点移除后，并不会被自动垃圾机制回收，如果想回收，请调用destroy接口，可以通过unDestroyedScenes属性查看还未被销毁的场景列表
+	 */
+	class Scene extends Sprite  {
+
+		/**
+		 * 创建后，还未被销毁的场景列表，方便查看还未被销毁的场景列表，方便内存管理，本属性只读，请不要直接修改
+		 */
+		static unDestroyedScenes:any[];
+
+		/**
+		 * 获取根节点
+		 */
+		private static _root:any;
+
+		/**
+		 * @private 
+		 */
+		private static _loadPage:any;
+
+		/**
+		 * 场景被关闭后，是否自动销毁（销毁节点和使用到的资源），默认为false
+		 */
+		autoDestroyAtClosed:boolean;
+
+		/**
+		 * 场景地址
+		 */
+		url:string;
+
+		/**
+		 * 场景时钟
+		 */
+		private _timer:any;
+
+		/**
+		 * @private 
+		 */
+		private _viewCreated:any;
+
+		constructor(createChildren?:boolean);
+
+		/**
+		 * @private 兼容老项目
+		 */
+		protected createChildren():void;
+
+		/**
+		 * 兼容加载模式
+加载模式设置uimap
+		 * @param url uimapJosn的url
+		 */
+		static setUIMap(url:string):void;
+
+		/**
+		 * @private 兼容老项目
+装载场景视图。用于加载模式。
+		 * @param path 场景地址。
+		 */
+		loadScene(path:string):void;
+		private _onSceneLoaded:any;
+
+		/**
+		 * @private 兼容老项目
+通过视图数据创建视图。
+		 * @param uiView 视图数据信息。
+		 */
+		createView(view:any):void;
+
+		/**
+		 * 根据IDE内的节点id，获得节点实例
+		 */
+		getNodeByID(id:number):any;
+
+		/**
+		 * 打开场景。【注意】被关闭的场景，如果没有设置autoDestroyAtRemoved=true，则资源可能不能被回收，需要自己手动回收
+		 * @param closeOther 是否关闭其他场景，默认为true（可选）
+		 * @param param 打开页面的参数，会传递给onOpened方法（可选）
+		 */
+		open(closeOther?:boolean,param?:any):void;
+
+		/**
+		 * 场景打开完成后，调用此方法（如果有弹出动画，则在动画完成后执行）
+		 */
+		onOpened(param:any):void;
+
+		/**
+		 * 关闭场景
+【注意】被关闭的场景，如果没有设置autoDestroyAtRemoved=true，则资源可能不能被回收，需要自己手动回收
+		 * @param type 关闭的原因，会传递给onClosed函数
+		 */
+		close(type?:string):void;
+
+		/**
+		 * 关闭完成后，调用此方法（如果有关闭动画，则在动画完成后执行）
+		 * @param type 如果是点击默认关闭按钮触发，则传入关闭按钮的名字(name)，否则为null。
+		 */
+		onClosed(type?:string):void;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		destroy(destroyChild?:boolean):void;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		set scaleX(value:number);
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		get scaleX():number;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		set scaleY(value:number);
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		get scaleY():number;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		get width():number;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		set width(value:number);
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		get height():number;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		set height(value:number);
+
+		/**
+		 * @private 
+		 */
+		protected _sizeChanged():void;
+
+		/**
+		 * 获取场景根容器
+		 */
+		static get root():Sprite;
+
+		/**
+		 * 场景时钟
+		 * @override 
+		 */
+		get timer():Timer;
+		set timer(value:Timer);
+
+		/**
+		 * 加载场景及场景使用到的资源
+		 * @param url 场景地址
+		 * @param complete 加载完成回调，返回场景实例（可选）
+		 * @param progress 加载进度回调（可选）
+		 */
+		static load(url:string,complete?:Handler,progress?:Handler):void;
+
+		/**
+		 * 加载并打开场景
+		 * @param url 场景地址
+		 * @param closeOther 是否关闭其他场景，默认为true（可选），【注意】被关闭的场景，如果没有设置autoDestroyAtRemoved=true，则资源可能不能被回收，需要自己手动回收
+		 * @param param 打开页面的参数，会传递给onOpened方法（可选）
+		 * @param complete 打开完成回调，返回场景实例（可选）
+		 * @param progress 加载进度回调（可选）
+		 */
+		static open(url:string,closeOther?:boolean,param?:any,complete?:Handler,progress?:Handler):void;
+
+		/**
+		 * @private 
+		 */
+		private static _onSceneLoaded:any;
+
+		/**
+		 * 根据地址，关闭场景（包括对话框）
+		 * @param url 场景地址
+		 * @param name 如果name不为空，name必须相同才能关闭
+		 * @return 返回是否关闭成功，如果url找不到，则不成功
+		 */
+		static close(url:string,name?:string):boolean;
+
+		/**
+		 * 关闭所有场景，不包括对话框，如果关闭对话框，请使用Dialog.closeAll()
+【注意】被关闭的场景，如果没有设置autoDestroyAtRemoved=true，则资源可能不能被回收，需要自己手动回收
+		 */
+		static closeAll():void;
+
+		/**
+		 * 根据地址，销毁场景（包括对话框）
+		 * @param url 场景地址
+		 * @param name 如果name不为空，name必须相同才能关闭
+		 * @return 返回是否销毁成功，如果url找不到，则不成功
+		 */
+		static destroy(url:string,name?:string):boolean;
+
+		/**
+		 * 销毁当前没有被使用的资源,该函数会忽略lock=true的资源。
+		 */
+		static gc():void;
+
+		/**
+		 * 设置loading界面，引擎会在调用open方法后，延迟打开loading界面，在页面添加到舞台之后，关闭loading界面
+		 * @param loadPage load界面实例
+		 */
+		static setLoadingPage(loadPage:Scene):void;
+
+		/**
+		 * 显示loading界面
+		 * @param param 打开参数，如果是scene，则会传递给onOpened方法
+		 * @param delay 延迟打开时间，默认500毫秒
+		 */
+		static showLoadingPage(param?:any,delay?:number):void;
+		private static _showLoading:any;
+		private static _hideLoading:any;
+
+		/**
+		 * 隐藏loading界面
+		 * @param delay 延迟关闭时间，默认500毫秒
+		 */
+		static hideLoadingPage(delay?:number):void;
+	}
+
+	/**
+	 * 在显示对象上按下后调度。
+	 * @eventType Event.MOUSE_DOWN
+	 */
+
+	/**
+	 * 在显示对象抬起后调度。
+	 * @eventType Event.MOUSE_UP
+	 */
+
+	/**
+	 * 鼠标在对象身上进行移动后调度
+	 * @eventType Event.MOUSE_MOVE
+	 */
+
+	/**
+	 * 鼠标经过对象后调度。
+	 * @eventType Event.MOUSE_OVER
+	 */
+
+	/**
+	 * 鼠标离开对象后调度。
+	 * @eventType Event.MOUSE_OUT
+	 */
+
+	/**
+	 * 鼠标点击对象后调度。
+	 * @eventType Event.CLICK
+	 */
+
+	/**
+	 * 开始拖动后调度。
+	 * @eventType Event.DRAG_START
+	 */
+
+	/**
+	 * 拖动中调度。
+	 * @eventType Event.DRAG_MOVE
+	 */
+
+	/**
+	 * 拖动结束后调度。
+	 * @eventType Event.DRAG_END
+	 */
+
+	/**
+	 * <p> <code>Sprite</code> 是基本的显示图形的显示列表节点。 <code>Sprite</code> 默认没有宽高，默认不接受鼠标事件。通过 <code>graphics</code> 可以绘制图片或者矢量图，支持旋转，缩放，位移等操作。<code>Sprite</code>同时也是容器类，可用来添加多个子节点。</p>
+<p>注意： <code>Sprite</code> 默认没有宽高，可以通过<code>getBounds</code>函数获取；也可手动设置宽高；还可以设置<code>autoSize=true</code>，然后再获取宽高。<code>Sprite</code>的宽高一般用于进行碰撞检测和排版，并不影响显示图像大小，如果需要更改显示图像大小，请使用 <code>scaleX</code> ， <code>scaleY</code> ， <code>scale</code>。</p>
+<p> <code>Sprite</code> 默认不接受鼠标事件，即<code>mouseEnabled=false</code>，但是只要对其监听任意鼠标事件，会自动打开自己以及所有父对象的<code>mouseEnabled=true</code>。所以一般也无需手动设置<code>mouseEnabled</code>。</p>
+<p>LayaAir引擎API设计精简巧妙。核心显示类只有一个<code>Sprite</code>。<code>Sprite</code>针对不同的情况做了渲染优化，所以保证一个类实现丰富功能的同时，又达到高性能。</p>
+	 * @example <caption>创建了一个 <code>Sprite</code> 实例。</caption>
+package
+{
+import laya.display.Sprite;
+import laya.events.Event;
+
+public class Sprite_Example
+{
+private var sprite:Sprite;
+private var shape:Sprite
+public function Sprite_Example()
+{
+Laya.init(640, 800);//设置游戏画布宽高、渲染模式。
+Laya.stage.bgColor = "#efefef";//设置画布的背景颜色。
+onInit();
+}
+private function onInit():void
+{
+sprite = new Sprite();//创建一个 Sprite 类的实例对象 sprite 。
+sprite.loadImage("resource/ui/bg.png");//加载并显示图片。
+sprite.x = 200;//设置 sprite 对象相对于父容器的水平方向坐标值。
+sprite.y = 200;//设置 sprite 对象相对于父容器的垂直方向坐标值。
+sprite.pivotX = 0;//设置 sprite 对象的水平方法轴心点坐标。
+sprite.pivotY = 0;//设置 sprite 对象的垂直方法轴心点坐标。
+Laya.stage.addChild(sprite);//将此 sprite 对象添加到显示列表。
+sprite.on(Event.CLICK, this, onClickSprite);//给 sprite 对象添加点击事件侦听。
+shape = new Sprite();//创建一个 Sprite 类的实例对象 sprite 。
+shape.graphics.drawRect(0, 0, 100, 100, "#ccff00", "#ff0000", 2);//绘制一个有边框的填充矩形。
+shape.x = 400;//设置 shape 对象相对于父容器的水平方向坐标值。
+shape.y = 200;//设置 shape 对象相对于父容器的垂直方向坐标值。
+shape.width = 100;//设置 shape 对象的宽度。
+shape.height = 100;//设置 shape 对象的高度。
+shape.pivotX = 50;//设置 shape 对象的水平方法轴心点坐标。
+shape.pivotY = 50;//设置 shape 对象的垂直方法轴心点坐标。
+Laya.stage.addChild(shape);//将此 shape 对象添加到显示列表。
+shape.on(Event.CLICK, this, onClickShape);//给 shape 对象添加点击事件侦听。
+}
+private function onClickSprite():void
+{
+trace("点击 sprite 对象。");
+sprite.rotation += 5;//旋转 sprite 对象。
+}
+private function onClickShape():void
+{
+trace("点击 shape 对象。");
+shape.rotation += 5;//旋转 shape 对象。
+}
+}
+}
+	 * @example var sprite;
+var shape;
+Sprite_Example();
+function Sprite_Example()
+{
+    Laya.init(640, 800);//设置游戏画布宽高、渲染模式。
+    Laya.stage.bgColor = "#efefef";//设置画布的背景颜色。
+    onInit();
+}
+function onInit()
+{
+    sprite = new laya.display.Sprite();//创建一个 Sprite 类的实例对象 sprite 。
+    sprite.loadImage("resource/ui/bg.png");//加载并显示图片。
+    sprite.x = 200;//设置 sprite 对象相对于父容器的水平方向坐标值。
+    sprite.y = 200;//设置 sprite 对象相对于父容器的垂直方向坐标值。
+    sprite.pivotX = 0;//设置 sprite 对象的水平方法轴心点坐标。
+    sprite.pivotY = 0;//设置 sprite 对象的垂直方法轴心点坐标。
+    Laya.stage.addChild(sprite);//将此 sprite 对象添加到显示列表。
+    sprite.on(Event.CLICK, this, onClickSprite);//给 sprite 对象添加点击事件侦听。
+     shape = new laya.display.Sprite();//创建一个 Sprite 类的实例对象 sprite 。
+    shape.graphics.drawRect(0, 0, 100, 100, "#ccff00", "#ff0000", 2);//绘制一个有边框的填充矩形。
+    shape.x = 400;//设置 shape 对象相对于父容器的水平方向坐标值。
+    shape.y = 200;//设置 shape 对象相对于父容器的垂直方向坐标值。
+    shape.width = 100;//设置 shape 对象的宽度。
+    shape.height = 100;//设置 shape 对象的高度。
+    shape.pivotX = 50;//设置 shape 对象的水平方法轴心点坐标。
+    shape.pivotY = 50;//设置 shape 对象的垂直方法轴心点坐标。
+    Laya.stage.addChild(shape);//将此 shape 对象添加到显示列表。
+    shape.on(laya.events.Event.CLICK, this, onClickShape);//给 shape 对象添加点击事件侦听。
+}
+function onClickSprite()
+{
+    console.log("点击 sprite 对象。");
+    sprite.rotation += 5;//旋转 sprite 对象。
+}
+function onClickShape()
+{
+    console.log("点击 shape 对象。");
+    shape.rotation += 5;//旋转 shape 对象。
+}
+	 * @example import Sprite = laya.display.Sprite;
+class Sprite_Example {
+    private sprite: Sprite;
+    private shape: Sprite
+    public Sprite_Example() {
+        Laya.init(640, 800);//设置游戏画布宽高、渲染模式。
+        Laya.stage.bgColor = "#efefef";//设置画布的背景颜色。
+        this.onInit();
+    }
+    private onInit(): void {
+        this.sprite = new Sprite();//创建一个 Sprite 类的实例对象 sprite 。
+        this.sprite.loadImage("resource/ui/bg.png");//加载并显示图片。
+        this.sprite.x = 200;//设置 sprite 对象相对于父容器的水平方向坐标值。
+        this.sprite.y = 200;//设置 sprite 对象相对于父容器的垂直方向坐标值。
+        this.sprite.pivotX = 0;//设置 sprite 对象的水平方法轴心点坐标。
+        this.sprite.pivotY = 0;//设置 sprite 对象的垂直方法轴心点坐标。
+        Laya.stage.addChild(this.sprite);//将此 sprite 对象添加到显示列表。
+        this.sprite.on(laya.events.Event.CLICK, this, this.onClickSprite);//给 sprite 对象添加点击事件侦听。
+         this.shape = new Sprite();//创建一个 Sprite 类的实例对象 sprite 。
+        this.shape.graphics.drawRect(0, 0, 100, 100, "#ccff00", "#ff0000", 2);//绘制一个有边框的填充矩形。
+        this.shape.x = 400;//设置 shape 对象相对于父容器的水平方向坐标值。
+        this.shape.y = 200;//设置 shape 对象相对于父容器的垂直方向坐标值。
+        this.shape.width = 100;//设置 shape 对象的宽度。
+        this.shape.height = 100;//设置 shape 对象的高度。
+        this.shape.pivotX = 50;//设置 shape 对象的水平方法轴心点坐标。
+        this.shape.pivotY = 50;//设置 shape 对象的垂直方法轴心点坐标。
+        Laya.stage.addChild(this.shape);//将此 shape 对象添加到显示列表。
+        this.shape.on(laya.events.Event.CLICK, this, this.onClickShape);//给 shape 对象添加点击事件侦听。
+    }
+    private onClickSprite(): void {
+        console.log("点击 sprite 对象。");
+        this.sprite.rotation += 5;//旋转 sprite 对象。
+    }
+    private onClickShape(): void {
+        console.log("点击 shape 对象。");
+        this.shape.rotation += 5;//旋转 shape 对象。
+    }
+}
+	 */
+	class Sprite extends Node  {
+
+		/**
+		 * <p>鼠标事件与此对象的碰撞检测是否可穿透。碰撞检测发生在鼠标事件的捕获阶段，此阶段引擎会从stage开始递归检测stage及其子对象，直到找到命中的目标对象或者未命中任何对象。</p>
+<p>穿透表示鼠标事件发生的位置处于本对象绘图区域内时，才算命中，而与对象宽高和值为Rectangle对象的hitArea属性无关。如果sprite.hitArea值是HitArea对象，表示显式声明了此对象的鼠标事件响应区域，而忽略对象的宽高、mouseThrough属性。</p>
+<p>影响对象鼠标事件响应区域的属性为：width、height、hitArea，优先级顺序为：hitArea(type:HitArea)>hitArea(type:Rectangle)>width/height。</p>
+		 * @default false	不可穿透，此对象的鼠标响应区域由width、height、hitArea属性决定。</p>
+		 */
+		mouseThrough:boolean;
+
+		/**
+		 * <p>指定是否自动计算宽高数据。默认值为 false 。</p>
+<p>Sprite宽高默认为0，并且不会随着绘制内容的变化而变化，如果想根据绘制内容获取宽高，可以设置本属性为true，或者通过getBounds方法获取。设置为true，对性能有一定影响。</p>
+		 */
+		autoSize:boolean;
+
+		/**
+		 * <p>指定鼠标事件检测是优先检测自身，还是优先检测其子对象。鼠标事件检测发生在鼠标事件的捕获阶段，此阶段引擎会从stage开始递归检测stage及其子对象，直到找到命中的目标对象或者未命中任何对象。</p>
+<p>如果为false，优先检测子对象，当有子对象被命中时，中断检测，获得命中目标。如果未命中任何子对象，最后再检测此对象；如果为true，则优先检测本对象，如果本对象没有被命中，直接中断检测，表示没有命中目标；如果本对象被命中，则进一步递归检测其子对象，以确认最终的命中目标。</p>
+<p>合理使用本属性，能减少鼠标事件检测的节点，提高性能。可以设置为true的情况：开发者并不关心此节点的子节点的鼠标事件检测结果，也就是以此节点作为其子节点的鼠标事件检测依据。</p>
+<p>Stage对象和UI的View组件默认为true。</p>
+		 * @default false	优先检测此对象的子对象，当递归检测完所有子对象后，仍然没有找到目标对象，最后再检测此对象。
+		 */
+		hitTestPrior:boolean;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		destroy(destroyChild?:boolean):void;
+
+		constructor();
+
+		/**
+		 * 根据zOrder进行重新排序。
+		 */
+		updateZOrder():void;
+
+		/**
+		 * 设置是否开启自定义渲染，只有开启自定义渲染，才能使用customRender函数渲染。
+		 */
+		set customRenderEnable(b:boolean);
+
+		/**
+		 * 指定显示对象是否缓存为静态图像，cacheAs时，子对象发生变化，会自动重新缓存，同时也可以手动调用reCache方法更新缓存。
+建议把不经常变化的“复杂内容”缓存为静态图像，能极大提高渲染性能。cacheAs有"none"，"normal"和"bitmap"三个值可选。
+默认为"none"，不做任何缓存。
+当值为"normal"时，canvas模式下进行画布缓存，webgl模式下进行命令缓存。
+当值为"bitmap"时，canvas模式下进行依然是画布缓存，webgl模式下使用renderTarget缓存。
+webgl下renderTarget缓存模式缺点：会额外创建renderTarget对象，增加内存开销，缓存面积有最大2048限制，不断重绘时会增加CPU开销。优点：大幅减少drawcall，渲染性能最高。
+webgl下命令缓存模式缺点：只会减少节点遍历及命令组织，不会减少drawcall数，性能中等。优点：没有额外内存开销，无需renderTarget支持。
+		 */
+		get cacheAs():string;
+		set cacheAs(value:string);
+
+		/**
+		 * 更新_cnavas相关的状态
+		 */
+		private _checkCanvasEnable:any;
+
+		/**
+		 * 设置cacheAs为非空时此值才有效，staticCache=true时，子对象变化时不会自动更新缓存，只能通过调用reCache方法手动刷新。
+		 */
+		get staticCache():boolean;
+		set staticCache(value:boolean);
+
+		/**
+		 * 在设置cacheAs的情况下，调用此方法会重新刷新缓存。
+		 */
+		reCache():void;
+		getRepaint():number;
+
+		/**
+		 * 表示显示对象相对于父容器的水平方向坐标值。
+		 */
+		get x():number;
+		set x(value:number);
+
+		/**
+		 * 表示显示对象相对于父容器的垂直方向坐标值。
+		 */
+		get y():number;
+		set y(value:number);
+
+		/**
+		 * <p>显示对象的宽度，单位为像素，默认为0。</p>
+<p>此宽度用于鼠标碰撞检测，并不影响显示对象图像大小。需要对显示对象的图像进行缩放，请使用scale、scaleX、scaleY。</p>
+<p>可以通过getbounds获取显示对象图像的实际宽度。</p>
+		 */
+		get width():number;
+		set width(value:number);
+		set_width(value:number):void;
+		get_width():number;
+
+		/**
+		 * <p>显示对象的高度，单位为像素，默认为0。</p>
+<p>此高度用于鼠标碰撞检测，并不影响显示对象图像大小。需要对显示对象的图像进行缩放，请使用scale、scaleX、scaleY。</p>
+<p>可以通过getbounds获取显示对象图像的实际高度。</p>
+		 */
+		get height():number;
+		set height(value:number);
+		set_height(value:number):void;
+		get_height():number;
+
+		/**
+		 * <p>对象的显示宽度（以像素为单位）。</p>
+		 */
+		get displayWidth():number;
+
+		/**
+		 * <p>对象的显示高度（以像素为单位）。</p>
+		 */
+		get displayHeight():number;
+
+		/**
+		 * 设置对象bounds大小，如果有设置，则不再通过getBounds计算，合理使用能提高性能。
+		 * @param bound bounds矩形区域
+		 */
+		setSelfBounds(bound:Rectangle):void;
+
+		/**
+		 * <p>获取本对象在父容器坐标系的矩形显示区域。</p>
+<p><b>注意：</b>计算量较大，尽量少用。</p>
+		 * @return 矩形区域。
+		 */
+		getBounds():Rectangle;
+
+		/**
+		 * 获取本对象在自己坐标系的矩形显示区域。
+<p><b>注意：</b>计算量较大，尽量少用。</p>
+		 * @return 矩形区域。
+		 */
+		getSelfBounds():Rectangle;
+
+		/**
+		 * 返回此实例中的绘图对象（ <code>Graphics</code> ）的显示区域，不包括子对象。
+		 * @param realSize （可选）使用图片的真实大小，默认为false
+		 * @return 一个 Rectangle 对象，表示获取到的显示区域。
+		 */
+		getGraphicBounds(realSize?:boolean):Rectangle;
+
+		/**
+		 * @private 获取样式。
+		 * @return 样式 Style 。
+		 */
+		getStyle():SpriteStyle;
+
+		/**
+		 * @private 设置样式。
+		 * @param value 样式。
+		 */
+		setStyle(value:SpriteStyle):void;
+
+		/**
+		 * X轴缩放值，默认值为1。设置为负数，可以实现水平反转效果，比如scaleX=-1。
+		 */
+		get scaleX():number;
+		set scaleX(value:number);
+
+		/**
+		 * Y轴缩放值，默认值为1。设置为负数，可以实现垂直反转效果，比如scaleX=-1。
+		 */
+		get scaleY():number;
+		set scaleY(value:number);
+		set_scaleX(value:number):void;
+		get_scaleX():number;
+		set_scaleY(value:number):void;
+		get_scaleY():number;
+
+		/**
+		 * 旋转角度，默认值为0。以角度为单位。
+		 */
+		get rotation():number;
+		set rotation(value:number);
+
+		/**
+		 * 水平倾斜角度，默认值为0。以角度为单位。
+		 */
+		get skewX():number;
+		set skewX(value:number);
+
+		/**
+		 * 垂直倾斜角度，默认值为0。以角度为单位。
+		 */
+		get skewY():number;
+		set skewY(value:number);
+
+		/**
+		 * @private 
+		 */
+		protected _adjustTransform():Matrix;
+
+		/**
+		 * <p>对象的矩阵信息。通过设置矩阵可以实现节点旋转，缩放，位移效果。</p>
+<p>矩阵更多信息请参考 <code>Matrix</code></p>
+		 */
+		get transform():Matrix;
+		set transform(value:Matrix);
+		get_transform():Matrix;
+		set_transform(value:Matrix):void;
+
+		/**
+		 * X轴 轴心点的位置，单位为像素，默认为0。轴心点会影响对象位置，缩放中心，旋转中心。
+		 */
+		get pivotX():number;
+		set pivotX(value:number);
+
+		/**
+		 * Y轴 轴心点的位置，单位为像素，默认为0。轴心点会影响对象位置，缩放中心，旋转中心。
+		 */
+		get pivotY():number;
+		set pivotY(value:number);
+
+		/**
+		 * 透明度，值为0-1，默认值为1，表示不透明。更改alpha值会影响drawcall。
+		 */
+		get alpha():number;
+		set alpha(value:number);
+
+		/**
+		 * 表示是否可见，默认为true。如果设置不可见，节点将不被渲染。
+		 */
+		get visible():boolean;
+		set visible(value:boolean);
+		get_visible():boolean;
+		set_visible(value:boolean):void;
+
+		/**
+		 * 指定要使用的混合模式。目前只支持"lighter"。
+		 */
+		get blendMode():string;
+		set blendMode(value:string);
+
+		/**
+		 * 绘图对象。封装了绘制位图和矢量图的接口，Sprite所有的绘图操作都通过Graphics来实现的。
+		 */
+		get graphics():Graphics;
+		set graphics(value:Graphics);
+
+		/**
+		 * <p>显示对象的滚动矩形范围，具有裁剪效果(如果只想限制子对象渲染区域，请使用viewport)</p>
+<p> srollRect和viewport的区别：<br/>
+1.srollRect自带裁剪效果，viewport只影响子对象渲染是否渲染，不具有裁剪效果（性能更高）。<br/>
+2.设置rect的x,y属性均能实现区域滚动效果，但scrollRect会保持0,0点位置不变。</p>
+		 */
+		get scrollRect():Rectangle;
+		set scrollRect(value:Rectangle);
+
+		/**
+		 * <p>设置坐标位置。相当于分别设置x和y属性。</p>
+<p>因为返回值为Sprite对象本身，所以可以使用如下语法：spr.pos(...).scale(...);</p>
+		 * @param x X轴坐标。
+		 * @param y Y轴坐标。
+		 * @param speedMode （可选）是否极速模式，正常是调用this.x=value进行赋值，极速模式直接调用内部函数处理，如果未重写x,y属性，建议设置为急速模式性能更高。
+		 * @return 返回对象本身。
+		 */
+		pos(x:number,y:number,speedMode?:boolean):Sprite;
+
+		/**
+		 * <p>设置轴心点。相当于分别设置pivotX和pivotY属性。</p>
+<p>因为返回值为Sprite对象本身，所以可以使用如下语法：spr.pivot(...).pos(50, 100);</p>
+		 * @param x X轴心点。
+		 * @param y Y轴心点。
+		 * @return 返回对象本身。
+		 */
+		pivot(x:number,y:number):Sprite;
+
+		/**
+		 * <p>设置宽高。相当于分别设置width和height属性。</p>
+<p>因为返回值为Sprite对象本身，所以可以使用如下语法：spr.size(...).pos(50, 100);</p>
+		 * @param width 宽度值。
+		 * @param hegiht 高度值。
+		 * @return 返回对象本身。
+		 */
+		size(width:number,height:number):Sprite;
+
+		/**
+		 * <p>设置缩放。相当于分别设置scaleX和scaleY属性。</p>
+<p>因为返回值为Sprite对象本身，所以可以使用如下语法：spr.scale(...).pos(50, 100);</p>
+		 * @param scaleX X轴缩放比例。
+		 * @param scaleY Y轴缩放比例。
+		 * @param speedMode （可选）是否极速模式，正常是调用this.scaleX=value进行赋值，极速模式直接调用内部函数处理，如果未重写scaleX,scaleY属性，建议设置为急速模式性能更高。
+		 * @return 返回对象本身。
+		 */
+		scale(scaleX:number,scaleY:number,speedMode?:boolean):Sprite;
+
+		/**
+		 * <p>设置倾斜角度。相当于分别设置skewX和skewY属性。</p>
+<p>因为返回值为Sprite对象本身，所以可以使用如下语法：spr.skew(...).pos(50, 100);</p>
+		 * @param skewX 水平倾斜角度。
+		 * @param skewY 垂直倾斜角度。
+		 * @return 返回对象本身
+		 */
+		skew(skewX:number,skewY:number):Sprite;
+
+		/**
+		 * 更新、呈现显示对象。由系统调用。
+		 * @param context 渲染的上下文引用。
+		 * @param x X轴坐标。
+		 * @param y Y轴坐标。
+		 */
+		render(ctx:Context,x:number,y:number):void;
+
+		/**
+		 * <p>绘制 当前<code>Sprite</code> 到 <code>Canvas</code> 上，并返回一个HtmlCanvas。</p>
+<p>绘制的结果可以当作图片源，再次绘制到其他Sprite里面，示例：</p>
+
+var htmlCanvas:HTMLCanvas = sprite.drawToCanvas(100, 100, 0, 0);//把精灵绘制到canvas上面
+var sp:Sprite = new Sprite();//创建精灵
+sp.graphics.drawTexture(htmlCanvas.getTexture());//把截图绘制到精灵上
+Laya.stage.addChild(sp);//把精灵显示到舞台
+
+<p>也可以获取原始图片数据，分享到网上，从而实现截图效果，示例：</p>
+
+var htmlCanvas:HTMLCanvas = sprite.drawToCanvas(100, 100, 0, 0);//把精灵绘制到canvas上面
+htmlCanvas.toBase64("image/png",0.9);//打印图片base64信息，可以发给服务器或者保存为图片
+		 * @param canvasWidth 画布宽度。
+		 * @param canvasHeight 画布高度。
+		 * @param x 绘制的 X 轴偏移量。
+		 * @param y 绘制的 Y 轴偏移量。
+		 * @return HTMLCanvas 对象。
+		 */
+		drawToCanvas(canvasWidth:number,canvasHeight:number,offsetX:number,offsetY:number):HTMLCanvas;
+
+		/**
+		 * 绘制到一个Texture对象
+		 * @param canvasWidth 
+		 * @param canvasHeight 
+		 * @param offsetX 
+		 * @param offsetY 
+		 */
+		drawToTexture(canvasWidth:number,canvasHeight:number,offsetX:number,offsetY:number,rt?:RenderTexture2D|null):Texture|RenderTexture2D;
+
+		/**
+		 * 把当前对象渲染到指定的贴图上。贴图由外部指定，避免每次都创建。
+		 * @param offx 
+		 * @param offy 
+		 * @param tex 输出渲染结果
+		 */
+		drawToTexture3D(offx:number,offy:number,tex:Texture2D):void;
+
+		/**
+		 * @private 绘制到画布。
+		 */
+		static drawToCanvas(sprite:Sprite,_renderType:number,canvasWidth:number,canvasHeight:number,offsetX:number,offsetY:number):HTMLCanvas;
+		static drawtocanvCtx:Context;
+
+		/**
+		 * @private 
+		 */
+		static drawToTexture(sprite:Sprite,_renderType:number,canvasWidth:number,canvasHeight:number,offsetX:number,offsetY:number,rt?:RenderTexture2D|null):Texture|RenderTexture2D;
+
+		/**
+		 * <p>自定义更新、呈现显示对象。一般用来扩展渲染模式，请合理使用，可能会导致在加速器上无法渲染。</p>
+<p><b>注意</b>不要在此函数内增加或删除树节点，否则会对树节点遍历造成影响。</p>
+		 * @param context 渲染的上下文引用。
+		 * @param x X轴坐标。
+		 * @param y Y轴坐标。
+		 */
+		customRender(context:Context,x:number,y:number):void;
+
+		/**
+		 * 滤镜集合。可以设置多个滤镜组合。
+		 */
+		get filters():any[];
+		set filters(value:any[]);
+
+		/**
+		 * 把本地坐标转换为相对stage的全局坐标。
+		 * @param point 本地坐标点。
+		 * @param createNewPoint （可选）是否创建一个新的Point对象作为返回值，默认为false，使用输入的point对象返回，减少对象创建开销。
+		 * @param globalNode global节点，默认为Laya.stage
+		 * @return 转换后的坐标的点。
+		 */
+		localToGlobal(point:Point,createNewPoint?:boolean,globalNode?:Sprite|null):Point;
+
+		/**
+		 * 把stage的全局坐标转换为本地坐标。
+		 * @param point 全局坐标点。
+		 * @param createNewPoint （可选）是否创建一个新的Point对象作为返回值，默认为false，使用输入的point对象返回，减少对象创建开销。
+		 * @param globalNode global节点，默认为Laya.stage
+		 * @return 转换后的坐标的点。
+		 */
+		globalToLocal(point:Point,createNewPoint?:boolean,globalNode?:Sprite|null):Point;
+
+		/**
+		 * 将本地坐标系坐标转转换到父容器坐标系。
+		 * @param point 本地坐标点。
+		 * @return 转换后的点。
+		 */
+		toParentPoint(point:Point):Point;
+
+		/**
+		 * 将父容器坐标系坐标转换到本地坐标系。
+		 * @param point 父容器坐标点。
+		 * @return 转换后的点。
+		 */
+		fromParentPoint(point:Point):Point;
+
+		/**
+		 * 将Stage坐标系坐标转换到本地坐标系。
+		 * @param point 父容器坐标点。
+		 * @return 转换后的点。
+		 */
+		fromStagePoint(point:Point):Point;
+
+		/**
+		 * <p>增加事件侦听器，以使侦听器能够接收事件通知。</p>
+<p>如果侦听鼠标事件，则会自动设置自己和父亲节点的属性 mouseEnabled 的值为 true(如果父节点mouseEnabled=false，则停止设置父节点mouseEnabled属性)。</p>
+		 * @param type 事件的类型。
+		 * @param caller 事件侦听函数的执行域。
+		 * @param listener 事件侦听函数。
+		 * @param args （可选）事件侦听函数的回调参数。
+		 * @return 此 EventDispatcher 对象。
+		 * @override 
+		 */
+		on(type:string,caller:any,listener:Function,args?:any[]):EventDispatcher;
+
+		/**
+		 * <p>增加事件侦听器，以使侦听器能够接收事件通知，此侦听事件响应一次后则自动移除侦听。</p>
+<p>如果侦听鼠标事件，则会自动设置自己和父亲节点的属性 mouseEnabled 的值为 true(如果父节点mouseEnabled=false，则停止设置父节点mouseEnabled属性)。</p>
+		 * @param type 事件的类型。
+		 * @param caller 事件侦听函数的执行域。
+		 * @param listener 事件侦听函数。
+		 * @param args （可选）事件侦听函数的回调参数。
+		 * @return 此 EventDispatcher 对象。
+		 * @override 
+		 */
+		once(type:string,caller:any,listener:Function,args?:any[]):EventDispatcher;
+
+		/**
+		 * @private 
+		 */
+		protected _onDisplay(v?:boolean):void;
+
+		/**
+		 * @private 
+		 * @override 
+		 */
+		protected _setParent(value:Node):void;
+
+		/**
+		 * <p>加载并显示一个图片。相当于加载图片后，设置texture属性</p>
+<p>注意：2.0改动：多次调用，只会显示一个图片（1.0会显示多个图片）,x,y,width,height参数取消。</p>
+		 * @param url 图片地址。
+		 * @param complete （可选）加载完成回调。
+		 * @return 返回精灵对象本身。
+		 */
+		loadImage(url:string,complete?:Handler):Sprite;
+
+		/**
+		 * 根据图片地址创建一个新的 <code>Sprite</code> 对象用于加载并显示此图片。
+		 * @param url 图片地址。
+		 * @return 返回新的 <code>Sprite</code> 对象。
+		 */
+		static fromImage(url:string):Sprite;
+
+		/**
+		 * cacheAs后，设置自己和父对象缓存失效。
+		 */
+		repaint(type?:number):void;
+
+		/**
+		 * @private 
+		 * @override 
+		 */
+		protected _childChanged(child?:Node):void;
+
+		/**
+		 * cacheAs时，设置所有父对象缓存失效。
+		 */
+		parentRepaint(type?:number):void;
+
+		/**
+		 * 对舞台 <code>stage</code> 的引用。
+		 */
+		get stage():Stage;
+
+		/**
+		 * <p>可以设置一个Rectangle区域作为点击区域，或者设置一个<code>HitArea</code>实例作为点击区域，HitArea内可以设置可点击和不可点击区域。</p>
+<p>如果不设置hitArea，则根据宽高形成的区域进行碰撞。</p>
+		 */
+		get hitArea():any;
+		set hitArea(value:any);
+
+		/**
+		 * <p>遮罩，可以设置一个对象(支持位图和矢量图)，根据对象形状进行遮罩显示。</p>
+<p>【注意】遮罩对象坐标系是相对遮罩对象本身的，和Flash机制不同</p>
+		 */
+		get mask():Sprite;
+		set mask(value:Sprite);
+
+		/**
+		 * 是否接受鼠标事件。
+默认为false，如果监听鼠标事件，则会自动设置本对象及父节点的属性 mouseEnable 的值都为 true（如果父节点手动设置为false，则不会更改）。
+		 */
+		get mouseEnabled():boolean;
+		set mouseEnabled(value:boolean);
+
+		/**
+		 * 开始拖动此对象。
+		 * @param area （可选）拖动区域，此区域为当前对象注册点活动区域（不包括对象宽高），可选。
+		 * @param hasInertia （可选）鼠标松开后，是否还惯性滑动，默认为false，可选。
+		 * @param elasticDistance （可选）橡皮筋效果的距离值，0为无橡皮筋效果，默认为0，可选。
+		 * @param elasticBackTime （可选）橡皮筋回弹时间，单位为毫秒，默认为300毫秒，可选。
+		 * @param data （可选）拖动事件携带的数据，可选。
+		 * @param disableMouseEvent （可选）禁用其他对象的鼠标检测，默认为false，设置为true能提高性能。
+		 * @param ratio （可选）惯性阻尼系数，影响惯性力度和时长。
+		 */
+		startDrag(area?:Rectangle,hasInertia?:boolean,elasticDistance?:number,elasticBackTime?:number,data?:any,disableMouseEvent?:boolean,ratio?:number):void;
+
+		/**
+		 * 停止拖动此对象。
+		 */
+		stopDrag():void;
+
+		/**
+		 * 检测某个点是否在此对象内。
+		 * @param x 全局x坐标。
+		 * @param y 全局y坐标。
+		 * @return 表示是否在对象内。
+		 */
+		hitTestPoint(x:number,y:number):boolean;
+
+		/**
+		 * 获得相对于本对象上的鼠标坐标信息。
+		 */
+		getMousePoint():Point;
+
+		/**
+		 * 获得相对于stage的全局X轴缩放值（会叠加父亲节点的缩放值）。
+		 */
+		get globalScaleX():number;
+
+		/**
+		 * 获得相对于stage的全局旋转值（会叠加父亲节点的旋转值）。
+		 */
+		get globalRotation():number;
+
+		/**
+		 * 获得相对于stage的全局Y轴缩放值（会叠加父亲节点的缩放值）。
+		 */
+		get globalScaleY():number;
+
+		/**
+		 * 返回鼠标在此对象坐标系上的 X 轴坐标信息。
+		 */
+		get mouseX():number;
+
+		/**
+		 * 返回鼠标在此对象坐标系上的 Y 轴坐标信息。
+		 */
+		get mouseY():number;
+
+		/**
+		 * z排序，更改此值，则会按照值的大小对同一容器的所有对象重新排序。值越大，越靠上。默认为0，则根据添加顺序排序。
+		 */
+		get zOrder():number;
+		set zOrder(value:number);
+
+		/**
+		 * 设置一个Texture实例，并显示此图片（如果之前有其他绘制，则会被清除掉）。
+等同于graphics.clear();graphics.drawImage()，但性能更高
+还可以赋值一个图片地址，则会自动加载图片，然后显示
+		 */
+		get texture():Texture;
+		set texture(value:Texture);
+
+		/**
+		 * <p>视口大小，视口外的子对象，将不被渲染(如果想实现裁剪效果，请使用srollRect)，合理使用能提高渲染性能。比如由一个个小图片拼成的地图块，viewport外面的小图片将不渲染</p>
+<p>srollRect和viewport的区别：<br/>
+1. srollRect自带裁剪效果，viewport只影响子对象渲染是否渲染，不具有裁剪效果（性能更高）。<br/>
+2. 设置rect的x,y属性均能实现区域滚动效果，但scrollRect会保持0,0点位置不变。</p>
+		 * @default null
+		 */
+		get viewport():Rectangle;
+		set viewport(value:Rectangle);
+
+		/**
+		 * @private 
+		 */
+		captureMouseEvent(exclusive:boolean):void;
+
+		/**
+		 * @private 
+		 */
+		releaseMouseEvent():void;
+		set drawCallOptimize(value:boolean);
+		get drawCallOptimize():boolean;
+	}
+
+	/**
+	 * @private 
+	 */
+	class SpriteConst  {
+
+		/**
+		 * @private 
+		 */
+		static ALPHA:number;
+
+		/**
+		 * @private 
+		 */
+		static TRANSFORM:number;
+
+		/**
+		 * @private 
+		 */
+		static BLEND:number;
+
+		/**
+		 * @private 
+		 */
+		static CANVAS:number;
+
+		/**
+		 * @private 
+		 */
+		static FILTERS:number;
+
+		/**
+		 * @private 
+		 */
+		static MASK:number;
+
+		/**
+		 * @private 
+		 */
+		static CLIP:number;
+
+		/**
+		 * @private 
+		 */
+		static STYLE:number;
+
+		/**
+		 * @private 
+		 */
+		static TEXTURE:number;
+
+		/**
+		 * @private 
+		 */
+		static GRAPHICS:number;
+
+		/**
+		 * @private 
+		 */
+		static LAYAGL3D:number;
+
+		/**
+		 * @private 
+		 */
+		static CUSTOM:number;
+
+		/**
+		 * @private 
+		 */
+		static ONECHILD:number;
+
+		/**
+		 * @private 
+		 */
+		static CHILDS:number;
+
+		/**
+		 * @private 
+		 */
+		static REPAINT_NONE:number;
+
+		/**
+		 * @private 
+		 */
+		static REPAINT_NODE:number;
+
+		/**
+		 * @private 
+		 */
+		static REPAINT_CACHE:number;
+
+		/**
+		 * @private 
+		 */
+		static REPAINT_ALL:number;
+	}
+
+	/**
+	 * stage大小经过重新调整时进行调度。
+	 * @eventType Event.RESIZE
+	 */
+
+	/**
+	 * 舞台获得焦点时调度。比如浏览器或者当前标签处于后台，重新切换回来时进行调度。
+	 * @eventType Event.FOCUS
+	 */
+
+	/**
+	 * 舞台失去焦点时调度。比如浏览器或者当前标签被切换到后台后调度。
+	 * @eventType Event.BLUR
+	 */
+
+	/**
+	 * 舞台焦点变化时调度，使用Laya.stage.isFocused可以获取当前舞台是否获得焦点。
+	 * @eventType Event.FOCUS_CHANGE
+	 */
+
+	/**
+	 * 舞台可见性发生变化时调度（比如浏览器或者当前标签被切换到后台后调度），使用Laya.stage.isVisibility可以获取当前是否处于显示状态。
+	 * @eventType Event.VISIBILITY_CHANGE
+	 */
+
+	/**
+	 * 浏览器全屏更改时调度，比如进入全屏或者退出全屏。
+	 * @eventType Event.FULL_SCREEN_CHANGE
+	 */
+
+	/**
+	 * <p> <code>Stage</code> 是舞台类，显示列表的根节点，所有显示对象都在舞台上显示。通过 Laya.stage 单例访问。</p>
+<p>Stage提供几种适配模式，不同的适配模式会产生不同的画布大小，画布越大，渲染压力越大，所以要选择合适的适配方案。</p>
+<p>Stage提供不同的帧率模式，帧率越高，渲染压力越大，越费电，合理使用帧率甚至动态更改帧率有利于改进手机耗电。</p>
+	 */
+	class Stage extends Sprite  {
+
+		/**
+		 * 应用保持设计宽高不变，不缩放不变形，stage的宽高等于设计宽高。
+		 */
+		static SCALE_NOSCALE:string;
+
+		/**
+		 * 应用根据屏幕大小铺满全屏，非等比缩放会变形，stage的宽高等于设计宽高。
+		 */
+		static SCALE_EXACTFIT:string;
+
+		/**
+		 * 应用显示全部内容，按照最小比率缩放，等比缩放不变形，一边可能会留空白，stage的宽高等于设计宽高。
+		 */
+		static SCALE_SHOWALL:string;
+
+		/**
+		 * 应用按照最大比率缩放显示，宽或高方向会显示一部分，等比缩放不变形，stage的宽高等于设计宽高。
+		 */
+		static SCALE_NOBORDER:string;
+
+		/**
+		 * 应用保持设计宽高不变，不缩放不变形，stage的宽高等于屏幕宽高。
+		 */
+		static SCALE_FULL:string;
+
+		/**
+		 * 应用保持设计宽度不变，高度根据屏幕比缩放，stage的宽度等于设计高度，高度根据屏幕比率大小而变化
+		 */
+		static SCALE_FIXED_WIDTH:string;
+
+		/**
+		 * 应用保持设计高度不变，宽度根据屏幕比缩放，stage的高度等于设计宽度，宽度根据屏幕比率大小而变化
+		 */
+		static SCALE_FIXED_HEIGHT:string;
+
+		/**
+		 * 应用保持设计比例不变，全屏显示全部内容(类似showall，但showall非全屏，会有黑边)，根据屏幕长宽比，自动选择使用SCALE_FIXED_WIDTH或SCALE_FIXED_HEIGHT
+		 */
+		static SCALE_FIXED_AUTO:string;
+
+		/**
+		 * 画布水平居左对齐。
+		 */
+		static ALIGN_LEFT:string;
+
+		/**
+		 * 画布水平居右对齐。
+		 */
+		static ALIGN_RIGHT:string;
+
+		/**
+		 * 画布水平居中对齐。
+		 */
+		static ALIGN_CENTER:string;
+
+		/**
+		 * 画布垂直居上对齐。
+		 */
+		static ALIGN_TOP:string;
+
+		/**
+		 * 画布垂直居中对齐。
+		 */
+		static ALIGN_MIDDLE:string;
+
+		/**
+		 * 画布垂直居下对齐。
+		 */
+		static ALIGN_BOTTOM:string;
+
+		/**
+		 * 不更改屏幕。
+		 */
+		static SCREEN_NONE:string;
+
+		/**
+		 * 自动横屏。
+		 */
+		static SCREEN_HORIZONTAL:string;
+
+		/**
+		 * 自动竖屏。
+		 */
+		static SCREEN_VERTICAL:string;
+
+		/**
+		 * 全速模式，以60的帧率运行。
+		 */
+		static FRAME_FAST:string;
+
+		/**
+		 * 慢速模式，以30的帧率运行。
+		 */
+		static FRAME_SLOW:string;
+
+		/**
+		 * 自动模式，以30的帧率运行，但鼠标活动后会自动加速到60，鼠标不动2秒后降低为30帧，以节省消耗。
+		 */
+		static FRAME_MOUSE:string;
+
+		/**
+		 * 休眠模式，以1的帧率运行
+		 */
+		static FRAME_SLEEP:string;
+
+		/**
+		 * 当前焦点对象，此对象会影响当前键盘事件的派发主体。
+		 */
+		focus:Node;
+
+		/**
+		 * @private 相对浏览器左上角的偏移，弃用，请使用_canvasTransform。
+		 */
+		offset:Point;
+
+		/**
+		 * 帧率类型，支持三种模式：fast-60帧(默认)，slow-30帧，mouse-30帧（鼠标活动后会自动加速到60，鼠标不动2秒后降低为30帧，以节省消耗），sleep-1帧。
+		 */
+		private _frameRate:any;
+
+		/**
+		 * 设计宽度（初始化时设置的宽度Laya.init(width,height)）
+		 */
+		designWidth:number;
+
+		/**
+		 * 设计高度（初始化时设置的高度Laya.init(width,height)）
+		 */
+		designHeight:number;
+
+		/**
+		 * 画布是否发生翻转。
+		 */
+		canvasRotation:boolean;
+
+		/**
+		 * 画布的旋转角度。
+		 */
+		canvasDegree:number;
+
+		/**
+		 * <p>设置是否渲染，设置为false，可以停止渲染，画面会停留到最后一次渲染上，减少cpu消耗，此设置不影响时钟。</p>
+<p>比如非激活状态，可以设置renderingEnabled=false以节省消耗。</p>
+		 */
+		renderingEnabled:boolean;
+
+		/**
+		 * 是否启用屏幕适配，可以适配后，在某个时候关闭屏幕适配，防止某些操作导致的屏幕意外改变
+		 */
+		screenAdaptationEnabled:boolean;
+
+		/**
+		 * @private 
+		 */
+		private _screenMode:any;
+
+		/**
+		 * @private 
+		 */
+		private _scaleMode:any;
+
+		/**
+		 * @private 
+		 */
+		private _alignV:any;
+
+		/**
+		 * @private 
+		 */
+		private _alignH:any;
+
+		/**
+		 * @private 
+		 */
+		private _bgColor:any;
+
+		/**
+		 * @private 
+		 */
+		private _mouseMoveTime:any;
+
+		/**
+		 * @private 
+		 */
+		private _renderCount:any;
+
+		/**
+		 * @private 
+		 */
+		private _safariOffsetY:any;
+
+		/**
+		 * @private 
+		 */
+		private _frameStartTime:any;
+
+		/**
+		 * @private 
+		 */
+		private _previousOrientation:any;
+
+		/**
+		 * @private 
+		 */
+		private _isFocused:any;
+
+		/**
+		 * @private 
+		 */
+		private _isVisibility:any;
+
+		/**
+		 * @private 
+		 */
+		private _globalRepaintSet:any;
+
+		/**
+		 * @private 
+		 */
+		private _globalRepaintGet:any;
+
+		/**
+		 * 使用物理分辨率作为canvas大小，会改进渲染效果，但是会降低性能
+		 */
+		useRetinalCanvas:boolean;
+
+		/**
+		 * 场景类，引擎中只有一个stage实例，此实例可以通过Laya.stage访问。
+		 */
+
+		constructor();
+
+		/**
+		 * @private 在移动端输入时，输入法弹出期间不进行画布尺寸重置。
+		 */
+		private _isInputting:any;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		set width(value:number);
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		get width():number;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		set height(value:number);
+
+		/**
+		 * @override 
+		 */
+		get height():number;
+
+		/**
+		 * @override 
+		 */
+		set transform(value:Matrix);
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		get transform():Matrix;
+
+		/**
+		 * 舞台是否获得焦点。
+		 */
+		get isFocused():boolean;
+
+		/**
+		 * 舞台是否处于可见状态(是否进入后台)。
+		 */
+		get isVisibility():boolean;
+
+		/**
+		 * @private 
+		 */
+		private _changeCanvasSize:any;
+
+		/**
+		 * @private 
+		 */
+		protected _resetCanvas():void;
+
+		/**
+		 * 设置屏幕大小，场景会根据屏幕大小进行适配。可以动态调用此方法，来更改游戏显示的大小。
+		 * @param screenWidth 屏幕宽度。
+		 * @param screenHeight 屏幕高度。
+		 */
+		setScreenSize(screenWidth:number,screenHeight:number):void;
+
+		/**
+		 * @private 
+		 */
+		private _formatData:any;
+
+		/**
+		 * <p>缩放模式。默认值为 "noscale"。</p>
+<p><ul>取值范围：
+<li>"noscale" ：不缩放；</li>
+<li>"exactfit" ：全屏不等比缩放；</li>
+<li>"showall" ：最小比例缩放；</li>
+<li>"noborder" ：最大比例缩放；</li>
+<li>"full" ：不缩放，stage的宽高等于屏幕宽高；</li>
+<li>"fixedwidth" ：宽度不变，高度根据屏幕比缩放；</li>
+<li>"fixedheight" ：高度不变，宽度根据屏幕比缩放；</li>
+<li>"fixedauto" ：根据宽高比，自动选择使用fixedwidth或fixedheight；</li>
+</ul></p>
+		 */
+		get scaleMode():string;
+		set scaleMode(value:string);
+
+		/**
+		 * <p>水平对齐方式。默认值为"left"。</p>
+<p><ul>取值范围：
+<li>"left" ：居左对齐；</li>
+<li>"center" ：居中对齐；</li>
+<li>"right" ：居右对齐；</li>
+</ul></p>
+		 */
+		get alignH():string;
+		set alignH(value:string);
+
+		/**
+		 * <p>垂直对齐方式。默认值为"top"。</p>
+<p><ul>取值范围：
+<li>"top" ：居顶部对齐；</li>
+<li>"middle" ：居中对齐；</li>
+<li>"bottom" ：居底部对齐；</li>
+</ul></p>
+		 */
+		get alignV():string;
+		set alignV(value:string);
+
+		/**
+		 * 舞台的背景颜色，默认为黑色，null为透明。
+		 */
+		get bgColor():string;
+		set bgColor(value:string);
+
+		/**
+		 * 鼠标在 Stage 上的 X 轴坐标。@override
+		 */
+		get mouseX():number;
+
+		/**
+		 * 鼠标在 Stage 上的 Y 轴坐标。@override
+		 */
+		get mouseY():number;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		getMousePoint():Point;
+
+		/**
+		 * 当前视窗由缩放模式导致的 X 轴缩放系数。
+		 */
+		get clientScaleX():number;
+
+		/**
+		 * 当前视窗由缩放模式导致的 Y 轴缩放系数。
+		 */
+		get clientScaleY():number;
+
+		/**
+		 * <p>场景布局类型。</p>
+<p><ul>取值范围：
+<li>"none" ：不更改屏幕</li>
+<li>"horizontal" ：自动横屏</li>
+<li>"vertical" ：自动竖屏</li>
+</ul></p>
+		 */
+		get screenMode():string;
+		set screenMode(value:string);
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		repaint(type?:number):void;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		parentRepaint(type?:number):void;
+
+		/**
+		 * @private 
+		 */
+		getFrameTm():number;
+
+		/**
+		 * @private 
+		 */
+		private _onmouseMove:any;
+
+		/**
+		 * <p>获得距当前帧开始后，过了多少时间，单位为毫秒。</p>
+<p>可以用来判断函数内时间消耗，通过合理控制每帧函数处理消耗时长，避免一帧做事情太多，对复杂计算分帧处理，能有效降低帧率波动。</p>
+		 */
+		getTimeFromFrameStart():number;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		set visible(value:boolean);
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		get visible():boolean;
+
+		/**
+		 * @private 
+		 */
+		static clear:Function;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		render(context:Context,x:number,y:number):void;
+		renderToNative(context:Context,x:number,y:number):void;
+		private _updateTimers:any;
+
+		/**
+		 * <p>是否开启全屏，用户点击后进入全屏。</p>
+<p>兼容性提示：部分浏览器不允许点击进入全屏，比如Iphone等。</p>
+		 */
+		set fullScreenEnabled(value:boolean);
+		get frameRate():string;
+		set frameRate(value:string);
+
+		/**
+		 * @private 
+		 */
+		private _requestFullscreen:any;
+
+		/**
+		 * @private 
+		 */
+		private _fullScreenChanged:any;
+
+		/**
+		 * 退出全屏模式
+		 */
+		exitFullscreen():void;
+
+		/**
+		 * @private 
+		 */
+		isGlobalRepaint():boolean;
+
+		/**
+		 * @private 
+		 */
+		setGlobalRepaint():void;
+
+		/**
+		 * @private 
+		 */
+		add3DUI(uibase:Sprite):void;
+
+		/**
+		 * @private 
+		 */
+		remove3DUI(uibase:Sprite):boolean;
+	}
+
+	/**
+	 * 文本内容发生改变后调度。
+	 * @eventType Event.CHANGE
+	 */
+
+	/**
+	 * <p> <code>Text</code> 类用于创建显示对象以显示文本。</p>
+<p>
+注意：如果运行时系统找不到设定的字体，则用系统默认的字体渲染文字，从而导致显示异常。(通常电脑上显示正常，在一些移动端因缺少设置的字体而显示异常)。
+</p>
+	 * @example package
+{
+	import laya.display.Text;
+	public class Text_Example
+	{
+		public function Text_Example()
+		{
+			Laya.init(640, 800);//设置游戏画布宽高、渲染模式。
+			Laya.stage.bgColor = "#efefef";//设置画布的背景颜色。
+			onInit();
+		}
+		private function onInit():void
+		{
+			var text:Text = new Text();//创建一个 Text 类的实例对象 text 。
+			text.text = "这个是一个 Text 文本示例。";
+			text.color = "#008fff";//设置 text 的文本颜色。
+			text.font = "Arial";//设置 text 的文本字体。
+			text.bold = true;//设置 text 的文本显示为粗体。
+			text.fontSize = 30;//设置 text 的字体大小。
+			text.wordWrap = true;//设置 text 的文本自动换行。
+			text.x = 100;//设置 text 对象的属性 x 的值，用于控制 text 对象的显示位置。
+			text.y = 100;//设置 text 对象的属性 y 的值，用于控制 text 对象的显示位置。
+			text.width = 300;//设置 text 的宽度。
+			text.height = 200;//设置 text 的高度。
+			text.italic = true;//设置 text 的文本显示为斜体。
+			text.borderColor = "#fff000";//设置 text 的文本边框颜色。
+			Laya.stage.addChild(text);//将 text 添加到显示列表。
+		}
+	}
+}
+	 * @example Text_Example();
+function Text_Example()
+{
+    Laya.init(640, 800);//设置游戏画布宽高、渲染模式。
+    Laya.stage.bgColor = "#efefef";//设置画布的背景颜色。
+    onInit();
+}
+function onInit()
+{
+    var text = new laya.display.Text();//创建一个 Text 类的实例对象 text 。
+    text.text = "这个是一个 Text 文本示例。";
+    text.color = "#008fff";//设置 text 的文本颜色。
+    text.font = "Arial";//设置 text 的文本字体。
+    text.bold = true;//设置 text 的文本显示为粗体。
+    text.fontSize = 30;//设置 text 的字体大小。
+    text.wordWrap = true;//设置 text 的文本自动换行。
+    text.x = 100;//设置 text 对象的属性 x 的值，用于控制 text 对象的显示位置。
+    text.y = 100;//设置 text 对象的属性 y 的值，用于控制 text 对象的显示位置。
+    text.width = 300;//设置 text 的宽度。
+    text.height = 200;//设置 text 的高度。
+    text.italic = true;//设置 text 的文本显示为斜体。
+    text.borderColor = "#fff000";//设置 text 的文本边框颜色。
+    Laya.stage.addChild(text);//将 text 添加到显示列表。
+}
+	 * @example class Text_Example {
+    constructor() {
+        Laya.init(640, 800);//设置游戏画布宽高、渲染模式。
+        Laya.stage.bgColor = "#efefef";//设置画布的背景颜色。
+        this.onInit();
+    }
+    private onInit(): void {
+        var text: laya.display.Text = new laya.display.Text();//创建一个 Text 类的实例对象 text 。
+        text.text = "这个是一个 Text 文本示例。";
+        text.color = "#008fff";//设置 text 的文本颜色。
+        text.font = "Arial";//设置 text 的文本字体。
+        text.bold = true;//设置 text 的文本显示为粗体。
+        text.fontSize = 30;//设置 text 的字体大小。
+        text.wordWrap = true;//设置 text 的文本自动换行。
+        text.x = 100;//设置 text 对象的属性 x 的值，用于控制 text 对象的显示位置。
+        text.y = 100;//设置 text 对象的属性 y 的值，用于控制 text 对象的显示位置。
+        text.width = 300;//设置 text 的宽度。
+        text.height = 200;//设置 text 的高度。
+        text.italic = true;//设置 text 的文本显示为斜体。
+        text.borderColor = "#fff000";//设置 text 的文本边框颜色。
+        Laya.stage.addChild(text);//将 text 添加到显示列表。
+    }
+}
+	 */
+	class Text extends Sprite  {
+
+		/**
+		 * visible不进行任何裁切。
+		 */
+		static VISIBLE:string;
+
+		/**
+		 * scroll 不显示文本域外的字符像素，并且支持 scroll 接口。
+		 */
+		static SCROLL:string;
+
+		/**
+		 * hidden 不显示超出文本域的字符。
+		 */
+		static HIDDEN:string;
+
+		/**
+		 * 默认文本大小，默认为12
+		 */
+		static defaultFontSize:number;
+
+		/**
+		 * 默认文本字体，默认为Arial
+		 */
+		static defaultFont:string;
+
+		/**
+		 * @private 
+		 */
+		static defaultFontStr():string;
+
+		/**
+		 * 语言包，是一个包含key:value的集合，用key索引，替换为目标value语言
+		 */
+		static langPacks:any;
+
+		/**
+		 * WebGL下，文字会被拆分为单个字符进行渲染，一些语系不能拆开显示，比如阿拉伯文，这时可以设置isComplexText=true，禁用文字拆分。
+		 */
+		static isComplexText:boolean;
+
+		/**
+		 * 在IOS下，一些字体会找不到，引擎提供了字体映射功能，比如默认会把 "黑体" 映射为 "黑体-简"，更多映射，可以自己添加
+		 */
+		static fontFamilyMap:any;
+
+		/**
+		 * @private 位图字体字典。
+		 */
+		private static _bitmapFonts:any;
+		static CharacterCache:boolean;
+
+		/**
+		 * 是否是从右向左的显示顺序
+		 */
+		static RightToLeft:boolean;
+
+		/**
+		 * @private 
+		 */
+		private _clipPoint:any;
+
+		/**
+		 * @private 表示文本内容字符串。
+		 */
+		protected _text:string;
+
+		/**
+		 * @private 表示文本内容是否发生改变。
+		 */
+		protected _isChanged:boolean;
+
+		/**
+		 * @private 表示文本的宽度，以像素为单位。
+		 */
+		protected _textWidth:number;
+
+		/**
+		 * @private 表示文本的高度，以像素为单位。
+		 */
+		protected _textHeight:number;
+
+		/**
+		 * @private 存储文字行数信息。
+		 */
+		protected _lines:string[]|null;
+
+		/**
+		 * @private 保存每行宽度
+		 */
+		protected _lineWidths:number[]|null;
+
+		/**
+		 * @private 文本的内容位置 X 轴信息。
+		 */
+		protected _startX:number;
+
+		/**
+		 * @private 文本的内容位置X轴信息。
+		 */
+		protected _startY:number;
+
+		/**
+		 * @private 
+		 */
+		protected _words:WordText[]|null;
+
+		/**
+		 * @private 
+		 */
+		protected _charSize:any;
+
+		/**
+		 * @private 
+		 */
+		protected _valign:string;
+
+		/**
+		 * @private 
+		 */
+		private _singleCharRender:any;
+
+		/**
+		 * <p>overflow 指定文本超出文本域后的行为。其值为"hidden"、"visible"和"scroll"之一。</p>
+<p>性能从高到低依次为：hidden > visible > scroll。</p>
+		 */
+		overflow:string;
+
+		/**
+		 * 创建一个新的 <code>Text</code> 实例。
+		 */
+
+		constructor();
+
+		/**
+		 * @private 获取样式。
+		 * @return 样式 Style 。
+		 * @override 
+		 */
+		getStyle():SpriteStyle;
+		protected _getTextStyle():TextStyle;
+
+		/**
+		 * 注册位图字体。
+		 * @param name 位图字体的名称。
+		 * @param bitmapFont 位图字体文件。
+		 */
+		static registerBitmapFont(name:string,bitmapFont:BitmapFont):void;
+
+		/**
+		 * 移除注册的位图字体文件。
+		 * @param name 位图字体的名称。
+		 * @param destroy 是否销毁指定的字体文件。
+		 */
+		static unregisterBitmapFont(name:string,destroy?:boolean):void;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		destroy(destroyChild?:boolean):void;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		getGraphicBounds(realSize?:boolean):Rectangle;
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		get width():number;
+
+		/**
+		 * @override 
+		 */
+		set width(value:number);
+
+		/**
+		 * @inheritDoc 
+		 * @override 
+		 */
+		get height():number;
+
+		/**
+		 * @override 
+		 */
+		set height(value:number);
+
+		/**
+		 * 表示文本的宽度，以像素为单位。
+		 */
+		get textWidth():number;
+
+		/**
+		 * 表示文本的高度，以像素为单位。
+		 */
+		get textHeight():number;
+
+		/**
+		 * 当前文本的内容字符串。
+		 */
+		get text():string;
+		get_text():string;
+		set_text(value:string):void;
+		set text(value:string);
+
+		/**
+		 * <p>根据指定的文本，从语言包中取当前语言的文本内容。并对此文本中的{i}文本进行替换。</p>
+<p>设置Text.langPacks语言包后，即可使用lang获取里面的语言</p>
+<p>例如：
+<li>（1）text 的值为“我的名字”，先取到这个文本对应的当前语言版本里的值“My name”，将“My name”设置为当前文本的内容。</li>
+<li>（2）text 的值为“恭喜你赢得{0}个钻石，{1}经验。”，arg1 的值为100，arg2 的值为200。
+ 			则先取到这个文本对应的当前语言版本里的值“Congratulations on your winning {0} diamonds, {1} experience.”，
+ 			然后将文本里的{0}、{1}，依据括号里的数字从0开始替换为 arg1、arg2 的值。
+ 			将替换处理后的文本“Congratulations on your winning 100 diamonds, 200 experience.”设置为当前文本的内容。
+</li>
+</p>
+		 * @param text 文本内容。
+		 * @param ...args 文本替换参数。
+		 */
+		lang(text:string,arg1?:any,arg2?:any,arg3?:any,arg4?:any,arg5?:any,arg6?:any,arg7?:any,arg8?:any,arg9?:any,arg10?:any):void;
+
+		/**
+		 * <p>文本的字体名称，以字符串形式表示。</p>
+<p>默认值为："Arial"，可以通过Text.defaultFont设置默认字体。</p>
+<p>如果运行时系统找不到设定的字体，则用系统默认的字体渲染文字，从而导致显示异常。(通常电脑上显示正常，在一些移动端因缺少设置的字体而显示异常)。</p>
+		 * @see laya.display.Text#defaultFont
+		 */
+		get font():string;
+		set font(value:string);
+
+		/**
+		 * <p>指定文本的字体大小（以像素为单位）。</p>
+<p>默认为20像素，可以通过 <code>Text.defaultFontSize</code> 设置默认大小。</p>
+		 */
+		get fontSize():number;
+		set fontSize(value:number);
+
+		/**
+		 * <p>指定文本是否为粗体字。</p>
+<p>默认值为 false，这意味着不使用粗体字。如果值为 true，则文本为粗体字。</p>
+		 */
+		get bold():boolean;
+		set bold(value:boolean);
+
+		/**
+		 * <p>表示文本的颜色值。可以通过 <code>Text.defaultColor</code> 设置默认颜色。</p>
+<p>默认值为黑色。</p>
+		 */
+		get color():string;
+		set color(value:string);
+		get_color():string;
+		set_color(value:string):void;
+
+		/**
+		 * <p>表示使用此文本格式的文本是否为斜体。</p>
+<p>默认值为 false，这意味着不使用斜体。如果值为 true，则文本为斜体。</p>
+		 */
+		get italic():boolean;
+		set italic(value:boolean);
+
+		/**
+		 * <p>表示文本的水平显示方式。</p>
+<p><b>取值：</b>
+<li>"left"： 居左对齐显示。</li>
+<li>"center"： 居中对齐显示。</li>
+<li>"right"： 居右对齐显示。</li>
+</p>
+		 */
+		get align():string;
+		set align(value:string);
+
+		/**
+		 * <p>表示文本的垂直显示方式。</p>
+<p><b>取值：</b>
+<li>"top"： 居顶部对齐显示。</li>
+<li>"middle"： 居中对齐显示。</li>
+<li>"bottom"： 居底部对齐显示。</li>
+</p>
+		 */
+		get valign():string;
+		set valign(value:string);
+
+		/**
+		 * <p>表示文本是否自动换行，默认为false。</p>
+<p>若值为true，则自动换行；否则不自动换行。</p>
+		 */
+		get wordWrap():boolean;
+		set wordWrap(value:boolean);
+
+		/**
+		 * 垂直行间距（以像素为单位）。
+		 */
+		get leading():number;
+		set leading(value:number);
+
+		/**
+		 * <p>边距信息。</p>
+<p>数据格式：[上边距，右边距，下边距，左边距]（边距以像素为单位）。</p>
+		 */
+		get padding():any[];
+		set padding(value:any[]);
+
+		/**
+		 * 文本背景颜色，以字符串表示。
+		 */
+		get bgColor():string;
+		set bgColor(value:string);
+		set_bgColor(value:string):void;
+		get_bgColor():string;
+
+		/**
+		 * 文本边框背景颜色，以字符串表示。
+		 */
+		get borderColor():string;
+		set borderColor(value:string);
+
+		/**
+		 * <p>描边宽度（以像素为单位）。</p>
+<p>默认值0，表示不描边。</p>
+		 */
+		get stroke():number;
+		set stroke(value:number);
+
+		/**
+		 * <p>描边颜色，以字符串表示。</p>
+<p>默认值为 "#000000"（黑色）;</p>
+		 */
+		get strokeColor():string;
+		set strokeColor(value:string);
+
+		/**
+		 * @private 一个布尔值，表示文本的属性是否有改变。若为true表示有改变。
+		 */
+		protected set isChanged(value:boolean);
+
+		/**
+		 * @private 
+		 */
+		protected _getContextFont():string;
+
+		/**
+		 * @private 
+		 */
+		protected _isPassWordMode():boolean;
+
+		/**
+		 * @private 
+		 */
+		protected _getPassWordTxt(txt:string):string;
+
+		/**
+		 * @private 渲染文字。
+		 * @param begin 开始渲染的行索引。
+		 * @param visibleLineCount 渲染的行数。
+		 */
+		protected _renderText():void;
+
+		/**
+		 * @private 绘制下划线
+		 * @param x 本行坐标
+		 * @param y 本行坐标
+		 * @param lineIndex 本行索引
+		 */
+		private _drawUnderline:any;
+
+		/**
+		 * <p>排版文本。</p>
+<p>进行宽高计算，渲染、重绘文本。</p>
+		 */
+		typeset():void;
+
+		/**
+		 * @private 
+		 */
+		private _evalTextSize:any;
+
+		/**
+		 * @private 
+		 */
+		private _checkEnabledViewportOrNot:any;
+
+		/**
+		 * <p>快速更改显示文本。不进行排版计算，效率较高。</p>
+<p>如果只更改文字内容，不更改文字样式，建议使用此接口，能提高效率。</p>
+		 * @param text 文本内容。
+		 */
+		changeText(text:string):void;
+
+		/**
+		 * @private 分析文本换行。
+		 */
+		protected _parseLines(text:string):void;
+
+		/**
+		 * @private 解析行文本。
+		 * @param line 某行的文本。
+		 * @param wordWrapWidth 文本的显示宽度。
+		 */
+		protected _parseLine(line:string,wordWrapWidth:number):void;
+
+		/**
+		 * @private 
+		 */
+		private _getTextWidth:any;
+
+		/**
+		 * @private 获取换行所需的宽度。
+		 */
+		private _getWordWrapWidth:any;
+
+		/**
+		 * 返回字符在本类实例的父坐标系下的坐标。
+		 * @param charIndex 索引位置。
+		 * @param out （可选）输出的Point引用。
+		 * @return Point 字符在本类实例的父坐标系下的坐标。如果out参数不为空，则将结果赋值给指定的Point对象，否则创建一个新的Point对象返回。建议使用Point.TEMP作为out参数，可以省去Point对象创建和垃圾回收的开销，尤其是在需要频繁执行的逻辑中，比如帧循环和MOUSE_MOVE事件回调函数里面。
+		 */
+		getCharPoint(charIndex:number,out?:Point):Point;
+
+		/**
+		 * <p>设置横向滚动量。</p>
+<p>即使设置超出滚动范围的值，也会被自动限制在可能的最大值处。</p>
+		 */
+		set scrollX(value:number);
+
+		/**
+		 * 获取横向滚动量。
+		 */
+		get scrollX():number;
+
+		/**
+		 * 设置纵向滚动量（px)。即使设置超出滚动范围的值，也会被自动限制在可能的最大值处。
+		 */
+		set scrollY(value:number);
+
+		/**
+		 * 获取纵向滚动量。
+		 */
+		get scrollY():number;
+
+		/**
+		 * 获取横向可滚动最大值。
+		 */
+		get maxScrollX():number;
+
+		/**
+		 * 获取纵向可滚动最大值。
+		 */
+		get maxScrollY():number;
+
+		/**
+		 * 返回文字行信息
+		 */
+		get lines():any[];
+
+		/**
+		 * 下划线的颜色，为null则使用字体颜色。
+		 */
+		get underlineColor():string;
+		set underlineColor(value:string);
+
+		/**
+		 * 是否显示下划线。
+		 */
+		get underline():boolean;
+		set underline(value:boolean);
+
+		/**
+		 * 设置是否单个字符渲染，如果Textd的内容一直改变，例如是一个增加的数字，就设置这个，防止无效占用缓存
+		 */
+		set singleCharRender(value:boolean);
+		get singleCharRender():boolean;
 	}
 
 	/**
@@ -21287,7 +23893,7 @@ new Animation_Example();
 
 		/**
 		 * <p>表示使用此文本格式的文本字段是否自动换行。</p>
-		 * 如果 wordWrap 的值为 true，则该文本字段自动换行；如果值为 false，则该文本字段不自动换行。
+如果 wordWrap 的值为 true，则该文本字段自动换行；如果值为 false，则该文本字段不自动换行。
 		 * @default false。
 		 */
 		wordWrap:boolean;
@@ -21299,7 +23905,7 @@ new Animation_Example();
 
 		/**
 		 * <p>默认边距信息</p>
-		 * <p>[左边距，上边距，右边距，下边距]（边距以像素为单位）</p>
+<p>[左边距，上边距，右边距，下边距]（边距以像素为单位）</p>
 		 */
 		padding:any[];
 
@@ -21315,13 +23921,13 @@ new Animation_Example();
 
 		/**
 		 * <p>指定文本字段是否是密码文本字段。</p>
-		 * 如果此属性的值为 true，则文本字段被视为密码文本字段，并使用星号而不是实际字符来隐藏输入的字符。如果为 false，则不会将文本字段视为密码文本字段。
+如果此属性的值为 true，则文本字段被视为密码文本字段，并使用星号而不是实际字符来隐藏输入的字符。如果为 false，则不会将文本字段视为密码文本字段。
 		 */
 		asPassword:boolean;
 
 		/**
 		 * <p>描边宽度（以像素为单位）。</p>
-		 * 默认值0，表示不描边。
+默认值0，表示不描边。
 		 * @default 0
 		 */
 		stroke:number;
@@ -21371,3554 +23977,6 @@ new Animation_Example();
 		 * @inheritDoc 
 		 */
 		render(sprite:Sprite,context:Context,x:number,y:number):void;
-	}
-
-	/**
-	 * <p> 动效模板。用于为指定目标对象添加动画效果。每个动效有唯一的目标对象，而同一个对象可以添加多个动效。 当一个动效开始播放时，其他动效会自动停止播放。</p>
-	 * <p> 可以通过LayaAir IDE创建。 </p>
-	 */
-	class EffectAnimation extends FrameAnimation  {
-
-		/**
-		 * @private 动效开始事件。
-		 */
-		private static EFFECT_BEGIN:any;
-
-		/**
-		 * 本实例的目标对象。通过本实例控制目标对象的属性变化。
-		 * @param v 指定的目标对象。
-		 */
-		set target(v:any);
-		get target():any;
-
-		/**
-		 * @private 
-		 */
-		private _onOtherBegin:any;
-
-		/**
-		 * 设置开始播放的事件。本实例会侦听目标对象的指定事件，触发后播放相应动画效果。
-		 * @param event 
-		 */
-		set playEvent(event:string);
-
-		/**
-		 * @param start 
-		 * @param loop 
-		 * @param name 
-		 * @override 
-		 */
-		play(start?:any,loop?:boolean,name?:string):void;
-
-		/**
-		 * @private 
-		 */
-		private _recordInitData:any;
-
-		/**
-		 * 设置提供数据的类。
-		 * @param classStr 类路径
-		 */
-		set effectClass(classStr:string);
-
-		/**
-		 * 设置动画数据。
-		 * @param uiData 
-		 */
-		set effectData(uiData:any);
-
-		/**
-		 * @override 
-		 */
-		protected _displayNodeToFrame(node:any,frame:number,targetDic?:any):void;
-	}
-
-	/**
-	 * 动画播放完毕后调度。
-	 * @eventType Event.COMPLETE
-	 */
-
-	/**
-	 * 播放到某标签后调度。
-	 * @eventType Event.LABEL
-	 */
-
-	/**
-	 * 节点关键帧动画播放类。解析播放IDE内制作的节点动画。
-	 */
-	class FrameAnimation extends AnimationBase  {
-
-		/**
-		 * @private 
-		 */
-		private static _sortIndexFun:any;
-
-		/**
-		 * @private 
-		 */
-		protected _usedFrames:any[];
-
-		constructor();
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		clear():AnimationBase;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		protected _displayToIndex(value:number):void;
-
-		/**
-		 * @private 将节点设置到某一帧的状态
-		 * @param node 节点ID
-		 * @param frame 
-		 * @param targetDic 节点表
-		 */
-		protected _displayNodeToFrame(node:any,frame:number,targetDic?:any):void;
-
-		/**
-		 * @private 计算帧数据
-		 */
-		private _calculateDatas:any;
-
-		/**
-		 * @private 计算某个节点的帧数据
-		 */
-		protected _calculateKeyFrames(node:any):void;
-
-		/**
-		 * 重置节点，使节点恢复到动画之前的状态，方便其他动画控制
-		 */
-		resetNodes():void;
-
-		/**
-		 * @private 计算节点某个属性的帧数据
-		 */
-		private _calculateNodePropFrames:any;
-
-		/**
-		 * @private 
-		 */
-		private _dealKeyFrame:any;
-
-		/**
-		 * @private 计算两个关键帧直接的帧数据
-		 */
-		private _calculateFrameValues:any;
-	}
-
-	/**
-	 * <code>Graphics</code> 类用于创建绘图显示对象。Graphics可以同时绘制多个位图或者矢量图，还可以结合save，restore，transform，scale，rotate，translate，alpha等指令对绘图效果进行变化。
-	 * Graphics以命令流方式存储，可以通过cmds属性访问所有命令流。Graphics是比Sprite更轻量级的对象，合理使用能提高应用性能(比如把大量的节点绘图改为一个节点的Graphics命令集合，能减少大量节点创建消耗)。
-	 * @see laya.display.Sprite#graphics
-	 */
-	class Graphics  {
-
-		/**
-		 * @private 
-		 */
-		private _cmds:any;
-
-		/**
-		 * @private 
-		 */
-		protected _vectorgraphArray:any[]|null;
-
-		/**
-		 * @private 
-		 */
-		private _graphicBounds:any;
-
-		/**
-		 * @private 
-		 */
-		autoDestroy:boolean;
-
-		constructor();
-
-		/**
-		 * <p>销毁此对象。</p>
-		 */
-		destroy():void;
-
-		/**
-		 * <p>清空绘制命令。</p>
-		 * @param recoverCmds 是否回收绘图指令数组，设置为true，则对指令数组进行回收以节省内存开销，建议设置为true进行回收，但如果手动引用了数组，不建议回收
-		 */
-		clear(recoverCmds?:boolean):void;
-
-		/**
-		 * @private 
-		 */
-		private _clearBoundsCache:any;
-
-		/**
-		 * @private 
-		 */
-		private _initGraphicBounds:any;
-
-		/**
-		 * @private 命令流。存储了所有绘制命令。
-		 */
-		get cmds():any[];
-		set cmds(value:any[]);
-
-		/**
-		 * 获取位置及宽高信息矩阵(比较耗CPU，频繁使用会造成卡顿，尽量少用)。
-		 * @param realSize （可选）使用图片的真实大小，默认为false
-		 * @return 位置与宽高组成的 一个 Rectangle 对象。
-		 */
-		getBounds(realSize?:boolean):Rectangle;
-
-		/**
-		 * @private 
-		 * @param realSize （可选）使用图片的真实大小，默认为false
-获取端点列表。
-		 */
-		getBoundPoints(realSize?:boolean):any[];
-
-		/**
-		 * 绘制单独图片
-		 * @param texture 纹理。
-		 * @param x （可选）X轴偏移量。
-		 * @param y （可选）Y轴偏移量。
-		 * @param width （可选）宽度。
-		 * @param height （可选）高度。
-		 */
-		drawImage(texture:Texture,x?:number,y?:number,width?:number,height?:number):DrawImageCmd|null;
-
-		/**
-		 * 绘制纹理，相比drawImage功能更强大，性能会差一些
-		 * @param texture 纹理。
-		 * @param x （可选）X轴偏移量。
-		 * @param y （可选）Y轴偏移量。
-		 * @param width （可选）宽度。
-		 * @param height （可选）高度。
-		 * @param matrix （可选）矩阵信息。
-		 * @param alpha （可选）透明度。
-		 * @param color （可选）颜色滤镜。
-		 * @param blendMode （可选）混合模式。
-		 */
-		drawTexture(texture:Texture|null,x?:number,y?:number,width?:number,height?:number,matrix?:Matrix|null,alpha?:number,color?:string|null,blendMode?:string|null,uv?:number[]):DrawTextureCmd|null;
-
-		/**
-		 * 批量绘制同样纹理。
-		 * @param texture 纹理。
-		 * @param pos 绘制次数和坐标。
-		 */
-		drawTextures(texture:Texture,pos:any[]):DrawTexturesCmd|null;
-
-		/**
-		 * 绘制一组三角形
-		 * @param texture 纹理。
-		 * @param x X轴偏移量。
-		 * @param y Y轴偏移量。
-		 * @param vertices 顶点数组。
-		 * @param indices 顶点索引。
-		 * @param uvData UV数据。
-		 * @param matrix 缩放矩阵。
-		 * @param alpha alpha
-		 * @param color 颜色变换
-		 * @param blendMode blend模式
-		 */
-		drawTriangles(texture:Texture,x:number,y:number,vertices:Float32Array,uvs:Float32Array,indices:Uint16Array,matrix?:Matrix|null,alpha?:number,color?:string|null,blendMode?:string|null,colorNum?:number):DrawTrianglesCmd;
-
-		/**
-		 * 用texture填充。
-		 * @param texture 纹理。
-		 * @param x X轴偏移量。
-		 * @param y Y轴偏移量。
-		 * @param width （可选）宽度。
-		 * @param height （可选）高度。
-		 * @param type （可选）填充类型 repeat|repeat-x|repeat-y|no-repeat
-		 * @param offset （可选）贴图纹理偏移
-		 */
-		fillTexture(texture:Texture,x:number,y:number,width?:number,height?:number,type?:string,offset?:Point|null):FillTextureCmd|null;
-
-		/**
-		 * 设置剪裁区域，超出剪裁区域的坐标不显示。
-		 * @param x X 轴偏移量。
-		 * @param y Y 轴偏移量。
-		 * @param width 宽度。
-		 * @param height 高度。
-		 */
-		clipRect(x:number,y:number,width:number,height:number):ClipRectCmd;
-
-		/**
-		 * 在画布上绘制文本。
-		 * @param text 在画布上输出的文本。
-		 * @param x 开始绘制文本的 x 坐标位置（相对于画布）。
-		 * @param y 开始绘制文本的 y 坐标位置（相对于画布）。
-		 * @param font 定义字号和字体，比如"20px Arial"。
-		 * @param color 定义文本颜色，比如"#ff0000"。
-		 * @param textAlign 文本对齐方式，可选值："left"，"center"，"right"。
-		 */
-		fillText(text:string,x:number,y:number,font:string,color:string,textAlign:string):FillTextCmd;
-
-		/**
-		 * 在画布上绘制“被填充且镶边的”文本。
-		 * @param text 在画布上输出的文本。
-		 * @param x 开始绘制文本的 x 坐标位置（相对于画布）。
-		 * @param y 开始绘制文本的 y 坐标位置（相对于画布）。
-		 * @param font 定义字体和字号，比如"20px Arial"。
-		 * @param fillColor 定义文本颜色，比如"#ff0000"。
-		 * @param textAlign 文本对齐方式，可选值："left"，"center"，"right"。
-		 * @param lineWidth 镶边线条宽度。
-		 * @param borderColor 定义镶边文本颜色。
-		 */
-		fillBorderText(text:string,x:number,y:number,font:string,fillColor:string,textAlign:string,lineWidth:number,borderColor:string):FillTextCmd;
-
-		/**
-		 * * @private
-		 */
-		fillWords(words:any[],x:number,y:number,font:string,color:string):FillTextCmd;
-
-		/**
-		 * * @private
-		 */
-		fillBorderWords(words:any[],x:number,y:number,font:string,fillColor:string,borderColor:string,lineWidth:number):FillTextCmd;
-
-		/**
-		 * 在画布上绘制文本（没有填色）。文本的默认颜色是黑色。
-		 * @param text 在画布上输出的文本。
-		 * @param x 开始绘制文本的 x 坐标位置（相对于画布）。
-		 * @param y 开始绘制文本的 y 坐标位置（相对于画布）。
-		 * @param font 定义字体和字号，比如"20px Arial"。
-		 * @param color 定义文本颜色，比如"#ff0000"。
-		 * @param lineWidth 线条宽度。
-		 * @param textAlign 文本对齐方式，可选值："left"，"center"，"right"。
-		 */
-		strokeText(text:string,x:number,y:number,font:string,color:string,lineWidth:number,textAlign:string):FillTextCmd;
-
-		/**
-		 * 设置透明度。
-		 * @param value 透明度。
-		 */
-		alpha(alpha:number):AlphaCmd;
-
-		/**
-		 * 替换绘图的当前转换矩阵。
-		 * @param mat 矩阵。
-		 * @param pivotX （可选）水平方向轴心点坐标。
-		 * @param pivotY （可选）垂直方向轴心点坐标。
-		 */
-		transform(matrix:Matrix,pivotX?:number,pivotY?:number):TransformCmd;
-
-		/**
-		 * 旋转当前绘图。(推荐使用transform，性能更高)
-		 * @param angle 旋转角度，以弧度计。
-		 * @param pivotX （可选）水平方向轴心点坐标。
-		 * @param pivotY （可选）垂直方向轴心点坐标。
-		 */
-		rotate(angle:number,pivotX?:number,pivotY?:number):RotateCmd;
-
-		/**
-		 * 缩放当前绘图至更大或更小。(推荐使用transform，性能更高)
-		 * @param scaleX 水平方向缩放值。
-		 * @param scaleY 垂直方向缩放值。
-		 * @param pivotX （可选）水平方向轴心点坐标。
-		 * @param pivotY （可选）垂直方向轴心点坐标。
-		 */
-		scale(scaleX:number,scaleY:number,pivotX?:number,pivotY?:number):ScaleCmd;
-
-		/**
-		 * 重新映射画布上的 (0,0) 位置。
-		 * @param x 添加到水平坐标（x）上的值。
-		 * @param y 添加到垂直坐标（y）上的值。
-		 */
-		translate(tx:number,ty:number):TranslateCmd;
-
-		/**
-		 * 保存当前环境的状态。
-		 */
-		save():SaveCmd;
-
-		/**
-		 * 返回之前保存过的路径状态和属性。
-		 */
-		restore():RestoreCmd;
-
-		/**
-		 * @private 替换文本内容。
-		 * @param text 文本内容。
-		 * @return 替换成功则值为true，否则值为flase。
-		 */
-		replaceText(text:string):boolean;
-
-		/**
-		 * @private 
-		 */
-		private _isTextCmd:any;
-
-		/**
-		 * @private 替换文本颜色。
-		 * @param color 颜色。
-		 */
-		replaceTextColor(color:string):void;
-
-		/**
-		 * @private 
-		 */
-		private _setTextCmdColor:any;
-
-		/**
-		 * 加载并显示一个图片。
-		 * @param url 图片地址。
-		 * @param x （可选）显示图片的x位置。
-		 * @param y （可选）显示图片的y位置。
-		 * @param width （可选）显示图片的宽度，设置为0表示使用图片默认宽度。
-		 * @param height （可选）显示图片的高度，设置为0表示使用图片默认高度。
-		 * @param complete （可选）加载完成回调。
-		 */
-		loadImage(url:string,x?:number,y?:number,width?:number,height?:number,complete?:Function|null):void;
-
-		/**
-		 * 绘制一条线。
-		 * @param fromX X轴开始位置。
-		 * @param fromY Y轴开始位置。
-		 * @param toX X轴结束位置。
-		 * @param toY Y轴结束位置。
-		 * @param lineColor 颜色。
-		 * @param lineWidth （可选）线条宽度。
-		 */
-		drawLine(fromX:number,fromY:number,toX:number,toY:number,lineColor:string,lineWidth?:number):DrawLineCmd;
-
-		/**
-		 * 绘制一系列线段。
-		 * @param x 开始绘制的X轴位置。
-		 * @param y 开始绘制的Y轴位置。
-		 * @param points 线段的点集合。格式:[x1,y1,x2,y2,x3,y3...]。
-		 * @param lineColor 线段颜色，或者填充绘图的渐变对象。
-		 * @param lineWidth （可选）线段宽度。
-		 */
-		drawLines(x:number,y:number,points:any[],lineColor:any,lineWidth?:number):DrawLinesCmd|null;
-
-		/**
-		 * 绘制一系列曲线。
-		 * @param x 开始绘制的 X 轴位置。
-		 * @param y 开始绘制的 Y 轴位置。
-		 * @param points 线段的点集合，格式[controlX, controlY, anchorX, anchorY...]。
-		 * @param lineColor 线段颜色，或者填充绘图的渐变对象。
-		 * @param lineWidth （可选）线段宽度。
-		 */
-		drawCurves(x:number,y:number,points:any[],lineColor:any,lineWidth?:number):DrawCurvesCmd;
-
-		/**
-		 * 绘制矩形。
-		 * @param x 开始绘制的 X 轴位置。
-		 * @param y 开始绘制的 Y 轴位置。
-		 * @param width 矩形宽度。
-		 * @param height 矩形高度。
-		 * @param fillColor 填充颜色，或者填充绘图的渐变对象。
-		 * @param lineColor （可选）边框颜色，或者填充绘图的渐变对象。
-		 * @param lineWidth （可选）边框宽度。
-		 */
-		drawRect(x:number,y:number,width:number,height:number,fillColor:any,lineColor?:any,lineWidth?:number):DrawRectCmd;
-
-		/**
-		 * 绘制圆形。
-		 * @param x 圆点X 轴位置。
-		 * @param y 圆点Y 轴位置。
-		 * @param radius 半径。
-		 * @param fillColor 填充颜色，或者填充绘图的渐变对象。
-		 * @param lineColor （可选）边框颜色，或者填充绘图的渐变对象。
-		 * @param lineWidth （可选）边框宽度。
-		 */
-		drawCircle(x:number,y:number,radius:number,fillColor:any,lineColor?:any,lineWidth?:number):DrawCircleCmd;
-
-		/**
-		 * 绘制扇形。
-		 * @param x 开始绘制的 X 轴位置。
-		 * @param y 开始绘制的 Y 轴位置。
-		 * @param radius 扇形半径。
-		 * @param startAngle 开始角度。
-		 * @param endAngle 结束角度。
-		 * @param fillColor 填充颜色，或者填充绘图的渐变对象。
-		 * @param lineColor （可选）边框颜色，或者填充绘图的渐变对象。
-		 * @param lineWidth （可选）边框宽度。
-		 */
-		drawPie(x:number,y:number,radius:number,startAngle:number,endAngle:number,fillColor:any,lineColor?:any,lineWidth?:number):DrawPieCmd;
-
-		/**
-		 * 绘制多边形。
-		 * @param x 开始绘制的 X 轴位置。
-		 * @param y 开始绘制的 Y 轴位置。
-		 * @param points 多边形的点集合。
-		 * @param fillColor 填充颜色，或者填充绘图的渐变对象。
-		 * @param lineColor （可选）边框颜色，或者填充绘图的渐变对象。
-		 * @param lineWidth （可选）边框宽度。
-		 */
-		drawPoly(x:number,y:number,points:any[],fillColor:any,lineColor?:any,lineWidth?:number):DrawPolyCmd;
-
-		/**
-		 * 绘制路径。
-		 * @param x 开始绘制的 X 轴位置。
-		 * @param y 开始绘制的 Y 轴位置。
-		 * @param paths 路径集合，路径支持以下格式：[["moveTo",x,y],["lineTo",x,y],["arcTo",x1,y1,x2,y2,r],["closePath"]]。
-		 * @param brush （可选）刷子定义，支持以下设置{fillStyle:"#FF0000"}。
-		 * @param pen （可选）画笔定义，支持以下设置{strokeStyle,lineWidth,lineJoin:"bevel|round|miter",lineCap:"butt|round|square",miterLimit}。
-		 */
-		drawPath(x:number,y:number,paths:any[],brush?:any,pen?:any):DrawPathCmd;
-
-		/**
-		 * @private 绘制带九宫格的图片
-		 * @param texture 
-		 * @param x 
-		 * @param y 
-		 * @param width 
-		 * @param height 
-		 * @param sizeGrid 
-		 */
-		draw9Grid(texture:Texture,x:number,y:number,width:number,height:number,sizeGrid:any[]):void;
-	}
-
-	/**
-	 * @private Graphic bounds数据类
-	 */
-	class GraphicsBounds  {
-
-		/**
-		 * @private 
-		 */
-		private static _tempMatrix:any;
-
-		/**
-		 * @private 
-		 */
-		private static _initMatrix:any;
-
-		/**
-		 * @private 
-		 */
-		private static _tempPoints:any;
-
-		/**
-		 * @private 
-		 */
-		private static _tempMatrixArrays:any;
-
-		/**
-		 * @private 
-		 */
-		private static _tempCmds:any;
-
-		/**
-		 * @private 
-		 */
-		private _temp:any;
-
-		/**
-		 * @private 
-		 */
-		private _bounds:any;
-
-		/**
-		 * @private 
-		 */
-		private _rstBoundPoints:any;
-
-		/**
-		 * @private 
-		 */
-		private _cacheBoundsType:any;
-
-		/**
-		 * 销毁
-		 */
-		destroy():void;
-
-		/**
-		 * 创建
-		 */
-		static create():GraphicsBounds;
-
-		/**
-		 * 重置数据
-		 */
-		reset():void;
-
-		/**
-		 * 获取位置及宽高信息矩阵(比较耗CPU，频繁使用会造成卡顿，尽量少用)。
-		 * @param realSize （可选）使用图片的真实大小，默认为false
-		 * @return 位置与宽高组成的 一个 Rectangle 对象。
-		 */
-		getBounds(realSize?:boolean):Rectangle;
-
-		/**
-		 * @private 
-		 * @param realSize （可选）使用图片的真实大小，默认为false
-获取端点列表。
-		 */
-		getBoundPoints(realSize?:boolean):any[];
-		private _getCmdPoints:any;
-		private _switchMatrix:any;
-		private static _addPointArrToRst:any;
-		private static _addPointToRst:any;
-
-		/**
-		 * 获得drawPie命令可能的产生的点。注意 这里只假设用在包围盒计算上。
-		 * @param x 
-		 * @param y 
-		 * @param radius 
-		 * @param startAngle 
-		 * @param endAngle 
-		 * @return 
-		 */
-		private _getPiePoints:any;
-		private _getTriAngBBXPoints:any;
-		private _getDraw9GridBBXPoints:any;
-		private _getPathPoints:any;
-	}
-
-	/**
-	 * 用户输入一个或多个文本字符时后调度。
-	 * @eventType Event.INPUT
-	 */
-
-	/**
-	 * 文本发生变化后调度。
-	 * @eventType Event.CHANGE
-	 */
-
-	/**
-	 * 用户在输入框内敲回车键后，将会调度 <code>enter</code> 事件。
-	 * @eventType Event.ENTER
-	 */
-
-	/**
-	 * 显示对象获得焦点后调度。
-	 * @eventType Event.FOCUS
-	 */
-
-	/**
-	 * 显示对象失去焦点后调度。
-	 * @eventType Event.BLUR
-	 */
-
-	/**
-	 * <p><code>Input</code> 类用于创建显示对象以显示和输入文本。</p>
-	 * <p>Input 类封装了原生的文本输入框，由于不同浏览器的差异，会导致此对象的默认文本的位置与用户点击输入时的文本的位置有少许的偏差。</p>
-	 */
-	class Input extends Text  {
-
-		/**
-		 * 常规文本域。
-		 */
-		static TYPE_TEXT:string;
-
-		/**
-		 * password 类型用于密码域输入。
-		 */
-		static TYPE_PASSWORD:string;
-
-		/**
-		 * email 类型用于应该包含 e-mail 地址的输入域。
-		 */
-		static TYPE_EMAIL:string;
-
-		/**
-		 * url 类型用于应该包含 URL 地址的输入域。
-		 */
-		static TYPE_URL:string;
-
-		/**
-		 * number 类型用于应该包含数值的输入域。
-		 */
-		static TYPE_NUMBER:string;
-
-		/**
-		 * <p>range 类型用于应该包含一定范围内数字值的输入域。</p>
-		 * <p>range 类型显示为滑动条。</p>
-		 * <p>您还能够设定对所接受的数字的限定。</p>
-		 */
-		static TYPE_RANGE:string;
-
-		/**
-		 * 选取日、月、年。
-		 */
-		static TYPE_DATE:string;
-
-		/**
-		 * month - 选取月、年。
-		 */
-		static TYPE_MONTH:string;
-
-		/**
-		 * week - 选取周和年。
-		 */
-		static TYPE_WEEK:string;
-
-		/**
-		 * time - 选取时间（小时和分钟）。
-		 */
-		static TYPE_TIME:string;
-
-		/**
-		 * datetime - 选取时间、日、月、年（UTC 时间）。
-		 */
-		static TYPE_DATE_TIME:string;
-
-		/**
-		 * datetime-local - 选取时间、日、月、年（本地时间）。
-		 */
-		static TYPE_DATE_TIME_LOCAL:string;
-
-		/**
-		 * <p>search 类型用于搜索域，比如站点搜索或 Google 搜索。</p>
-		 * <p>search 域显示为常规的文本域。</p>
-		 */
-		static TYPE_SEARCH:string;
-
-		/**
-		 * @private 
-		 */
-		protected static input:HTMLInputElement;
-
-		/**
-		 * @private 
-		 */
-		protected static area:HTMLTextAreaElement;
-
-		/**
-		 * @private 
-		 */
-		protected static inputElement:HTMLInputElement|HTMLTextAreaElement;
-
-		/**
-		 * @private 
-		 */
-		protected static inputContainer:HTMLDivElement;
-
-		/**
-		 * @private 
-		 */
-		protected static confirmButton:any;
-
-		/**
-		 * @private 
-		 */
-		protected static promptStyleDOM:any;
-
-		/**
-		 * @private 
-		 */
-		protected _focus:boolean;
-
-		/**
-		 * @private 
-		 */
-		protected _multiline:boolean;
-
-		/**
-		 * @private 
-		 */
-		protected _editable:boolean;
-
-		/**
-		 * @private 
-		 */
-		protected _restrictPattern:any;
-
-		/**
-		 * @private 
-		 */
-		protected _maxChars:number;
-		private _type:any;
-
-		/**
-		 * 输入提示符。
-		 */
-		private _prompt:any;
-
-		/**
-		 * 输入提示符颜色。
-		 */
-		private _promptColor:any;
-		private _originColor:any;
-		private _content:any;
-
-		/**
-		 * @private 
-		 */
-		static IOS_IFRAME:boolean;
-		private static inputHeight:any;
-
-		/**
-		 * 表示是否处于输入状态。
-		 */
-		static isInputting:boolean;
-
-		/**
-		 * 创建一个新的 <code>Input</code> 类实例。
-		 */
-
-		constructor();
-		private static _popupInputMethod:any;
-		private static _createInputElement:any;
-		private static _initInput:any;
-		private static _processInputting:any;
-		private static _stopEvent:any;
-
-		/**
-		 * 设置光标位置和选取字符。
-		 * @param startIndex 光标起始位置。
-		 * @param endIndex 光标结束位置。
-		 */
-		setSelection(startIndex:number,endIndex:number):void;
-
-		/**
-		 * 表示是否是多行输入框。
-		 */
-		get multiline():boolean;
-		set multiline(value:boolean);
-
-		/**
-		 * 获取对输入框的引用实例。
-		 */
-		get nativeInput():HTMLInputElement|HTMLTextAreaElement;
-		private _onUnDisplay:any;
-		private _onMouseDown:any;
-		private static stageMatrix:any;
-
-		/**
-		 * 在输入期间，如果 Input 实例的位置改变，调用_syncInputTransform同步输入框的位置。
-		 */
-		private _syncInputTransform:any;
-
-		/**
-		 * 选中当前实例的所有文本。
-		 */
-		select():void;
-
-		/**
-		 * 表示焦点是否在此实例上。
-		 */
-		get focus():boolean;
-		set focus(value:boolean);
-		private _setInputMethod:any;
-		private _focusIn:any;
-		private _setPromptColor:any;
-
-		/**
-		 * @private 
-		 */
-		private _focusOut:any;
-
-		/**
-		 * @private 
-		 */
-		private _onKeyDown:any;
-
-		/**
-		 * 小游戏专用(解决键盘输入框内容和游戏输入框内容不同步的bug)
-		 * @param value 
-		 */
-		miniGameTxt(value:string):void;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		set text(value:string);
-
-		/**
-		 * @override 
-		 */
-		get text():string;
-
-		/**
-		 * @param text 
-		 * @override 
-		 */
-		changeText(text:string):void;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		set color(value:string);
-		get color():string;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		set bgColor(value:string);
-		get bgColor():string;
-
-		/**
-		 * 限制输入的字符。
-		 */
-		get restrict():string;
-		set restrict(pattern:string);
-
-		/**
-		 * 是否可编辑。
-		 */
-		set editable(value:boolean);
-		get editable():boolean;
-
-		/**
-		 * <p>字符数量限制，默认为10000。</p>
-		 * <p>设置字符数量限制时，小于等于0的值将会限制字符数量为10000。</p>
-		 */
-		get maxChars():number;
-		set maxChars(value:number);
-
-		/**
-		 * 设置输入提示符。
-		 */
-		get prompt():string;
-		set prompt(value:string);
-
-		/**
-		 * 设置输入提示符颜色。
-		 */
-		get promptColor():string;
-		set promptColor(value:string);
-
-		/**
-		 * <p>输入框类型为Input静态常量之一。</p>
-		 * <ul>
-		 * <li>TYPE_TEXT</li>
-		 * <li>TYPE_PASSWORD</li>
-		 * <li>TYPE_EMAIL</li>
-		 * <li>TYPE_URL</li>
-		 * <li>TYPE_NUMBER</li>
-		 * <li>TYPE_RANGE</li>
-		 * <li>TYPE_DATE</li>
-		 * <li>TYPE_MONTH</li>
-		 * <li>TYPE_WEEK</li>
-		 * <li>TYPE_TIME</li>
-		 * <li>TYPE_DATE_TIME</li>
-		 * <li>TYPE_DATE_TIME_LOCAL</li>
-		 * </ul>
-		 * <p>平台兼容性参见http://www.w3school.com.cn/html5/html_5_form_input_types.asp。</p>
-		 */
-		get type():string;
-		set type(value:string);
-	}
-
-	/**
-	 * 添加到父对象后调度。
-	 * @eventType Event.ADDED
-	 */
-
-	/**
-	 * 被父对象移除后调度。
-	 * @eventType Event.REMOVED
-	 */
-
-	/**
-	 * 加入节点树时调度。
-	 * @eventType Event.DISPLAY
-	 */
-
-	/**
-	 * 从节点树移除时调度。
-	 * @eventType Event.UNDISPLAY
-	 */
-
-	/**
-	 * <code>Node</code> 类是可放在显示列表中的所有对象的基类。该显示列表管理 Laya 运行时中显示的所有对象。使用 Node 类排列显示列表中的显示对象。Node 对象可以有子显示对象。
-	 */
-	class Node extends EventDispatcher  {
-
-		/**
-		 * @private 
-		 */
-		protected static ARRAY_EMPTY:any[];
-
-		/**
-		 * @private 
-		 */
-		private _bits:any;
-
-		/**
-		 * 节点名称。
-		 */
-		name:string;
-
-		/**
-		 * [只读]是否已经销毁。对象销毁后不能再使用。
-		 */
-		destroyed:boolean;
-
-		constructor();
-		createGLBuffer():void;
-
-		/**
-		 * <p>增加事件侦听器，以使侦听器能够接收事件通知。</p>
-		 * <p>如果侦听鼠标事件，则会自动设置自己和父亲节点的属性 mouseEnabled 的值为 true(如果父节点mouseEnabled=false，则停止设置父节点mouseEnabled属性)。</p>
-		 * @param type 事件的类型。
-		 * @param caller 事件侦听函数的执行域。
-		 * @param listener 事件侦听函数。
-		 * @param args （可选）事件侦听函数的回调参数。
-		 * @return 此 EventDispatcher 对象。
-		 * @override 
-		 */
-		on(type:string,caller:any,listener:Function,args?:any[]):EventDispatcher;
-
-		/**
-		 * <p>增加事件侦听器，以使侦听器能够接收事件通知，此侦听事件响应一次后则自动移除侦听。</p>
-		 * <p>如果侦听鼠标事件，则会自动设置自己和父亲节点的属性 mouseEnabled 的值为 true(如果父节点mouseEnabled=false，则停止设置父节点mouseEnabled属性)。</p>
-		 * @param type 事件的类型。
-		 * @param caller 事件侦听函数的执行域。
-		 * @param listener 事件侦听函数。
-		 * @param args （可选）事件侦听函数的回调参数。
-		 * @return 此 EventDispatcher 对象。
-		 * @override 
-		 */
-		once(type:string,caller:any,listener:Function,args?:any[]):EventDispatcher;
-
-		/**
-		 * <p>销毁此对象。destroy对象默认会把自己从父节点移除，并且清理自身引用关系，等待js自动垃圾回收机制回收。destroy后不能再使用。</p>
-		 * <p>destroy时会移除自身的事情监听，自身的timer监听，移除子对象及从父节点移除自己。</p>
-		 * @param destroyChild （可选）是否同时销毁子节点，若值为true,则销毁子节点，否则不销毁子节点。
-		 */
-		destroy(destroyChild?:boolean):void;
-
-		/**
-		 * 销毁时执行
-		 * 此方法为虚方法，使用时重写覆盖即可
-		 */
-		onDestroy():void;
-
-		/**
-		 * 销毁所有子对象，不销毁自己本身。
-		 */
-		destroyChildren():void;
-
-		/**
-		 * 添加子节点。
-		 * @param node 节点对象
-		 * @return 返回添加的节点
-		 */
-		addChild(node:Node):Node;
-		addInputChild(node:Node):Node;
-		removeInputChild(node:Node):void;
-
-		/**
-		 * 批量增加子节点
-		 * @param ...args 无数子节点。
-		 */
-		addChildren(...args:any[]):void;
-
-		/**
-		 * 添加子节点到指定的索引位置。
-		 * @param node 节点对象。
-		 * @param index 索引位置。
-		 * @return 返回添加的节点。
-		 */
-		addChildAt(node:Node,index:number):Node;
-
-		/**
-		 * 根据子节点对象，获取子节点的索引位置。
-		 * @param node 子节点。
-		 * @return 子节点所在的索引位置。
-		 */
-		getChildIndex(node:Node):number;
-
-		/**
-		 * 根据子节点的名字，获取子节点对象。
-		 * @param name 子节点的名字。
-		 * @return 节点对象。
-		 */
-		getChildByName(name:string):Node;
-
-		/**
-		 * 根据子节点的索引位置，获取子节点对象。
-		 * @param index 索引位置
-		 * @return 子节点
-		 */
-		getChildAt(index:number):Node;
-
-		/**
-		 * 设置子节点的索引位置。
-		 * @param node 子节点。
-		 * @param index 新的索引。
-		 * @return 返回子节点本身。
-		 */
-		setChildIndex(node:Node,index:number):Node;
-
-		/**
-		 * 子节点发生改变。
-		 * @private 
-		 * @param child 子节点。
-		 */
-		protected _childChanged(child?:Node):void;
-
-		/**
-		 * 删除子节点。
-		 * @param node 子节点
-		 * @return 被删除的节点
-		 */
-		removeChild(node:Node):Node;
-
-		/**
-		 * 从父容器删除自己，如已经被删除不会抛出异常。
-		 * @return 当前节点（ Node ）对象。
-		 */
-		removeSelf():Node;
-
-		/**
-		 * 根据子节点名字删除对应的子节点对象，如果找不到不会抛出异常。
-		 * @param name 对象名字。
-		 * @return 查找到的节点（ Node ）对象。
-		 */
-		removeChildByName(name:string):Node;
-
-		/**
-		 * 根据子节点索引位置，删除对应的子节点对象。
-		 * @param index 节点索引位置。
-		 * @return 被删除的节点。
-		 */
-		removeChildAt(index:number):Node;
-
-		/**
-		 * 删除指定索引区间的所有子对象。
-		 * @param beginIndex 开始索引。
-		 * @param endIndex 结束索引。
-		 * @return 当前节点对象。
-		 */
-		removeChildren(beginIndex?:number,endIndex?:number):Node;
-
-		/**
-		 * 替换子节点。
-		 * 将传入的新节点对象替换到已有子节点索引位置处。
-		 * @param newNode 新节点。
-		 * @param oldNode 老节点。
-		 * @return 返回新节点。
-		 */
-		replaceChild(newNode:Node,oldNode:Node):Node;
-
-		/**
-		 * 子对象数量。
-		 */
-		get numChildren():number;
-
-		/**
-		 * 父节点。
-		 */
-		get parent():Node;
-
-		/**
-		 * @private 
-		 */
-		protected _setParent(value:Node):void;
-
-		/**
-		 * 表示是否在显示列表中显示。
-		 */
-		get displayedInStage():boolean;
-
-		/**
-		 * @private 
-		 */
-		private _updateDisplayedInstage:any;
-
-		/**
-		 * 设置指定节点对象是否可见(是否在渲染列表中)。
-		 * @private 
-		 * @param node 节点。
-		 * @param display 是否可见。
-		 */
-		private _displayChild:any;
-
-		/**
-		 * 当前容器是否包含指定的 <code>Node</code> 节点对象 。
-		 * @param node 指定的 <code>Node</code> 节点对象 。
-		 * @return 一个布尔值表示是否包含指定的 <code>Node</code> 节点对象 。
-		 */
-		contains(node:Node):boolean;
-
-		/**
-		 * 定时重复执行某函数。功能同Laya.timer.timerLoop()。
-		 * @param delay 间隔时间(单位毫秒)。
-		 * @param caller 执行域(this)。
-		 * @param method 结束时的回调方法。
-		 * @param args （可选）回调参数。
-		 * @param coverBefore （可选）是否覆盖之前的延迟执行，默认为true。
-		 * @param jumpFrame 时钟是否跳帧。基于时间的循环回调，单位时间间隔内，如能执行多次回调，出于性能考虑，引擎默认只执行一次，设置jumpFrame=true后，则回调会连续执行多次
-		 */
-		timerLoop(delay:number,caller:any,method:Function,args?:any[],coverBefore?:boolean,jumpFrame?:boolean):void;
-
-		/**
-		 * 定时执行某函数一次。功能同Laya.timer.timerOnce()。
-		 * @param delay 延迟时间(单位毫秒)。
-		 * @param caller 执行域(this)。
-		 * @param method 结束时的回调方法。
-		 * @param args （可选）回调参数。
-		 * @param coverBefore （可选）是否覆盖之前的延迟执行，默认为true。
-		 */
-		timerOnce(delay:number,caller:any,method:Function,args?:any[],coverBefore?:boolean):void;
-
-		/**
-		 * 定时重复执行某函数(基于帧率)。功能同Laya.timer.frameLoop()。
-		 * @param delay 间隔几帧(单位为帧)。
-		 * @param caller 执行域(this)。
-		 * @param method 结束时的回调方法。
-		 * @param args （可选）回调参数。
-		 * @param coverBefore （可选）是否覆盖之前的延迟执行，默认为true。
-		 */
-		frameLoop(delay:number,caller:any,method:Function,args?:any[],coverBefore?:boolean):void;
-
-		/**
-		 * 定时执行一次某函数(基于帧率)。功能同Laya.timer.frameOnce()。
-		 * @param delay 延迟几帧(单位为帧)。
-		 * @param caller 执行域(this)
-		 * @param method 结束时的回调方法
-		 * @param args （可选）回调参数
-		 * @param coverBefore （可选）是否覆盖之前的延迟执行，默认为true
-		 */
-		frameOnce(delay:number,caller:any,method:Function,args?:any[],coverBefore?:boolean):void;
-
-		/**
-		 * 清理定时器。功能同Laya.timer.clearTimer()。
-		 * @param caller 执行域(this)。
-		 * @param method 结束时的回调方法。
-		 */
-		clearTimer(caller:any,method:Function):void;
-
-		/**
-		 * <p>延迟运行指定的函数。</p>
-		 * <p>在控件被显示在屏幕之前调用，一般用于延迟计算数据。</p>
-		 * @param method 要执行的函数的名称。例如，functionName。
-		 * @param args 传递给 <code>method</code> 函数的可选参数列表。
-		 * @see #runCallLater()
-		 */
-		callLater(method:Function,args?:any[]):void;
-
-		/**
-		 * <p>如果有需要延迟调用的函数（通过 <code>callLater</code> 函数设置），则立即执行延迟调用函数。</p>
-		 * @param method 要执行的函数名称。例如，functionName。
-		 * @see #callLater()
-		 */
-		runCallLater(method:Function):void;
-
-		/**
-		 * @private 
-		 */
-		private _components:any;
-
-		/**
-		 * @private 
-		 */
-		private _activeChangeScripts:any;
-
-		/**
-		 * 获得所属场景。
-		 * @return 场景。
-		 */
-		get scene():any;
-
-		/**
-		 * 获取自身是否激活。
-		 * @return 自身是否激活。
-		 */
-		get active():boolean;
-
-		/**
-		 * 设置是否激活。
-		 * @param value 是否激活。
-		 */
-		set active(value:boolean);
-
-		/**
-		 * 获取在场景中是否激活。
-		 * @return 在场景中是否激活。
-		 */
-		get activeInHierarchy():boolean;
-
-		/**
-		 * @private 
-		 */
-		protected _onActive():void;
-
-		/**
-		 * @private 
-		 */
-		protected _onInActive():void;
-
-		/**
-		 * @private 
-		 */
-		protected _onActiveInScene():void;
-
-		/**
-		 * @private 
-		 */
-		protected _onInActiveInScene():void;
-
-		/**
-		 * 组件被激活后执行，此时所有节点和组件均已创建完毕，次方法只执行一次
-		 * 此方法为虚方法，使用时重写覆盖即可
-		 */
-		onAwake():void;
-
-		/**
-		 * 组件被启用后执行，比如节点被添加到舞台后
-		 * 此方法为虚方法，使用时重写覆盖即可
-		 */
-		onEnable():void;
-
-		/**
-		 * @private 
-		 */
-		private _activeScripts:any;
-
-		/**
-		 * @private 
-		 */
-		private _processInActive:any;
-
-		/**
-		 * @private 
-		 */
-		private _inActiveScripts:any;
-
-		/**
-		 * 组件被禁用时执行，比如从节点从舞台移除后
-		 * 此方法为虚方法，使用时重写覆盖即可
-		 */
-		onDisable():void;
-
-		/**
-		 * @private 
-		 */
-		protected _onAdded():void;
-
-		/**
-		 * @private 
-		 */
-		protected _onRemoved():void;
-
-		/**
-		 * 添加组件实例。
-		 * @param component 组建实例。
-		 * @return 组件。
-		 */
-		addComponentIntance(component:Component):any;
-
-		/**
-		 * 添加组件。
-		 * @param componentType 组件类型。
-		 * @return 组件。
-		 */
-		addComponent(componentType:typeof Component):any;
-
-		/**
-		 * 获得组件实例，如果没有则返回为null
-		 * @param componentType 组建类型
-		 * @return 返回组件
-		 */
-		getComponent(componentType:typeof Component):any;
-
-		/**
-		 * 获得组件实例，如果没有则返回为null
-		 * @param componentType 组建类型
-		 * @return 返回组件数组
-		 */
-		getComponents(componentType:typeof Component):any[];
-
-		/**
-		 * @private 获取timer
-		 */
-		get timer():Timer;
-	}
-
-	/**
-	 * 场景类，负责场景创建，加载，销毁等功能
-	 * 场景被从节点移除后，并不会被自动垃圾机制回收，如果想回收，请调用destroy接口，可以通过unDestroyedScenes属性查看还未被销毁的场景列表
-	 */
-	class Scene extends Sprite  {
-
-		/**
-		 * 创建后，还未被销毁的场景列表，方便查看还未被销毁的场景列表，方便内存管理，本属性只读，请不要直接修改
-		 */
-		static unDestroyedScenes:any[];
-
-		/**
-		 * 获取根节点
-		 */
-		private static _root:any;
-
-		/**
-		 * @private 
-		 */
-		private static _loadPage:any;
-
-		/**
-		 * 场景被关闭后，是否自动销毁（销毁节点和使用到的资源），默认为false
-		 */
-		autoDestroyAtClosed:boolean;
-
-		/**
-		 * 场景地址
-		 */
-		url:string;
-
-		/**
-		 * 场景时钟
-		 */
-		private _timer:any;
-
-		/**
-		 * @private 
-		 */
-		private _viewCreated:any;
-
-		constructor(createChildren?:boolean);
-
-		/**
-		 * @private 兼容老项目
-		 */
-		protected createChildren():void;
-
-		/**
-		 * 兼容加载模式
-		 * 加载模式设置uimap
-		 * @param url uimapJosn的url
-		 */
-		static setUIMap(url:string):void;
-
-		/**
-		 * @private 兼容老项目装载场景视图。用于加载模式。
-		 * @param path 场景地址。
-		 */
-		loadScene(path:string):void;
-		private _onSceneLoaded:any;
-
-		/**
-		 * @private 兼容老项目
-通过视图数据创建视图。
-		 * @param uiView 视图数据信息。
-		 */
-		createView(view:any):void;
-
-		/**
-		 * 根据IDE内的节点id，获得节点实例
-		 */
-		getNodeByID(id:number):any;
-
-		/**
-		 * 打开场景。【注意】被关闭的场景，如果没有设置autoDestroyAtRemoved=true，则资源可能不能被回收，需要自己手动回收
-		 * @param closeOther 是否关闭其他场景，默认为true（可选）
-		 * @param param 打开页面的参数，会传递给onOpened方法（可选）
-		 */
-		open(closeOther?:boolean,param?:any):void;
-
-		/**
-		 * 场景打开完成后，调用此方法（如果有弹出动画，则在动画完成后执行）
-		 */
-		onOpened(param:any):void;
-
-		/**
-		 * 关闭场景
-		 * 【注意】被关闭的场景，如果没有设置autoDestroyAtRemoved=true，则资源可能不能被回收，需要自己手动回收
-		 * @param type 关闭的原因，会传递给onClosed函数
-		 */
-		close(type?:string):void;
-
-		/**
-		 * 关闭完成后，调用此方法（如果有关闭动画，则在动画完成后执行）
-		 * @param type 如果是点击默认关闭按钮触发，则传入关闭按钮的名字(name)，否则为null。
-		 */
-		onClosed(type?:string):void;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		destroy(destroyChild?:boolean):void;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		set scaleX(value:number);
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		get scaleX():number;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		set scaleY(value:number);
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		get scaleY():number;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		get width():number;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		set width(value:number);
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		get height():number;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		set height(value:number);
-
-		/**
-		 * @private 
-		 */
-		protected _sizeChanged():void;
-
-		/**
-		 * 获取场景根容器
-		 */
-		static get root():Sprite;
-
-		/**
-		 * 场景时钟
-		 * @override 
-		 */
-		get timer():Timer;
-		set timer(value:Timer);
-
-		/**
-		 * 加载场景及场景使用到的资源
-		 * @param url 场景地址
-		 * @param complete 加载完成回调，返回场景实例（可选）
-		 * @param progress 加载进度回调（可选）
-		 */
-		static load(url:string,complete?:Handler,progress?:Handler):void;
-
-		/**
-		 * 加载并打开场景
-		 * @param url 场景地址
-		 * @param closeOther 是否关闭其他场景，默认为true（可选），【注意】被关闭的场景，如果没有设置autoDestroyAtRemoved=true，则资源可能不能被回收，需要自己手动回收
-		 * @param param 打开页面的参数，会传递给onOpened方法（可选）
-		 * @param complete 打开完成回调，返回场景实例（可选）
-		 * @param progress 加载进度回调（可选）
-		 */
-		static open(url:string,closeOther?:boolean,param?:any,complete?:Handler,progress?:Handler):void;
-
-		/**
-		 * @private 
-		 */
-		private static _onSceneLoaded:any;
-
-		/**
-		 * 根据地址，关闭场景（包括对话框）
-		 * @param url 场景地址
-		 * @param name 如果name不为空，name必须相同才能关闭
-		 * @return 返回是否关闭成功，如果url找不到，则不成功
-		 */
-		static close(url:string,name?:string):boolean;
-
-		/**
-		 * 关闭所有场景，不包括对话框，如果关闭对话框，请使用Dialog.closeAll()
-		 * 【注意】被关闭的场景，如果没有设置autoDestroyAtRemoved=true，则资源可能不能被回收，需要自己手动回收
-		 */
-		static closeAll():void;
-
-		/**
-		 * 根据地址，销毁场景（包括对话框）
-		 * @param url 场景地址
-		 * @param name 如果name不为空，name必须相同才能关闭
-		 * @return 返回是否销毁成功，如果url找不到，则不成功
-		 */
-		static destroy(url:string,name?:string):boolean;
-
-		/**
-		 * 销毁当前没有被使用的资源,该函数会忽略lock=true的资源。
-		 */
-		static gc():void;
-
-		/**
-		 * 设置loading界面，引擎会在调用open方法后，延迟打开loading界面，在页面添加到舞台之后，关闭loading界面
-		 * @param loadPage load界面实例
-		 */
-		static setLoadingPage(loadPage:Scene):void;
-
-		/**
-		 * 显示loading界面
-		 * @param param 打开参数，如果是scene，则会传递给onOpened方法
-		 * @param delay 延迟打开时间，默认500毫秒
-		 */
-		static showLoadingPage(param?:any,delay?:number):void;
-		private static _showLoading:any;
-		private static _hideLoading:any;
-
-		/**
-		 * 隐藏loading界面
-		 * @param delay 延迟关闭时间，默认500毫秒
-		 */
-		static hideLoadingPage(delay?:number):void;
-	}
-
-	/**
-	 * 在显示对象上按下后调度。
-	 * @eventType Event.MOUSE_DOWN
-	 */
-
-	/**
-	 * 在显示对象抬起后调度。
-	 * @eventType Event.MOUSE_UP
-	 */
-
-	/**
-	 * 鼠标在对象身上进行移动后调度
-	 * @eventType Event.MOUSE_MOVE
-	 */
-
-	/**
-	 * 鼠标经过对象后调度。
-	 * @eventType Event.MOUSE_OVER
-	 */
-
-	/**
-	 * 鼠标离开对象后调度。
-	 * @eventType Event.MOUSE_OUT
-	 */
-
-	/**
-	 * 鼠标点击对象后调度。
-	 * @eventType Event.CLICK
-	 */
-
-	/**
-	 * 开始拖动后调度。
-	 * @eventType Event.DRAG_START
-	 */
-
-	/**
-	 * 拖动中调度。
-	 * @eventType Event.DRAG_MOVE
-	 */
-
-	/**
-	 * 拖动结束后调度。
-	 * @eventType Event.DRAG_END
-	 */
-
-	/**
-	 * <p> <code>Sprite</code> 是基本的显示图形的显示列表节点。 <code>Sprite</code> 默认没有宽高，默认不接受鼠标事件。通过 <code>graphics</code> 可以绘制图片或者矢量图，支持旋转，缩放，位移等操作。<code>Sprite</code>同时也是容器类，可用来添加多个子节点。</p>
-	 * <p>注意： <code>Sprite</code> 默认没有宽高，可以通过<code>getBounds</code>函数获取；也可手动设置宽高；还可以设置<code>autoSize=true</code>，然后再获取宽高。<code>Sprite</code>的宽高一般用于进行碰撞检测和排版，并不影响显示图像大小，如果需要更改显示图像大小，请使用 <code>scaleX</code> ， <code>scaleY</code> ， <code>scale</code>。</p>
-	 * <p> <code>Sprite</code> 默认不接受鼠标事件，即<code>mouseEnabled=false</code>，但是只要对其监听任意鼠标事件，会自动打开自己以及所有父对象的<code>mouseEnabled=true</code>。所以一般也无需手动设置<code>mouseEnabled</code>。</p>
-	 * <p>LayaAir引擎API设计精简巧妙。核心显示类只有一个<code>Sprite</code>。<code>Sprite</code>针对不同的情况做了渲染优化，所以保证一个类实现丰富功能的同时，又达到高性能。</p>
-	 * @example <caption>创建了一个 <code>Sprite</code> 实例。</caption>
-package
-{
-import laya.display.Sprite;
-import laya.events.Event;
-
-public class Sprite_Example
-{
-private var sprite:Sprite;
-private var shape:Sprite
-public function Sprite_Example()
-{
-Laya.init(640, 800);//设置游戏画布宽高、渲染模式。
-Laya.stage.bgColor = "#efefef";//设置画布的背景颜色。
-onInit();
-}
-private function onInit():void
-{
-sprite = new Sprite();//创建一个 Sprite 类的实例对象 sprite 。
-sprite.loadImage("resource/ui/bg.png");//加载并显示图片。
-sprite.x = 200;//设置 sprite 对象相对于父容器的水平方向坐标值。
-sprite.y = 200;//设置 sprite 对象相对于父容器的垂直方向坐标值。
-sprite.pivotX = 0;//设置 sprite 对象的水平方法轴心点坐标。
-sprite.pivotY = 0;//设置 sprite 对象的垂直方法轴心点坐标。
-Laya.stage.addChild(sprite);//将此 sprite 对象添加到显示列表。
-sprite.on(Event.CLICK, this, onClickSprite);//给 sprite 对象添加点击事件侦听。
-shape = new Sprite();//创建一个 Sprite 类的实例对象 sprite 。
-shape.graphics.drawRect(0, 0, 100, 100, "#ccff00", "#ff0000", 2);//绘制一个有边框的填充矩形。
-shape.x = 400;//设置 shape 对象相对于父容器的水平方向坐标值。
-shape.y = 200;//设置 shape 对象相对于父容器的垂直方向坐标值。
-shape.width = 100;//设置 shape 对象的宽度。
-shape.height = 100;//设置 shape 对象的高度。
-shape.pivotX = 50;//设置 shape 对象的水平方法轴心点坐标。
-shape.pivotY = 50;//设置 shape 对象的垂直方法轴心点坐标。
-Laya.stage.addChild(shape);//将此 shape 对象添加到显示列表。
-shape.on(Event.CLICK, this, onClickShape);//给 shape 对象添加点击事件侦听。
-}
-private function onClickSprite():void
-{
-trace("点击 sprite 对象。");
-sprite.rotation += 5;//旋转 sprite 对象。
-}
-private function onClickShape():void
-{
-trace("点击 shape 对象。");
-shape.rotation += 5;//旋转 shape 对象。
-}
-}
-}
-	 * @example var sprite;
-var shape;
-Sprite_Example();
-function Sprite_Example()
-{
-    Laya.init(640, 800);//设置游戏画布宽高、渲染模式。
-    Laya.stage.bgColor = "#efefef";//设置画布的背景颜色。
-    onInit();
-}
-function onInit()
-{
-    sprite = new laya.display.Sprite();//创建一个 Sprite 类的实例对象 sprite 。
-    sprite.loadImage("resource/ui/bg.png");//加载并显示图片。
-    sprite.x = 200;//设置 sprite 对象相对于父容器的水平方向坐标值。
-    sprite.y = 200;//设置 sprite 对象相对于父容器的垂直方向坐标值。
-    sprite.pivotX = 0;//设置 sprite 对象的水平方法轴心点坐标。
-    sprite.pivotY = 0;//设置 sprite 对象的垂直方法轴心点坐标。
-    Laya.stage.addChild(sprite);//将此 sprite 对象添加到显示列表。
-    sprite.on(Event.CLICK, this, onClickSprite);//给 sprite 对象添加点击事件侦听。
-     shape = new laya.display.Sprite();//创建一个 Sprite 类的实例对象 sprite 。
-    shape.graphics.drawRect(0, 0, 100, 100, "#ccff00", "#ff0000", 2);//绘制一个有边框的填充矩形。
-    shape.x = 400;//设置 shape 对象相对于父容器的水平方向坐标值。
-    shape.y = 200;//设置 shape 对象相对于父容器的垂直方向坐标值。
-    shape.width = 100;//设置 shape 对象的宽度。
-    shape.height = 100;//设置 shape 对象的高度。
-    shape.pivotX = 50;//设置 shape 对象的水平方法轴心点坐标。
-    shape.pivotY = 50;//设置 shape 对象的垂直方法轴心点坐标。
-    Laya.stage.addChild(shape);//将此 shape 对象添加到显示列表。
-    shape.on(laya.events.Event.CLICK, this, onClickShape);//给 shape 对象添加点击事件侦听。
-}
-function onClickSprite()
-{
-    console.log("点击 sprite 对象。");
-    sprite.rotation += 5;//旋转 sprite 对象。
-}
-function onClickShape()
-{
-    console.log("点击 shape 对象。");
-    shape.rotation += 5;//旋转 shape 对象。
-}
-	 * @example import Sprite = laya.display.Sprite;
-class Sprite_Example {
-    private sprite: Sprite;
-    private shape: Sprite
-    public Sprite_Example() {
-        Laya.init(640, 800);//设置游戏画布宽高、渲染模式。
-        Laya.stage.bgColor = "#efefef";//设置画布的背景颜色。
-        this.onInit();
-    }
-    private onInit(): void {
-        this.sprite = new Sprite();//创建一个 Sprite 类的实例对象 sprite 。
-        this.sprite.loadImage("resource/ui/bg.png");//加载并显示图片。
-        this.sprite.x = 200;//设置 sprite 对象相对于父容器的水平方向坐标值。
-        this.sprite.y = 200;//设置 sprite 对象相对于父容器的垂直方向坐标值。
-        this.sprite.pivotX = 0;//设置 sprite 对象的水平方法轴心点坐标。
-        this.sprite.pivotY = 0;//设置 sprite 对象的垂直方法轴心点坐标。
-        Laya.stage.addChild(this.sprite);//将此 sprite 对象添加到显示列表。
-        this.sprite.on(laya.events.Event.CLICK, this, this.onClickSprite);//给 sprite 对象添加点击事件侦听。
-         this.shape = new Sprite();//创建一个 Sprite 类的实例对象 sprite 。
-        this.shape.graphics.drawRect(0, 0, 100, 100, "#ccff00", "#ff0000", 2);//绘制一个有边框的填充矩形。
-        this.shape.x = 400;//设置 shape 对象相对于父容器的水平方向坐标值。
-        this.shape.y = 200;//设置 shape 对象相对于父容器的垂直方向坐标值。
-        this.shape.width = 100;//设置 shape 对象的宽度。
-        this.shape.height = 100;//设置 shape 对象的高度。
-        this.shape.pivotX = 50;//设置 shape 对象的水平方法轴心点坐标。
-        this.shape.pivotY = 50;//设置 shape 对象的垂直方法轴心点坐标。
-        Laya.stage.addChild(this.shape);//将此 shape 对象添加到显示列表。
-        this.shape.on(laya.events.Event.CLICK, this, this.onClickShape);//给 shape 对象添加点击事件侦听。
-    }
-    private onClickSprite(): void {
-        console.log("点击 sprite 对象。");
-        this.sprite.rotation += 5;//旋转 sprite 对象。
-    }
-    private onClickShape(): void {
-        console.log("点击 shape 对象。");
-        this.shape.rotation += 5;//旋转 shape 对象。
-    }
-}
-	 */
-	class Sprite extends Node  {
-
-		/**
-		 * <p>鼠标事件与此对象的碰撞检测是否可穿透。碰撞检测发生在鼠标事件的捕获阶段，此阶段引擎会从stage开始递归检测stage及其子对象，直到找到命中的目标对象或者未命中任何对象。</p>
-		 * <p>穿透表示鼠标事件发生的位置处于本对象绘图区域内时，才算命中，而与对象宽高和值为Rectangle对象的hitArea属性无关。如果sprite.hitArea值是HitArea对象，表示显式声明了此对象的鼠标事件响应区域，而忽略对象的宽高、mouseThrough属性。</p>
-		 * <p>影响对象鼠标事件响应区域的属性为：width、height、hitArea，优先级顺序为：hitArea(type:HitArea)>hitArea(type:Rectangle)>width/height。</p>
-		 * @default false	不可穿透，此对象的鼠标响应区域由width、height、hitArea属性决定。</p>
-		 */
-		mouseThrough:boolean;
-
-		/**
-		 * <p>指定是否自动计算宽高数据。默认值为 false 。</p>
-		 * <p>Sprite宽高默认为0，并且不会随着绘制内容的变化而变化，如果想根据绘制内容获取宽高，可以设置本属性为true，或者通过getBounds方法获取。设置为true，对性能有一定影响。</p>
-		 */
-		autoSize:boolean;
-
-		/**
-		 * <p>指定鼠标事件检测是优先检测自身，还是优先检测其子对象。鼠标事件检测发生在鼠标事件的捕获阶段，此阶段引擎会从stage开始递归检测stage及其子对象，直到找到命中的目标对象或者未命中任何对象。</p>
-		 * <p>如果为false，优先检测子对象，当有子对象被命中时，中断检测，获得命中目标。如果未命中任何子对象，最后再检测此对象；如果为true，则优先检测本对象，如果本对象没有被命中，直接中断检测，表示没有命中目标；如果本对象被命中，则进一步递归检测其子对象，以确认最终的命中目标。</p>
-		 * <p>合理使用本属性，能减少鼠标事件检测的节点，提高性能。可以设置为true的情况：开发者并不关心此节点的子节点的鼠标事件检测结果，也就是以此节点作为其子节点的鼠标事件检测依据。</p>
-		 * <p>Stage对象和UI的View组件默认为true。</p>
-		 * @default false	优先检测此对象的子对象，当递归检测完所有子对象后，仍然没有找到目标对象，最后再检测此对象。
-		 */
-		hitTestPrior:boolean;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		destroy(destroyChild?:boolean):void;
-
-		constructor();
-
-		/**
-		 * 根据zOrder进行重新排序。
-		 */
-		updateZOrder():void;
-
-		/**
-		 * 设置是否开启自定义渲染，只有开启自定义渲染，才能使用customRender函数渲染。
-		 */
-		set customRenderEnable(b:boolean);
-
-		/**
-		 * 指定显示对象是否缓存为静态图像，cacheAs时，子对象发生变化，会自动重新缓存，同时也可以手动调用reCache方法更新缓存。
-		 * 建议把不经常变化的“复杂内容”缓存为静态图像，能极大提高渲染性能。cacheAs有"none"，"normal"和"bitmap"三个值可选。
-		 * 默认为"none"，不做任何缓存。
-		 * 当值为"normal"时，canvas模式下进行画布缓存，webgl模式下进行命令缓存。
-		 * 当值为"bitmap"时，canvas模式下进行依然是画布缓存，webgl模式下使用renderTarget缓存。
-		 * webgl下renderTarget缓存模式缺点：会额外创建renderTarget对象，增加内存开销，缓存面积有最大2048限制，不断重绘时会增加CPU开销。优点：大幅减少drawcall，渲染性能最高。
-		 * webgl下命令缓存模式缺点：只会减少节点遍历及命令组织，不会减少drawcall数，性能中等。优点：没有额外内存开销，无需renderTarget支持。
-		 */
-		get cacheAs():string;
-		set cacheAs(value:string);
-
-		/**
-		 * 更新_cnavas相关的状态
-		 */
-		private _checkCanvasEnable:any;
-
-		/**
-		 * 设置cacheAs为非空时此值才有效，staticCache=true时，子对象变化时不会自动更新缓存，只能通过调用reCache方法手动刷新。
-		 */
-		get staticCache():boolean;
-		set staticCache(value:boolean);
-
-		/**
-		 * 在设置cacheAs的情况下，调用此方法会重新刷新缓存。
-		 */
-		reCache():void;
-		getRepaint():number;
-
-		/**
-		 * 表示显示对象相对于父容器的水平方向坐标值。
-		 */
-		get x():number;
-		set x(value:number);
-
-		/**
-		 * 表示显示对象相对于父容器的垂直方向坐标值。
-		 */
-		get y():number;
-		set y(value:number);
-
-		/**
-		 * <p>显示对象的宽度，单位为像素，默认为0。</p>
-		 * <p>此宽度用于鼠标碰撞检测，并不影响显示对象图像大小。需要对显示对象的图像进行缩放，请使用scale、scaleX、scaleY。</p>
-		 * <p>可以通过getbounds获取显示对象图像的实际宽度。</p>
-		 */
-		get width():number;
-		set width(value:number);
-		set_width(value:number):void;
-		get_width():number;
-
-		/**
-		 * <p>显示对象的高度，单位为像素，默认为0。</p>
-		 * <p>此高度用于鼠标碰撞检测，并不影响显示对象图像大小。需要对显示对象的图像进行缩放，请使用scale、scaleX、scaleY。</p>
-		 * <p>可以通过getbounds获取显示对象图像的实际高度。</p>
-		 */
-		get height():number;
-		set height(value:number);
-		set_height(value:number):void;
-		get_height():number;
-
-		/**
-		 * <p>对象的显示宽度（以像素为单位）。</p>
-		 */
-		get displayWidth():number;
-
-		/**
-		 * <p>对象的显示高度（以像素为单位）。</p>
-		 */
-		get displayHeight():number;
-
-		/**
-		 * 设置对象bounds大小，如果有设置，则不再通过getBounds计算，合理使用能提高性能。
-		 * @param bound bounds矩形区域
-		 */
-		setSelfBounds(bound:Rectangle):void;
-
-		/**
-		 * <p>获取本对象在父容器坐标系的矩形显示区域。</p>
-		 * <p><b>注意：</b>计算量较大，尽量少用。</p>
-		 * @return 矩形区域。
-		 */
-		getBounds():Rectangle;
-
-		/**
-		 * 获取本对象在自己坐标系的矩形显示区域。
-		 * <p><b>注意：</b>计算量较大，尽量少用。</p>
-		 * @return 矩形区域。
-		 */
-		getSelfBounds():Rectangle;
-
-		/**
-		 * 返回此实例中的绘图对象（ <code>Graphics</code> ）的显示区域，不包括子对象。
-		 * @param realSize （可选）使用图片的真实大小，默认为false
-		 * @return 一个 Rectangle 对象，表示获取到的显示区域。
-		 */
-		getGraphicBounds(realSize?:boolean):Rectangle;
-
-		/**
-		 * @private 获取样式。
-		 * @return 样式 Style 。
-		 */
-		getStyle():SpriteStyle;
-
-		/**
-		 * @private 设置样式。
-		 * @param value 样式。
-		 */
-		setStyle(value:SpriteStyle):void;
-
-		/**
-		 * X轴缩放值，默认值为1。设置为负数，可以实现水平反转效果，比如scaleX=-1。
-		 */
-		get scaleX():number;
-		set scaleX(value:number);
-
-		/**
-		 * Y轴缩放值，默认值为1。设置为负数，可以实现垂直反转效果，比如scaleX=-1。
-		 */
-		get scaleY():number;
-		set scaleY(value:number);
-		set_scaleX(value:number):void;
-		get_scaleX():number;
-		set_scaleY(value:number):void;
-		get_scaleY():number;
-
-		/**
-		 * 旋转角度，默认值为0。以角度为单位。
-		 */
-		get rotation():number;
-		set rotation(value:number);
-
-		/**
-		 * 水平倾斜角度，默认值为0。以角度为单位。
-		 */
-		get skewX():number;
-		set skewX(value:number);
-
-		/**
-		 * 垂直倾斜角度，默认值为0。以角度为单位。
-		 */
-		get skewY():number;
-		set skewY(value:number);
-
-		/**
-		 * @private 
-		 */
-		protected _adjustTransform():Matrix;
-
-		/**
-		 * <p>对象的矩阵信息。通过设置矩阵可以实现节点旋转，缩放，位移效果。</p>
-		 * <p>矩阵更多信息请参考 <code>Matrix</code></p>
-		 */
-		get transform():Matrix;
-		set transform(value:Matrix);
-		get_transform():Matrix;
-		set_transform(value:Matrix):void;
-
-		/**
-		 * X轴 轴心点的位置，单位为像素，默认为0。轴心点会影响对象位置，缩放中心，旋转中心。
-		 */
-		get pivotX():number;
-		set pivotX(value:number);
-
-		/**
-		 * Y轴 轴心点的位置，单位为像素，默认为0。轴心点会影响对象位置，缩放中心，旋转中心。
-		 */
-		get pivotY():number;
-		set pivotY(value:number);
-
-		/**
-		 * 透明度，值为0-1，默认值为1，表示不透明。更改alpha值会影响drawcall。
-		 */
-		get alpha():number;
-		set alpha(value:number);
-
-		/**
-		 * 表示是否可见，默认为true。如果设置不可见，节点将不被渲染。
-		 */
-		get visible():boolean;
-		set visible(value:boolean);
-		get_visible():boolean;
-		set_visible(value:boolean):void;
-
-		/**
-		 * 指定要使用的混合模式。目前只支持"lighter"。
-		 */
-		get blendMode():string;
-		set blendMode(value:string);
-
-		/**
-		 * 绘图对象。封装了绘制位图和矢量图的接口，Sprite所有的绘图操作都通过Graphics来实现的。
-		 */
-		get graphics():Graphics;
-		set graphics(value:Graphics);
-
-		/**
-		 * <p>显示对象的滚动矩形范围，具有裁剪效果(如果只想限制子对象渲染区域，请使用viewport)</p>
-		 * <p> srollRect和viewport的区别：<br/>
-		 * 1.srollRect自带裁剪效果，viewport只影响子对象渲染是否渲染，不具有裁剪效果（性能更高）。<br/>
-		 * 2.设置rect的x,y属性均能实现区域滚动效果，但scrollRect会保持0,0点位置不变。</p>
-		 */
-		get scrollRect():Rectangle;
-		set scrollRect(value:Rectangle);
-
-		/**
-		 * <p>设置坐标位置。相当于分别设置x和y属性。</p>
-		 * <p>因为返回值为Sprite对象本身，所以可以使用如下语法：spr.pos(...).scale(...);</p>
-		 * @param x X轴坐标。
-		 * @param y Y轴坐标。
-		 * @param speedMode （可选）是否极速模式，正常是调用this.x=value进行赋值，极速模式直接调用内部函数处理，如果未重写x,y属性，建议设置为急速模式性能更高。
-		 * @return 返回对象本身。
-		 */
-		pos(x:number,y:number,speedMode?:boolean):Sprite;
-
-		/**
-		 * <p>设置轴心点。相当于分别设置pivotX和pivotY属性。</p>
-		 * <p>因为返回值为Sprite对象本身，所以可以使用如下语法：spr.pivot(...).pos(50, 100);</p>
-		 * @param x X轴心点。
-		 * @param y Y轴心点。
-		 * @return 返回对象本身。
-		 */
-		pivot(x:number,y:number):Sprite;
-
-		/**
-		 * <p>设置宽高。相当于分别设置width和height属性。</p>
-		 * <p>因为返回值为Sprite对象本身，所以可以使用如下语法：spr.size(...).pos(50, 100);</p>
-		 * @param width 宽度值。
-		 * @param hegiht 高度值。
-		 * @return 返回对象本身。
-		 */
-		size(width:number,height:number):Sprite;
-
-		/**
-		 * <p>设置缩放。相当于分别设置scaleX和scaleY属性。</p>
-		 * <p>因为返回值为Sprite对象本身，所以可以使用如下语法：spr.scale(...).pos(50, 100);</p>
-		 * @param scaleX X轴缩放比例。
-		 * @param scaleY Y轴缩放比例。
-		 * @param speedMode （可选）是否极速模式，正常是调用this.scaleX=value进行赋值，极速模式直接调用内部函数处理，如果未重写scaleX,scaleY属性，建议设置为急速模式性能更高。
-		 * @return 返回对象本身。
-		 */
-		scale(scaleX:number,scaleY:number,speedMode?:boolean):Sprite;
-
-		/**
-		 * <p>设置倾斜角度。相当于分别设置skewX和skewY属性。</p>
-		 * <p>因为返回值为Sprite对象本身，所以可以使用如下语法：spr.skew(...).pos(50, 100);</p>
-		 * @param skewX 水平倾斜角度。
-		 * @param skewY 垂直倾斜角度。
-		 * @return 返回对象本身
-		 */
-		skew(skewX:number,skewY:number):Sprite;
-
-		/**
-		 * 更新、呈现显示对象。由系统调用。
-		 * @param context 渲染的上下文引用。
-		 * @param x X轴坐标。
-		 * @param y Y轴坐标。
-		 */
-		render(ctx:Context,x:number,y:number):void;
-
-		/**
-		 * <p>绘制 当前<code>Sprite</code> 到 <code>Canvas</code> 上，并返回一个HtmlCanvas。</p>
-		 * <p>绘制的结果可以当作图片源，再次绘制到其他Sprite里面，示例：</p>
-		 * 
-		 * var htmlCanvas:HTMLCanvas = sprite.drawToCanvas(100, 100, 0, 0);//把精灵绘制到canvas上面
-		 * var sp:Sprite = new Sprite();//创建精灵
-		 * sp.graphics.drawTexture(htmlCanvas.getTexture());//把截图绘制到精灵上
-		 * Laya.stage.addChild(sp);//把精灵显示到舞台
-		 * 
-		 * <p>也可以获取原始图片数据，分享到网上，从而实现截图效果，示例：</p>
-		 * 
-		 * var htmlCanvas:HTMLCanvas = sprite.drawToCanvas(100, 100, 0, 0);//把精灵绘制到canvas上面
-		 * htmlCanvas.toBase64("image/png",0.9);//打印图片base64信息，可以发给服务器或者保存为图片
-		 * @param canvasWidth 画布宽度。
-		 * @param canvasHeight 画布高度。
-		 * @param x 绘制的 X 轴偏移量。
-		 * @param y 绘制的 Y 轴偏移量。
-		 * @return HTMLCanvas 对象。
-		 */
-		drawToCanvas(canvasWidth:number,canvasHeight:number,offsetX:number,offsetY:number):HTMLCanvas;
-
-		/**
-		 * 绘制到一个Texture对象
-		 * @param canvasWidth 
-		 * @param canvasHeight 
-		 * @param offsetX 
-		 * @param offsetY 
-		 */
-		drawToTexture(canvasWidth:number,canvasHeight:number,offsetX:number,offsetY:number,rt?:RenderTexture2D|null):Texture|RenderTexture2D;
-
-		/**
-		 * 把当前对象渲染到指定的贴图上。贴图由外部指定，避免每次都创建。
-		 * @param offx 
-		 * @param offy 
-		 * @param tex 输出渲染结果
-		 */
-		drawToTexture3D(offx:number,offy:number,tex:Texture2D):void;
-
-		/**
-		 * @private 绘制到画布。
-		 */
-		static drawToCanvas(sprite:Sprite,_renderType:number,canvasWidth:number,canvasHeight:number,offsetX:number,offsetY:number):HTMLCanvas;
-		static drawtocanvCtx:Context;
-
-		/**
-		 * @private 
-		 */
-		static drawToTexture(sprite:Sprite,_renderType:number,canvasWidth:number,canvasHeight:number,offsetX:number,offsetY:number,rt?:RenderTexture2D|null):Texture|RenderTexture2D;
-
-		/**
-		 * <p>自定义更新、呈现显示对象。一般用来扩展渲染模式，请合理使用，可能会导致在加速器上无法渲染。</p>
-		 * <p><b>注意</b>不要在此函数内增加或删除树节点，否则会对树节点遍历造成影响。</p>
-		 * @param context 渲染的上下文引用。
-		 * @param x X轴坐标。
-		 * @param y Y轴坐标。
-		 */
-		customRender(context:Context,x:number,y:number):void;
-
-		/**
-		 * 滤镜集合。可以设置多个滤镜组合。
-		 */
-		get filters():any[];
-		set filters(value:any[]);
-
-		/**
-		 * 把本地坐标转换为相对stage的全局坐标。
-		 * @param point 本地坐标点。
-		 * @param createNewPoint （可选）是否创建一个新的Point对象作为返回值，默认为false，使用输入的point对象返回，减少对象创建开销。
-		 * @param globalNode global节点，默认为Laya.stage
-		 * @return 转换后的坐标的点。
-		 */
-		localToGlobal(point:Point,createNewPoint?:boolean,globalNode?:Sprite|null):Point;
-
-		/**
-		 * 把stage的全局坐标转换为本地坐标。
-		 * @param point 全局坐标点。
-		 * @param createNewPoint （可选）是否创建一个新的Point对象作为返回值，默认为false，使用输入的point对象返回，减少对象创建开销。
-		 * @param globalNode global节点，默认为Laya.stage
-		 * @return 转换后的坐标的点。
-		 */
-		globalToLocal(point:Point,createNewPoint?:boolean,globalNode?:Sprite|null):Point;
-
-		/**
-		 * 将本地坐标系坐标转转换到父容器坐标系。
-		 * @param point 本地坐标点。
-		 * @return 转换后的点。
-		 */
-		toParentPoint(point:Point):Point;
-
-		/**
-		 * 将父容器坐标系坐标转换到本地坐标系。
-		 * @param point 父容器坐标点。
-		 * @return 转换后的点。
-		 */
-		fromParentPoint(point:Point):Point;
-
-		/**
-		 * 将Stage坐标系坐标转换到本地坐标系。
-		 * @param point 父容器坐标点。
-		 * @return 转换后的点。
-		 */
-		fromStagePoint(point:Point):Point;
-
-		/**
-		 * <p>增加事件侦听器，以使侦听器能够接收事件通知。</p>
-		 * <p>如果侦听鼠标事件，则会自动设置自己和父亲节点的属性 mouseEnabled 的值为 true(如果父节点mouseEnabled=false，则停止设置父节点mouseEnabled属性)。</p>
-		 * @param type 事件的类型。
-		 * @param caller 事件侦听函数的执行域。
-		 * @param listener 事件侦听函数。
-		 * @param args （可选）事件侦听函数的回调参数。
-		 * @return 此 EventDispatcher 对象。
-		 * @override 
-		 */
-		on(type:string,caller:any,listener:Function,args?:any[]):EventDispatcher;
-
-		/**
-		 * <p>增加事件侦听器，以使侦听器能够接收事件通知，此侦听事件响应一次后则自动移除侦听。</p>
-		 * <p>如果侦听鼠标事件，则会自动设置自己和父亲节点的属性 mouseEnabled 的值为 true(如果父节点mouseEnabled=false，则停止设置父节点mouseEnabled属性)。</p>
-		 * @param type 事件的类型。
-		 * @param caller 事件侦听函数的执行域。
-		 * @param listener 事件侦听函数。
-		 * @param args （可选）事件侦听函数的回调参数。
-		 * @return 此 EventDispatcher 对象。
-		 * @override 
-		 */
-		once(type:string,caller:any,listener:Function,args?:any[]):EventDispatcher;
-
-		/**
-		 * @private 
-		 */
-		protected _onDisplay(v?:boolean):void;
-
-		/**
-		 * @private 
-		 * @override 
-		 */
-		protected _setParent(value:Node):void;
-
-		/**
-		 * <p>加载并显示一个图片。相当于加载图片后，设置texture属性</p>
-		 * <p>注意：2.0改动：多次调用，只会显示一个图片（1.0会显示多个图片）,x,y,width,height参数取消。</p>
-		 * @param url 图片地址。
-		 * @param complete （可选）加载完成回调。
-		 * @return 返回精灵对象本身。
-		 */
-		loadImage(url:string,complete?:Handler):Sprite;
-
-		/**
-		 * 根据图片地址创建一个新的 <code>Sprite</code> 对象用于加载并显示此图片。
-		 * @param url 图片地址。
-		 * @return 返回新的 <code>Sprite</code> 对象。
-		 */
-		static fromImage(url:string):Sprite;
-
-		/**
-		 * cacheAs后，设置自己和父对象缓存失效。
-		 */
-		repaint(type?:number):void;
-
-		/**
-		 * @private 
-		 * @override 
-		 */
-		protected _childChanged(child?:Node):void;
-
-		/**
-		 * cacheAs时，设置所有父对象缓存失效。
-		 */
-		parentRepaint(type?:number):void;
-
-		/**
-		 * 对舞台 <code>stage</code> 的引用。
-		 */
-		get stage():Stage;
-
-		/**
-		 * <p>可以设置一个Rectangle区域作为点击区域，或者设置一个<code>HitArea</code>实例作为点击区域，HitArea内可以设置可点击和不可点击区域。</p>
-		 * <p>如果不设置hitArea，则根据宽高形成的区域进行碰撞。</p>
-		 */
-		get hitArea():any;
-		set hitArea(value:any);
-
-		/**
-		 * <p>遮罩，可以设置一个对象(支持位图和矢量图)，根据对象形状进行遮罩显示。</p>
-		 * <p>【注意】遮罩对象坐标系是相对遮罩对象本身的，和Flash机制不同</p>
-		 */
-		get mask():Sprite;
-		set mask(value:Sprite);
-
-		/**
-		 * 是否接受鼠标事件。
-		 * 默认为false，如果监听鼠标事件，则会自动设置本对象及父节点的属性 mouseEnable 的值都为 true（如果父节点手动设置为false，则不会更改）。
-		 */
-		get mouseEnabled():boolean;
-		set mouseEnabled(value:boolean);
-
-		/**
-		 * 开始拖动此对象。
-		 * @param area （可选）拖动区域，此区域为当前对象注册点活动区域（不包括对象宽高），可选。
-		 * @param hasInertia （可选）鼠标松开后，是否还惯性滑动，默认为false，可选。
-		 * @param elasticDistance （可选）橡皮筋效果的距离值，0为无橡皮筋效果，默认为0，可选。
-		 * @param elasticBackTime （可选）橡皮筋回弹时间，单位为毫秒，默认为300毫秒，可选。
-		 * @param data （可选）拖动事件携带的数据，可选。
-		 * @param disableMouseEvent （可选）禁用其他对象的鼠标检测，默认为false，设置为true能提高性能。
-		 * @param ratio （可选）惯性阻尼系数，影响惯性力度和时长。
-		 */
-		startDrag(area?:Rectangle,hasInertia?:boolean,elasticDistance?:number,elasticBackTime?:number,data?:any,disableMouseEvent?:boolean,ratio?:number):void;
-
-		/**
-		 * 停止拖动此对象。
-		 */
-		stopDrag():void;
-
-		/**
-		 * 检测某个点是否在此对象内。
-		 * @param x 全局x坐标。
-		 * @param y 全局y坐标。
-		 * @return 表示是否在对象内。
-		 */
-		hitTestPoint(x:number,y:number):boolean;
-
-		/**
-		 * 获得相对于本对象上的鼠标坐标信息。
-		 */
-		getMousePoint():Point;
-
-		/**
-		 * 获得相对于stage的全局X轴缩放值（会叠加父亲节点的缩放值）。
-		 */
-		get globalScaleX():number;
-
-		/**
-		 * 获得相对于stage的全局旋转值（会叠加父亲节点的旋转值）。
-		 */
-		get globalRotation():number;
-
-		/**
-		 * 获得相对于stage的全局Y轴缩放值（会叠加父亲节点的缩放值）。
-		 */
-		get globalScaleY():number;
-
-		/**
-		 * 返回鼠标在此对象坐标系上的 X 轴坐标信息。
-		 */
-		get mouseX():number;
-
-		/**
-		 * 返回鼠标在此对象坐标系上的 Y 轴坐标信息。
-		 */
-		get mouseY():number;
-
-		/**
-		 * z排序，更改此值，则会按照值的大小对同一容器的所有对象重新排序。值越大，越靠上。默认为0，则根据添加顺序排序。
-		 */
-		get zOrder():number;
-		set zOrder(value:number);
-
-		/**
-		 * 设置一个Texture实例，并显示此图片（如果之前有其他绘制，则会被清除掉）。
-		 * 等同于graphics.clear();graphics.drawImage()，但性能更高
-		 * 还可以赋值一个图片地址，则会自动加载图片，然后显示
-		 */
-		get texture():Texture;
-		set texture(value:Texture);
-
-		/**
-		 * <p>视口大小，视口外的子对象，将不被渲染(如果想实现裁剪效果，请使用srollRect)，合理使用能提高渲染性能。比如由一个个小图片拼成的地图块，viewport外面的小图片将不渲染</p>
-		 * <p>srollRect和viewport的区别：<br/>
-		 * 1. srollRect自带裁剪效果，viewport只影响子对象渲染是否渲染，不具有裁剪效果（性能更高）。<br/>
-		 * 2. 设置rect的x,y属性均能实现区域滚动效果，但scrollRect会保持0,0点位置不变。</p>
-		 * @default null
-		 */
-		get viewport():Rectangle;
-		set viewport(value:Rectangle);
-
-		/**
-		 * @private 
-		 */
-		captureMouseEvent(exclusive:boolean):void;
-
-		/**
-		 * @private 
-		 */
-		releaseMouseEvent():void;
-		set drawCallOptimize(value:boolean);
-		get drawCallOptimize():boolean;
-	}
-
-	/**
-	 * @private 
-	 */
-	class SpriteConst  {
-
-		/**
-		 * @private 
-		 */
-		static ALPHA:number;
-
-		/**
-		 * @private 
-		 */
-		static TRANSFORM:number;
-
-		/**
-		 * @private 
-		 */
-		static BLEND:number;
-
-		/**
-		 * @private 
-		 */
-		static CANVAS:number;
-
-		/**
-		 * @private 
-		 */
-		static FILTERS:number;
-
-		/**
-		 * @private 
-		 */
-		static MASK:number;
-
-		/**
-		 * @private 
-		 */
-		static CLIP:number;
-
-		/**
-		 * @private 
-		 */
-		static STYLE:number;
-
-		/**
-		 * @private 
-		 */
-		static TEXTURE:number;
-
-		/**
-		 * @private 
-		 */
-		static GRAPHICS:number;
-
-		/**
-		 * @private 
-		 */
-		static LAYAGL3D:number;
-
-		/**
-		 * @private 
-		 */
-		static CUSTOM:number;
-
-		/**
-		 * @private 
-		 */
-		static ONECHILD:number;
-
-		/**
-		 * @private 
-		 */
-		static CHILDS:number;
-
-		/**
-		 * @private 
-		 */
-		static REPAINT_NONE:number;
-
-		/**
-		 * @private 
-		 */
-		static REPAINT_NODE:number;
-
-		/**
-		 * @private 
-		 */
-		static REPAINT_CACHE:number;
-
-		/**
-		 * @private 
-		 */
-		static REPAINT_ALL:number;
-	}
-
-	/**
-	 * stage大小经过重新调整时进行调度。
-	 * @eventType Event.RESIZE
-	 */
-
-	/**
-	 * 舞台获得焦点时调度。比如浏览器或者当前标签处于后台，重新切换回来时进行调度。
-	 * @eventType Event.FOCUS
-	 */
-
-	/**
-	 * 舞台失去焦点时调度。比如浏览器或者当前标签被切换到后台后调度。
-	 * @eventType Event.BLUR
-	 */
-
-	/**
-	 * 舞台焦点变化时调度，使用Laya.stage.isFocused可以获取当前舞台是否获得焦点。
-	 * @eventType Event.FOCUS_CHANGE
-	 */
-
-	/**
-	 * 舞台可见性发生变化时调度（比如浏览器或者当前标签被切换到后台后调度），使用Laya.stage.isVisibility可以获取当前是否处于显示状态。
-	 * @eventType Event.VISIBILITY_CHANGE
-	 */
-
-	/**
-	 * 浏览器全屏更改时调度，比如进入全屏或者退出全屏。
-	 * @eventType Event.FULL_SCREEN_CHANGE
-	 */
-
-	/**
-	 * <p> <code>Stage</code> 是舞台类，显示列表的根节点，所有显示对象都在舞台上显示。通过 Laya.stage 单例访问。</p>
-	 * <p>Stage提供几种适配模式，不同的适配模式会产生不同的画布大小，画布越大，渲染压力越大，所以要选择合适的适配方案。</p>
-	 * <p>Stage提供不同的帧率模式，帧率越高，渲染压力越大，越费电，合理使用帧率甚至动态更改帧率有利于改进手机耗电。</p>
-	 */
-	class Stage extends Sprite  {
-
-		/**
-		 * 应用保持设计宽高不变，不缩放不变形，stage的宽高等于设计宽高。
-		 */
-		static SCALE_NOSCALE:string;
-
-		/**
-		 * 应用根据屏幕大小铺满全屏，非等比缩放会变形，stage的宽高等于设计宽高。
-		 */
-		static SCALE_EXACTFIT:string;
-
-		/**
-		 * 应用显示全部内容，按照最小比率缩放，等比缩放不变形，一边可能会留空白，stage的宽高等于设计宽高。
-		 */
-		static SCALE_SHOWALL:string;
-
-		/**
-		 * 应用按照最大比率缩放显示，宽或高方向会显示一部分，等比缩放不变形，stage的宽高等于设计宽高。
-		 */
-		static SCALE_NOBORDER:string;
-
-		/**
-		 * 应用保持设计宽高不变，不缩放不变形，stage的宽高等于屏幕宽高。
-		 */
-		static SCALE_FULL:string;
-
-		/**
-		 * 应用保持设计宽度不变，高度根据屏幕比缩放，stage的宽度等于设计高度，高度根据屏幕比率大小而变化
-		 */
-		static SCALE_FIXED_WIDTH:string;
-
-		/**
-		 * 应用保持设计高度不变，宽度根据屏幕比缩放，stage的高度等于设计宽度，宽度根据屏幕比率大小而变化
-		 */
-		static SCALE_FIXED_HEIGHT:string;
-
-		/**
-		 * 应用保持设计比例不变，全屏显示全部内容(类似showall，但showall非全屏，会有黑边)，根据屏幕长宽比，自动选择使用SCALE_FIXED_WIDTH或SCALE_FIXED_HEIGHT
-		 */
-		static SCALE_FIXED_AUTO:string;
-
-		/**
-		 * 画布水平居左对齐。
-		 */
-		static ALIGN_LEFT:string;
-
-		/**
-		 * 画布水平居右对齐。
-		 */
-		static ALIGN_RIGHT:string;
-
-		/**
-		 * 画布水平居中对齐。
-		 */
-		static ALIGN_CENTER:string;
-
-		/**
-		 * 画布垂直居上对齐。
-		 */
-		static ALIGN_TOP:string;
-
-		/**
-		 * 画布垂直居中对齐。
-		 */
-		static ALIGN_MIDDLE:string;
-
-		/**
-		 * 画布垂直居下对齐。
-		 */
-		static ALIGN_BOTTOM:string;
-
-		/**
-		 * 不更改屏幕。
-		 */
-		static SCREEN_NONE:string;
-
-		/**
-		 * 自动横屏。
-		 */
-		static SCREEN_HORIZONTAL:string;
-
-		/**
-		 * 自动竖屏。
-		 */
-		static SCREEN_VERTICAL:string;
-
-		/**
-		 * 全速模式，以60的帧率运行。
-		 */
-		static FRAME_FAST:string;
-
-		/**
-		 * 慢速模式，以30的帧率运行。
-		 */
-		static FRAME_SLOW:string;
-
-		/**
-		 * 自动模式，以30的帧率运行，但鼠标活动后会自动加速到60，鼠标不动2秒后降低为30帧，以节省消耗。
-		 */
-		static FRAME_MOUSE:string;
-
-		/**
-		 * 休眠模式，以1的帧率运行
-		 */
-		static FRAME_SLEEP:string;
-
-		/**
-		 * 当前焦点对象，此对象会影响当前键盘事件的派发主体。
-		 */
-		focus:Node;
-
-		/**
-		 * @private 相对浏览器左上角的偏移，弃用，请使用_canvasTransform。
-		 */
-		offset:Point;
-
-		/**
-		 * 帧率类型，支持三种模式：fast-60帧(默认)，slow-30帧，mouse-30帧（鼠标活动后会自动加速到60，鼠标不动2秒后降低为30帧，以节省消耗），sleep-1帧。
-		 */
-		private _frameRate:any;
-
-		/**
-		 * 设计宽度（初始化时设置的宽度Laya.init(width,height)）
-		 */
-		designWidth:number;
-
-		/**
-		 * 设计高度（初始化时设置的高度Laya.init(width,height)）
-		 */
-		designHeight:number;
-
-		/**
-		 * 画布是否发生翻转。
-		 */
-		canvasRotation:boolean;
-
-		/**
-		 * 画布的旋转角度。
-		 */
-		canvasDegree:number;
-
-		/**
-		 * <p>设置是否渲染，设置为false，可以停止渲染，画面会停留到最后一次渲染上，减少cpu消耗，此设置不影响时钟。</p>
-		 * <p>比如非激活状态，可以设置renderingEnabled=false以节省消耗。</p>
-		 */
-		renderingEnabled:boolean;
-
-		/**
-		 * 是否启用屏幕适配，可以适配后，在某个时候关闭屏幕适配，防止某些操作导致的屏幕意外改变
-		 */
-		screenAdaptationEnabled:boolean;
-
-		/**
-		 * @private 
-		 */
-		private _screenMode:any;
-
-		/**
-		 * @private 
-		 */
-		private _scaleMode:any;
-
-		/**
-		 * @private 
-		 */
-		private _alignV:any;
-
-		/**
-		 * @private 
-		 */
-		private _alignH:any;
-
-		/**
-		 * @private 
-		 */
-		private _bgColor:any;
-
-		/**
-		 * @private 
-		 */
-		private _mouseMoveTime:any;
-
-		/**
-		 * @private 
-		 */
-		private _renderCount:any;
-
-		/**
-		 * @private 
-		 */
-		private _safariOffsetY:any;
-
-		/**
-		 * @private 
-		 */
-		private _frameStartTime:any;
-
-		/**
-		 * @private 
-		 */
-		private _previousOrientation:any;
-
-		/**
-		 * @private 
-		 */
-		private _isFocused:any;
-
-		/**
-		 * @private 
-		 */
-		private _isVisibility:any;
-
-		/**
-		 * @private 
-		 */
-		private _globalRepaintSet:any;
-
-		/**
-		 * @private 
-		 */
-		private _globalRepaintGet:any;
-
-		/**
-		 * 使用物理分辨率作为canvas大小，会改进渲染效果，但是会降低性能
-		 */
-		useRetinalCanvas:boolean;
-
-		/**
-		 * 场景类，引擎中只有一个stage实例，此实例可以通过Laya.stage访问。
-		 */
-
-		constructor();
-
-		/**
-		 * @private 在移动端输入时，输入法弹出期间不进行画布尺寸重置。
-		 */
-		private _isInputting:any;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		set width(value:number);
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		get width():number;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		set height(value:number);
-
-		/**
-		 * @override 
-		 */
-		get height():number;
-
-		/**
-		 * @override 
-		 */
-		set transform(value:Matrix);
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		get transform():Matrix;
-
-		/**
-		 * 舞台是否获得焦点。
-		 */
-		get isFocused():boolean;
-
-		/**
-		 * 舞台是否处于可见状态(是否进入后台)。
-		 */
-		get isVisibility():boolean;
-
-		/**
-		 * @private 
-		 */
-		private _changeCanvasSize:any;
-
-		/**
-		 * @private 
-		 */
-		protected _resetCanvas():void;
-
-		/**
-		 * 设置屏幕大小，场景会根据屏幕大小进行适配。可以动态调用此方法，来更改游戏显示的大小。
-		 * @param screenWidth 屏幕宽度。
-		 * @param screenHeight 屏幕高度。
-		 */
-		setScreenSize(screenWidth:number,screenHeight:number):void;
-
-		/**
-		 * @private 
-		 */
-		private _formatData:any;
-
-		/**
-		 * <p>缩放模式。默认值为 "noscale"。</p>
-		 * <p><ul>取值范围：
-		 * <li>"noscale" ：不缩放；</li>
-		 * <li>"exactfit" ：全屏不等比缩放；</li>
-		 * <li>"showall" ：最小比例缩放；</li>
-		 * <li>"noborder" ：最大比例缩放；</li>
-		 * <li>"full" ：不缩放，stage的宽高等于屏幕宽高；</li>
-		 * <li>"fixedwidth" ：宽度不变，高度根据屏幕比缩放；</li>
-		 * <li>"fixedheight" ：高度不变，宽度根据屏幕比缩放；</li>
-		 * <li>"fixedauto" ：根据宽高比，自动选择使用fixedwidth或fixedheight；</li>
-		 * </ul></p>
-		 */
-		get scaleMode():string;
-		set scaleMode(value:string);
-
-		/**
-		 * <p>水平对齐方式。默认值为"left"。</p>
-		 * <p><ul>取值范围：
-		 * <li>"left" ：居左对齐；</li>
-		 * <li>"center" ：居中对齐；</li>
-		 * <li>"right" ：居右对齐；</li>
-		 * </ul></p>
-		 */
-		get alignH():string;
-		set alignH(value:string);
-
-		/**
-		 * <p>垂直对齐方式。默认值为"top"。</p>
-		 * <p><ul>取值范围：
-		 * <li>"top" ：居顶部对齐；</li>
-		 * <li>"middle" ：居中对齐；</li>
-		 * <li>"bottom" ：居底部对齐；</li>
-		 * </ul></p>
-		 */
-		get alignV():string;
-		set alignV(value:string);
-
-		/**
-		 * 舞台的背景颜色，默认为黑色，null为透明。
-		 */
-		get bgColor():string;
-		set bgColor(value:string);
-
-		/**
-		 * 鼠标在 Stage 上的 X 轴坐标。@override
-		 */
-		get mouseX():number;
-
-		/**
-		 * 鼠标在 Stage 上的 Y 轴坐标。@override
-		 */
-		get mouseY():number;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		getMousePoint():Point;
-
-		/**
-		 * 当前视窗由缩放模式导致的 X 轴缩放系数。
-		 */
-		get clientScaleX():number;
-
-		/**
-		 * 当前视窗由缩放模式导致的 Y 轴缩放系数。
-		 */
-		get clientScaleY():number;
-
-		/**
-		 * <p>场景布局类型。</p>
-		 * <p><ul>取值范围：
-		 * <li>"none" ：不更改屏幕</li>
-		 * <li>"horizontal" ：自动横屏</li>
-		 * <li>"vertical" ：自动竖屏</li>
-		 * </ul></p>
-		 */
-		get screenMode():string;
-		set screenMode(value:string);
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		repaint(type?:number):void;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		parentRepaint(type?:number):void;
-
-		/**
-		 * @private 
-		 */
-		getFrameTm():number;
-
-		/**
-		 * @private 
-		 */
-		private _onmouseMove:any;
-
-		/**
-		 * <p>获得距当前帧开始后，过了多少时间，单位为毫秒。</p>
-		 * <p>可以用来判断函数内时间消耗，通过合理控制每帧函数处理消耗时长，避免一帧做事情太多，对复杂计算分帧处理，能有效降低帧率波动。</p>
-		 */
-		getTimeFromFrameStart():number;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		set visible(value:boolean);
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		get visible():boolean;
-
-		/**
-		 * @private 
-		 */
-		static clear:Function;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		render(context:Context,x:number,y:number):void;
-		renderToNative(context:Context,x:number,y:number):void;
-		private _updateTimers:any;
-
-		/**
-		 * <p>是否开启全屏，用户点击后进入全屏。</p>
-		 * <p>兼容性提示：部分浏览器不允许点击进入全屏，比如Iphone等。</p>
-		 */
-		set fullScreenEnabled(value:boolean);
-		get frameRate():string;
-		set frameRate(value:string);
-
-		/**
-		 * @private 
-		 */
-		private _requestFullscreen:any;
-
-		/**
-		 * @private 
-		 */
-		private _fullScreenChanged:any;
-
-		/**
-		 * 退出全屏模式
-		 */
-		exitFullscreen():void;
-
-		/**
-		 * @private 
-		 */
-		isGlobalRepaint():boolean;
-
-		/**
-		 * @private 
-		 */
-		setGlobalRepaint():void;
-
-		/**
-		 * @private 
-		 */
-		add3DUI(uibase:Sprite):void;
-
-		/**
-		 * @private 
-		 */
-		remove3DUI(uibase:Sprite):boolean;
-	}
-
-	/**
-	 * 文本内容发生改变后调度。
-	 * @eventType Event.CHANGE
-	 */
-
-	/**
-	 * <p> <code>Text</code> 类用于创建显示对象以显示文本。</p>
-	 * <p>
-	 * 注意：如果运行时系统找不到设定的字体，则用系统默认的字体渲染文字，从而导致显示异常。(通常电脑上显示正常，在一些移动端因缺少设置的字体而显示异常)。
-	 * </p>
-	 * @example package
-{
-	import laya.display.Text;
-	public class Text_Example
-	{
-		public function Text_Example()
-		{
-			Laya.init(640, 800);//设置游戏画布宽高、渲染模式。
-			Laya.stage.bgColor = "#efefef";//设置画布的背景颜色。
-			onInit();
-		}
-		private function onInit():void
-		{
-			var text:Text = new Text();//创建一个 Text 类的实例对象 text 。
-			text.text = "这个是一个 Text 文本示例。";
-			text.color = "#008fff";//设置 text 的文本颜色。
-			text.font = "Arial";//设置 text 的文本字体。
-			text.bold = true;//设置 text 的文本显示为粗体。
-			text.fontSize = 30;//设置 text 的字体大小。
-			text.wordWrap = true;//设置 text 的文本自动换行。
-			text.x = 100;//设置 text 对象的属性 x 的值，用于控制 text 对象的显示位置。
-			text.y = 100;//设置 text 对象的属性 y 的值，用于控制 text 对象的显示位置。
-			text.width = 300;//设置 text 的宽度。
-			text.height = 200;//设置 text 的高度。
-			text.italic = true;//设置 text 的文本显示为斜体。
-			text.borderColor = "#fff000";//设置 text 的文本边框颜色。
-			Laya.stage.addChild(text);//将 text 添加到显示列表。
-		}
-	}
-}
-	 * @example Text_Example();
-function Text_Example()
-{
-    Laya.init(640, 800);//设置游戏画布宽高、渲染模式。
-    Laya.stage.bgColor = "#efefef";//设置画布的背景颜色。
-    onInit();
-}
-function onInit()
-{
-    var text = new laya.display.Text();//创建一个 Text 类的实例对象 text 。
-    text.text = "这个是一个 Text 文本示例。";
-    text.color = "#008fff";//设置 text 的文本颜色。
-    text.font = "Arial";//设置 text 的文本字体。
-    text.bold = true;//设置 text 的文本显示为粗体。
-    text.fontSize = 30;//设置 text 的字体大小。
-    text.wordWrap = true;//设置 text 的文本自动换行。
-    text.x = 100;//设置 text 对象的属性 x 的值，用于控制 text 对象的显示位置。
-    text.y = 100;//设置 text 对象的属性 y 的值，用于控制 text 对象的显示位置。
-    text.width = 300;//设置 text 的宽度。
-    text.height = 200;//设置 text 的高度。
-    text.italic = true;//设置 text 的文本显示为斜体。
-    text.borderColor = "#fff000";//设置 text 的文本边框颜色。
-    Laya.stage.addChild(text);//将 text 添加到显示列表。
-}
-	 * @example class Text_Example {
-    constructor() {
-        Laya.init(640, 800);//设置游戏画布宽高、渲染模式。
-        Laya.stage.bgColor = "#efefef";//设置画布的背景颜色。
-        this.onInit();
-    }
-    private onInit(): void {
-        var text: laya.display.Text = new laya.display.Text();//创建一个 Text 类的实例对象 text 。
-        text.text = "这个是一个 Text 文本示例。";
-        text.color = "#008fff";//设置 text 的文本颜色。
-        text.font = "Arial";//设置 text 的文本字体。
-        text.bold = true;//设置 text 的文本显示为粗体。
-        text.fontSize = 30;//设置 text 的字体大小。
-        text.wordWrap = true;//设置 text 的文本自动换行。
-        text.x = 100;//设置 text 对象的属性 x 的值，用于控制 text 对象的显示位置。
-        text.y = 100;//设置 text 对象的属性 y 的值，用于控制 text 对象的显示位置。
-        text.width = 300;//设置 text 的宽度。
-        text.height = 200;//设置 text 的高度。
-        text.italic = true;//设置 text 的文本显示为斜体。
-        text.borderColor = "#fff000";//设置 text 的文本边框颜色。
-        Laya.stage.addChild(text);//将 text 添加到显示列表。
-    }
-}
-	 */
-	class Text extends Sprite  {
-
-		/**
-		 * visible不进行任何裁切。
-		 */
-		static VISIBLE:string;
-
-		/**
-		 * scroll 不显示文本域外的字符像素，并且支持 scroll 接口。
-		 */
-		static SCROLL:string;
-
-		/**
-		 * hidden 不显示超出文本域的字符。
-		 */
-		static HIDDEN:string;
-
-		/**
-		 * 默认文本大小，默认为12
-		 */
-		static defaultFontSize:number;
-
-		/**
-		 * 默认文本字体，默认为Arial
-		 */
-		static defaultFont:string;
-
-		/**
-		 * @private 
-		 */
-		static defaultFontStr():string;
-
-		/**
-		 * 语言包，是一个包含key:value的集合，用key索引，替换为目标value语言
-		 */
-		static langPacks:any;
-
-		/**
-		 * WebGL下，文字会被拆分为单个字符进行渲染，一些语系不能拆开显示，比如阿拉伯文，这时可以设置isComplexText=true，禁用文字拆分。
-		 */
-		static isComplexText:boolean;
-
-		/**
-		 * 在IOS下，一些字体会找不到，引擎提供了字体映射功能，比如默认会把 "黑体" 映射为 "黑体-简"，更多映射，可以自己添加
-		 */
-		static fontFamilyMap:any;
-
-		/**
-		 * @private 位图字体字典。
-		 */
-		private static _bitmapFonts:any;
-		static CharacterCache:boolean;
-
-		/**
-		 * 是否是从右向左的显示顺序
-		 */
-		static RightToLeft:boolean;
-
-		/**
-		 * @private 
-		 */
-		private _clipPoint:any;
-
-		/**
-		 * @private 表示文本内容字符串。
-		 */
-		protected _text:string;
-
-		/**
-		 * @private 表示文本内容是否发生改变。
-		 */
-		protected _isChanged:boolean;
-
-		/**
-		 * @private 表示文本的宽度，以像素为单位。
-		 */
-		protected _textWidth:number;
-
-		/**
-		 * @private 表示文本的高度，以像素为单位。
-		 */
-		protected _textHeight:number;
-
-		/**
-		 * @private 存储文字行数信息。
-		 */
-		protected _lines:string[]|null;
-
-		/**
-		 * @private 保存每行宽度
-		 */
-		protected _lineWidths:number[]|null;
-
-		/**
-		 * @private 文本的内容位置 X 轴信息。
-		 */
-		protected _startX:number;
-
-		/**
-		 * @private 文本的内容位置X轴信息。
-		 */
-		protected _startY:number;
-
-		/**
-		 * @private 
-		 */
-		protected _words:WordText[]|null;
-
-		/**
-		 * @private 
-		 */
-		protected _charSize:any;
-
-		/**
-		 * @private 
-		 */
-		protected _valign:string;
-
-		/**
-		 * @private 
-		 */
-		private _singleCharRender:any;
-
-		/**
-		 * <p>overflow 指定文本超出文本域后的行为。其值为"hidden"、"visible"和"scroll"之一。</p>
-		 * <p>性能从高到低依次为：hidden > visible > scroll。</p>
-		 */
-		overflow:string;
-
-		/**
-		 * 创建一个新的 <code>Text</code> 实例。
-		 */
-
-		constructor();
-
-		/**
-		 * @private 获取样式。
-		 * @return 样式 Style 。
-		 * @override 
-		 */
-		getStyle():SpriteStyle;
-		protected _getTextStyle():TextStyle;
-
-		/**
-		 * 注册位图字体。
-		 * @param name 位图字体的名称。
-		 * @param bitmapFont 位图字体文件。
-		 */
-		static registerBitmapFont(name:string,bitmapFont:BitmapFont):void;
-
-		/**
-		 * 移除注册的位图字体文件。
-		 * @param name 位图字体的名称。
-		 * @param destroy 是否销毁指定的字体文件。
-		 */
-		static unregisterBitmapFont(name:string,destroy?:boolean):void;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		destroy(destroyChild?:boolean):void;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		getGraphicBounds(realSize?:boolean):Rectangle;
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		get width():number;
-
-		/**
-		 * @override 
-		 */
-		set width(value:number);
-
-		/**
-		 * @inheritDoc 
-		 * @override 
-		 */
-		get height():number;
-
-		/**
-		 * @override 
-		 */
-		set height(value:number);
-
-		/**
-		 * 表示文本的宽度，以像素为单位。
-		 */
-		get textWidth():number;
-
-		/**
-		 * 表示文本的高度，以像素为单位。
-		 */
-		get textHeight():number;
-
-		/**
-		 * 当前文本的内容字符串。
-		 */
-		get text():string;
-		get_text():string;
-		set_text(value:string):void;
-		set text(value:string);
-
-		/**
-		 * <p>根据指定的文本，从语言包中取当前语言的文本内容。并对此文本中的{i}文本进行替换。</p>
-		 * <p>设置Text.langPacks语言包后，即可使用lang获取里面的语言</p>
-		 * <p>例如：
-		 * <li>（1）text 的值为“我的名字”，先取到这个文本对应的当前语言版本里的值“My name”，将“My name”设置为当前文本的内容。</li>
-		 * <li>（2）text 的值为“恭喜你赢得{0}个钻石，{1}经验。”，arg1 的值为100，arg2 的值为200。
-		 *  			则先取到这个文本对应的当前语言版本里的值“Congratulations on your winning {0} diamonds, {1} experience.”，
-		 *  			然后将文本里的{0}、{1}，依据括号里的数字从0开始替换为 arg1、arg2 的值。
-		 *  			将替换处理后的文本“Congratulations on your winning 100 diamonds, 200 experience.”设置为当前文本的内容。
-		 * </li>
-		 * </p>
-		 * @param text 文本内容。
-		 * @param ...args 文本替换参数。
-		 */
-		lang(text:string,arg1?:any,arg2?:any,arg3?:any,arg4?:any,arg5?:any,arg6?:any,arg7?:any,arg8?:any,arg9?:any,arg10?:any):void;
-
-		/**
-		 * <p>文本的字体名称，以字符串形式表示。</p>
-		 * <p>默认值为："Arial"，可以通过Text.defaultFont设置默认字体。</p>
-		 * <p>如果运行时系统找不到设定的字体，则用系统默认的字体渲染文字，从而导致显示异常。(通常电脑上显示正常，在一些移动端因缺少设置的字体而显示异常)。</p>
-		 * @see laya.display.Text#defaultFont
-		 */
-		get font():string;
-		set font(value:string);
-
-		/**
-		 * <p>指定文本的字体大小（以像素为单位）。</p>
-		 * <p>默认为20像素，可以通过 <code>Text.defaultFontSize</code> 设置默认大小。</p>
-		 */
-		get fontSize():number;
-		set fontSize(value:number);
-
-		/**
-		 * <p>指定文本是否为粗体字。</p>
-		 * <p>默认值为 false，这意味着不使用粗体字。如果值为 true，则文本为粗体字。</p>
-		 */
-		get bold():boolean;
-		set bold(value:boolean);
-
-		/**
-		 * <p>表示文本的颜色值。可以通过 <code>Text.defaultColor</code> 设置默认颜色。</p>
-		 * <p>默认值为黑色。</p>
-		 */
-		get color():string;
-		set color(value:string);
-		get_color():string;
-		set_color(value:string):void;
-
-		/**
-		 * <p>表示使用此文本格式的文本是否为斜体。</p>
-		 * <p>默认值为 false，这意味着不使用斜体。如果值为 true，则文本为斜体。</p>
-		 */
-		get italic():boolean;
-		set italic(value:boolean);
-
-		/**
-		 * <p>表示文本的水平显示方式。</p>
-		 * <p><b>取值：</b>
-		 * <li>"left"： 居左对齐显示。</li>
-		 * <li>"center"： 居中对齐显示。</li>
-		 * <li>"right"： 居右对齐显示。</li>
-		 * </p>
-		 */
-		get align():string;
-		set align(value:string);
-
-		/**
-		 * <p>表示文本的垂直显示方式。</p>
-		 * <p><b>取值：</b>
-		 * <li>"top"： 居顶部对齐显示。</li>
-		 * <li>"middle"： 居中对齐显示。</li>
-		 * <li>"bottom"： 居底部对齐显示。</li>
-		 * </p>
-		 */
-		get valign():string;
-		set valign(value:string);
-
-		/**
-		 * <p>表示文本是否自动换行，默认为false。</p>
-		 * <p>若值为true，则自动换行；否则不自动换行。</p>
-		 */
-		get wordWrap():boolean;
-		set wordWrap(value:boolean);
-
-		/**
-		 * 垂直行间距（以像素为单位）。
-		 */
-		get leading():number;
-		set leading(value:number);
-
-		/**
-		 * <p>边距信息。</p>
-		 * <p>数据格式：[上边距，右边距，下边距，左边距]（边距以像素为单位）。</p>
-		 */
-		get padding():any[];
-		set padding(value:any[]);
-
-		/**
-		 * 文本背景颜色，以字符串表示。
-		 */
-		get bgColor():string;
-		set bgColor(value:string);
-		set_bgColor(value:string):void;
-		get_bgColor():string;
-
-		/**
-		 * 文本边框背景颜色，以字符串表示。
-		 */
-		get borderColor():string;
-		set borderColor(value:string);
-
-		/**
-		 * <p>描边宽度（以像素为单位）。</p>
-		 * <p>默认值0，表示不描边。</p>
-		 */
-		get stroke():number;
-		set stroke(value:number);
-
-		/**
-		 * <p>描边颜色，以字符串表示。</p>
-		 * <p>默认值为 "#000000"（黑色）;</p>
-		 */
-		get strokeColor():string;
-		set strokeColor(value:string);
-
-		/**
-		 * @private 一个布尔值，表示文本的属性是否有改变。若为true表示有改变。
-		 */
-		protected set isChanged(value:boolean);
-
-		/**
-		 * @private 
-		 */
-		protected _getContextFont():string;
-
-		/**
-		 * @private 
-		 */
-		protected _isPassWordMode():boolean;
-
-		/**
-		 * @private 
-		 */
-		protected _getPassWordTxt(txt:string):string;
-
-		/**
-		 * @private 渲染文字。
-		 * @param begin 开始渲染的行索引。
-		 * @param visibleLineCount 渲染的行数。
-		 */
-		protected _renderText():void;
-
-		/**
-		 * @private 绘制下划线
-		 * @param x 本行坐标
-		 * @param y 本行坐标
-		 * @param lineIndex 本行索引
-		 */
-		private _drawUnderline:any;
-
-		/**
-		 * <p>排版文本。</p>
-		 * <p>进行宽高计算，渲染、重绘文本。</p>
-		 */
-		typeset():void;
-
-		/**
-		 * @private 
-		 */
-		private _evalTextSize:any;
-
-		/**
-		 * @private 
-		 */
-		private _checkEnabledViewportOrNot:any;
-
-		/**
-		 * <p>快速更改显示文本。不进行排版计算，效率较高。</p>
-		 * <p>如果只更改文字内容，不更改文字样式，建议使用此接口，能提高效率。</p>
-		 * @param text 文本内容。
-		 */
-		changeText(text:string):void;
-
-		/**
-		 * @private 分析文本换行。
-		 */
-		protected _parseLines(text:string):void;
-
-		/**
-		 * @private 解析行文本。
-		 * @param line 某行的文本。
-		 * @param wordWrapWidth 文本的显示宽度。
-		 */
-		protected _parseLine(line:string,wordWrapWidth:number):void;
-
-		/**
-		 * @private 
-		 */
-		private _getTextWidth:any;
-
-		/**
-		 * @private 获取换行所需的宽度。
-		 */
-		private _getWordWrapWidth:any;
-
-		/**
-		 * 返回字符在本类实例的父坐标系下的坐标。
-		 * @param charIndex 索引位置。
-		 * @param out （可选）输出的Point引用。
-		 * @return Point 字符在本类实例的父坐标系下的坐标。如果out参数不为空，则将结果赋值给指定的Point对象，否则创建一个新的Point对象返回。建议使用Point.TEMP作为out参数，可以省去Point对象创建和垃圾回收的开销，尤其是在需要频繁执行的逻辑中，比如帧循环和MOUSE_MOVE事件回调函数里面。
-		 */
-		getCharPoint(charIndex:number,out?:Point):Point;
-
-		/**
-		 * <p>设置横向滚动量。</p>
-		 * <p>即使设置超出滚动范围的值，也会被自动限制在可能的最大值处。</p>
-		 */
-		set scrollX(value:number);
-
-		/**
-		 * 获取横向滚动量。
-		 */
-		get scrollX():number;
-
-		/**
-		 * 设置纵向滚动量（px)。即使设置超出滚动范围的值，也会被自动限制在可能的最大值处。
-		 */
-		set scrollY(value:number);
-
-		/**
-		 * 获取纵向滚动量。
-		 */
-		get scrollY():number;
-
-		/**
-		 * 获取横向可滚动最大值。
-		 */
-		get maxScrollX():number;
-
-		/**
-		 * 获取纵向可滚动最大值。
-		 */
-		get maxScrollY():number;
-
-		/**
-		 * 返回文字行信息
-		 */
-		get lines():any[];
-
-		/**
-		 * 下划线的颜色，为null则使用字体颜色。
-		 */
-		get underlineColor():string;
-		set underlineColor(value:string);
-
-		/**
-		 * 是否显示下划线。
-		 */
-		get underline():boolean;
-		set underline(value:boolean);
-
-		/**
-		 * 设置是否单个字符渲染，如果Textd的内容一直改变，例如是一个增加的数字，就设置这个，防止无效占用缓存
-		 */
-		set singleCharRender(value:boolean);
-		get singleCharRender():boolean;
 	}
 
 	/**
@@ -25575,7 +24633,7 @@ function onInit()
 
 		/**
 		 * 表示键在键盘上的位置。这对于区分在键盘上多次出现的键非常有用。<br>
-		 * 例如，您可以根据此属性的值来区分左 Shift 键和右 Shift 键：左 Shift 键的值为 KeyLocation.LEFT，右 Shift 键的值为 KeyLocation.RIGHT。另一个示例是区分标准键盘 (KeyLocation.STANDARD) 与数字键盘 (KeyLocation.NUM_PAD) 上按下的数字键。
+例如，您可以根据此属性的值来区分左 Shift 键和右 Shift 键：左 Shift 键的值为 KeyLocation.LEFT，右 Shift 键的值为 KeyLocation.RIGHT。另一个示例是区分标准键盘 (KeyLocation.STANDARD) 与数字键盘 (KeyLocation.NUM_PAD) 上按下的数字键。
 		 */
 		get keyLocation():number;
 
@@ -25670,6 +24728,59 @@ function onInit()
 		 * @return 如果是鼠标事件，则值为 true;否则，值为 false。
 		 */
 		isMouseEvent(type:string):boolean;
+	}
+
+	/**
+	 * <p><code>KeyBoardManager</code> 是键盘事件管理类。该类从浏览器中接收键盘事件，并派发该事件。</p>
+<p>派发事件时若 Stage.focus 为空则只从 Stage 上派发该事件，否则将从 Stage.focus 对象开始一直冒泡派发该事件。所以在 Laya.stage 上监听键盘事件一定能够收到，如果在其他地方监听，则必须处在Stage.focus的冒泡链上才能收到该事件。</p>
+<p>用户可以通过代码 Laya.stage.focus=someNode 的方式来设置focus对象。</p>
+<p>用户可统一的根据事件对象中 e.keyCode 来判断按键类型，该属性兼容了不同浏览器的实现。</p>
+	 */
+	class KeyBoardManager  {
+		private static _pressKeys:any;
+
+		/**
+		 * 是否开启键盘事件，默认为true
+		 */
+		static enabled:boolean;
+		private static _addEvent:any;
+		private static _dispatch:any;
+
+		/**
+		 * 返回指定键是否被按下。
+		 * @param key 键值。
+		 * @return 是否被按下。
+		 */
+		static hasKeyDown(key:number):boolean;
+		static clearKeys():void;
+	}
+
+	/**
+	 * <p><code>KeyLocation</code> 类包含表示在键盘或类似键盘的输入设备上按键位置的常量。</p>
+<p><code>KeyLocation</code> 常数用在键盘事件对象的 <code>keyLocation </code>属性中。</p>
+	 */
+	class KeyLocation  {
+
+		/**
+		 * 表示激活的键不区分位于左侧还是右侧，也不区分是否位于数字键盘（或者是使用对应于数字键盘的虚拟键激活的）。
+		 */
+		static STANDARD:number;
+
+		/**
+		 * 表示激活的键在左侧键位置（此键有多个可能的位置）。
+		 */
+		static LEFT:number;
+
+		/**
+		 * 表示激活的键在右侧键位置（此键有多个可能的位置）。
+		 */
+		static RIGHT:number;
+
+		/**
+		 * <p>表示激活的键位于数字键盘或者是使用对应于数字键盘的虚拟键激活的。</p>
+<p>注意：此属性只在flash模式下有效。</p>
+		 */
+		static NUM_PAD:number;
 	}
 
 	/**
@@ -26174,63 +25285,11 @@ function onInit()
 	}
 
 	/**
-	 * <p><code>KeyBoardManager</code> 是键盘事件管理类。该类从浏览器中接收键盘事件，并派发该事件。</p>
-	 * <p>派发事件时若 Stage.focus 为空则只从 Stage 上派发该事件，否则将从 Stage.focus 对象开始一直冒泡派发该事件。所以在 Laya.stage 上监听键盘事件一定能够收到，如果在其他地方监听，则必须处在Stage.focus的冒泡链上才能收到该事件。</p>
-	 * <p>用户可以通过代码 Laya.stage.focus=someNode 的方式来设置focus对象。</p>
-	 * <p>用户可统一的根据事件对象中 e.keyCode 来判断按键类型，该属性兼容了不同浏览器的实现。</p>
-	 */
-	class KeyBoardManager  {
-		private static _pressKeys:any;
-
-		/**
-		 * 是否开启键盘事件，默认为true
-		 */
-		static enabled:boolean;
-		private static _addEvent:any;
-		private static _dispatch:any;
-
-		/**
-		 * 返回指定键是否被按下。
-		 * @param key 键值。
-		 * @return 是否被按下。
-		 */
-		static hasKeyDown(key:number):boolean;
-	}
-
-	/**
-	 * <p><code>KeyLocation</code> 类包含表示在键盘或类似键盘的输入设备上按键位置的常量。</p>
-	 * <p><code>KeyLocation</code> 常数用在键盘事件对象的 <code>keyLocation </code>属性中。</p>
-	 */
-	class KeyLocation  {
-
-		/**
-		 * 表示激活的键不区分位于左侧还是右侧，也不区分是否位于数字键盘（或者是使用对应于数字键盘的虚拟键激活的）。
-		 */
-		static STANDARD:number;
-
-		/**
-		 * 表示激活的键在左侧键位置（此键有多个可能的位置）。
-		 */
-		static LEFT:number;
-
-		/**
-		 * 表示激活的键在右侧键位置（此键有多个可能的位置）。
-		 */
-		static RIGHT:number;
-
-		/**
-		 * <p>表示激活的键位于数字键盘或者是使用对应于数字键盘的虚拟键激活的。</p>
-		 * <p>注意：此属性只在flash模式下有效。</p>
-		 */
-		static NUM_PAD:number;
-	}
-
-	/**
 	 * <p><code>MouseManager</code> 是鼠标、触摸交互管理器。</p>
-	 * <p>鼠标事件流包括捕获阶段、目标阶段、冒泡阶段。<br/>
-	 * 捕获阶段：此阶段引擎会从stage开始递归检测stage及其子对象，直到找到命中的目标对象或者未命中任何对象；<br/>
-	 * 目标阶段：找到命中的目标对象；<br/>
-	 * 冒泡阶段：事件离开目标对象，按节点层级向上逐层通知，直到到达舞台的过程。</p>
+<p>鼠标事件流包括捕获阶段、目标阶段、冒泡阶段。<br/>
+捕获阶段：此阶段引擎会从stage开始递归检测stage及其子对象，直到找到命中的目标对象或者未命中任何对象；<br/>
+目标阶段：找到命中的目标对象；<br/>
+冒泡阶段：事件离开目标对象，按节点层级向上逐层通知，直到到达舞台的过程。</p>
 	 */
 	class MouseManager  {
 
@@ -26487,7 +25546,7 @@ function onInit()
 
 	/**
 	 * <p><code>ColorFilter</code> 是颜色滤镜。使用 ColorFilter 类可以将 4 x 5 矩阵转换应用于输入图像上的每个像素的 RGBA 颜色和 Alpha 值，以生成具有一组新的 RGBA 颜色和 Alpha 值的结果。该类允许饱和度更改、色相旋转、亮度转 Alpha 以及各种其他效果。您可以将滤镜应用于任何显示对象（即，从 Sprite 类继承的对象）。</p>
-	 * <p>注意：对于 RGBA 值，最高有效字节代表红色通道值，其后的有效字节分别代表绿色、蓝色和 Alpha 通道值。</p>
+<p>注意：对于 RGBA 值，最高有效字节代表红色通道值，其后的有效字节分别代表绿色、蓝色和 Alpha 通道值。</p>
 	 */
 	class ColorFilter extends Filter implements IFilter  {
 
@@ -27732,39 +26791,39 @@ const enum glTFTextureWrapMode {
 
 	/**
 	 * HTML图文类，用于显示html内容
-	 * 
-	 * 支持的标签如下:
-	 * a:链接标签，点击后会派发"link"事件 比如:<a href='alink'>a</a>
-	 * div:div容器标签，比如:<div>abc</div>
-	 * span:行内元素标签，比如:<span style='color:#ff0000'>abc</span>
-	 * p:行元素标签，p标签会自动换行，div不会，比如:<p>abc</p>
-	 * img:图片标签，比如:<img src='res/boy.png'></img>
-	 * br:换行标签，比如:<div>abc<br/>def</div>
-	 * style:样式标签，比如:<div style='width:130px;height:50px;color:#ff0000'>abc</div>
-	 * link:外链样式标签，可以加载一个css文件来当style使用，比如:<link type='text/css' href='html/test.css'/>
-	 * 
-	 * style支持的属性如下:
-	 * italic:true|false;					是否是斜体
-	 * bold:true|false;						是否是粗体
-	 * letter-spacing:10px;					字间距
-	 * font-family:宋体; 					字体
-	 * font-size:20px;						字体大小
-	 * font-weight:bold:none;				字体是否是粗体，功能同bold
-	 * color:#ff0000;						字体颜色
-	 * stroke:2px;							字体描边宽度
-	 * strokeColor:#ff0000;					字体描边颜色
-	 * padding:10px 10px 20px 20px;			边缘的距离
-	 * vertical-align:top|bottom|middle;	垂直对齐方式
-	 * align:left|right|center;				水平对齐方式
-	 * line-height:20px;					行高
-	 * background-color:#ff0000;			背景颜色
-	 * border-color:#ff0000;				边框颜色
-	 * width:100px;							对象宽度
-	 * height:100px;						对象高度
-	 * 
-	 * 示例用法：
-	 * var div:HTMLDivElement=new HTMLDivElement();
-	 * div.innerHTML = "<link type='text/css' href='html/test.css'/><a href='alink'>a</a><div style='width:130px;height:50px;color:#ff0000'>div</div><br/><span style='font-weight:bold;color:#ffffff;font-size:30px;stroke:2px;italic:true;'>span</span><span style='letter-spacing:5px'>span2</span><p>p</p><img src='res/boy.png'></img>";
+
+支持的标签如下:
+a:链接标签，点击后会派发"link"事件 比如:<a href='alink'>a</a>
+div:div容器标签，比如:<div>abc</div>
+span:行内元素标签，比如:<span style='color:#ff0000'>abc</span>
+p:行元素标签，p标签会自动换行，div不会，比如:<p>abc</p>
+img:图片标签，比如:<img src='res/boy.png'></img>
+br:换行标签，比如:<div>abc<br/>def</div>
+style:样式标签，比如:<div style='width:130px;height:50px;color:#ff0000'>abc</div>
+link:外链样式标签，可以加载一个css文件来当style使用，比如:<link type='text/css' href='html/test.css'/>
+
+style支持的属性如下:
+italic:true|false;					是否是斜体
+bold:true|false;						是否是粗体
+letter-spacing:10px;					字间距
+font-family:宋体; 					字体
+font-size:20px;						字体大小
+font-weight:bold:none;				字体是否是粗体，功能同bold
+color:#ff0000;						字体颜色
+stroke:2px;							字体描边宽度
+strokeColor:#ff0000;					字体描边颜色
+padding:10px 10px 20px 20px;			边缘的距离
+vertical-align:top|bottom|middle;	垂直对齐方式
+align:left|right|center;				水平对齐方式
+line-height:20px;					行高
+background-color:#ff0000;			背景颜色
+border-color:#ff0000;				边框颜色
+width:100px;							对象宽度
+height:100px;						对象高度
+
+示例用法：
+var div:HTMLDivElement=new HTMLDivElement();
+div.innerHTML = "<link type='text/css' href='html/test.css'/><a href='alink'>a</a><div style='width:130px;height:50px;color:#ff0000'>div</div><br/><span style='font-weight:bold;color:#ffffff;font-size:30px;stroke:2px;italic:true;'>span</span><span style='letter-spacing:5px'>span2</span><p>p</p><img src='res/boy.png'></img>";
 	 */
 	class HTMLDivElement extends Sprite  {
 
@@ -27991,7 +27050,7 @@ enum HTMLElementType {
 
 		/**
 		 * <p>销毁此对象。destroy对象默认会把自己从父节点移除，并且清理自身引用关系，等待js自动垃圾回收机制回收。destroy后不能再使用。</p>
-		 * <p>destroy时会移除自身的事情监听，自身的timer监听，移除子对象及从父节点移除自己。</p>
+<p>destroy时会移除自身的事情监听，自身的timer监听，移除子对象及从父节点移除自己。</p>
 		 * @param destroyChild （可选）是否同时销毁子节点，若值为true,则销毁子节点，否则不销毁子节点。
 		 */
 		destroy():void;
@@ -28155,7 +27214,7 @@ enum HTMLElementType {
 
 		/**
 		 * <p>描边宽度（以像素为单位）。</p>
-		 * 默认值0，表示不描边。
+默认值0，表示不描边。
 		 * @default 0
 		 */
 		stroke:number;
@@ -28330,7 +27389,7 @@ enum HTMLElementType {
 
 		/**
 		 * <p>描边宽度（以像素为单位）。</p>
-		 * 默认值0，表示不描边。
+默认值0，表示不描边。
 		 * @default 0
 		 */
 		get stroke():number;
@@ -28620,7 +27679,7 @@ enum HTMLElementType {
 
 	/**
 	 * 地图的每层都会分块渲染处理
-	 * 本类就是地图的块数据
+本类就是地图的块数据
 	 * @author ...
 	 */
 	class GridSprite extends Sprite  {
@@ -28692,7 +27751,7 @@ enum HTMLElementType {
 
 	/**
 	 * 地图支持多层渲染（例如，地表层，植被层，建筑层等）
-	 * 本类就是层级类
+本类就是层级类
 	 * @author ...
 	 */
 	class MapLayer extends Sprite  {
@@ -28795,7 +27854,7 @@ enum HTMLElementType {
 
 		/**
 		 * 更新此层中块的坐标
-		 * 手动刷新的目的是，保持层级的宽和高保持最小，加快渲染
+手动刷新的目的是，保持层级的宽和高保持最小，加快渲染
 		 */
 		updateGridPos():void;
 
@@ -28846,11 +27905,96 @@ enum HTMLElementType {
 	}
 
 	/**
+	 * 此类是子纹理类，也包括同类动画的管理
+TiledMap会把纹理分割成无数子纹理，也可以把其中的某块子纹理替换成一个动画序列
+本类的实现就是如果发现子纹理被替换成一个动画序列，animationKey会被设为true
+即animationKey为true,就使用TileAniSprite来做显示，把动画序列根据时间画到TileAniSprite上
+	 * @author ...
+	 */
+	class TileTexSet  {
+
+		/**
+		 * 唯一标识
+		 */
+		gid:number;
+
+		/**
+		 * 子纹理的引用
+		 */
+		texture:Texture;
+
+		/**
+		 * 纹理显示时的坐标偏移X
+		 */
+		offX:number;
+
+		/**
+		 * 纹理显示时的坐标偏移Y
+		 */
+		offY:number;
+
+		/**
+		 * 当前要播放动画的纹理序列
+		 */
+		textureArray:any[];
+
+		/**
+		 * 当前动画每帧的时间间隔
+		 */
+		durationTimeArray:any[];
+
+		/**
+		 * 动画播放的总时间
+		 */
+		animationTotalTime:number;
+
+		/**
+		 * true表示当前纹理，是一组动画，false表示当前只有一个纹理
+		 */
+		isAnimation:boolean;
+		private _spriteNum:any;
+		private _aniDic:any;
+		private _frameIndex:any;
+		private _time:any;
+		private _interval:any;
+		private _preFrameTime:any;
+
+		/**
+		 * 加入一个动画显示对象到此动画中
+		 * @param aniName //显示对象的名字
+		 * @param sprite //显示对象
+		 */
+		addAniSprite(aniName:string,sprite:TileAniSprite):void;
+
+		/**
+		 * 把动画画到所有注册的SPRITE上
+		 */
+		private animate:any;
+		private drawTexture:any;
+
+		/**
+		 * 移除不需要更新的SPRITE
+		 * @param _name 
+		 */
+		removeAniSprite(_name:string):void;
+
+		/**
+		 * 显示当前动画的使用情况
+		 */
+		showDebugInfo():string;
+
+		/**
+		 * 清理
+		 */
+		clearAll():void;
+	}
+
+	/**
 	 * tiledMap是整个地图的核心
-	 * 地图以层级来划分地图（例如：地表层，植被层，建筑层）
-	 * 每层又以分块（GridSprite)来处理显示对象，只显示在视口区域的区
-	 * 每块又包括N*N个格子（tile)
-	 * 格子类型又分为动画格子跟图片格子两种
+地图以层级来划分地图（例如：地表层，植被层，建筑层）
+每层又以分块（GridSprite)来处理显示对象，只显示在视口区域的区
+每块又包括N*N个格子（tile)
+格子类型又分为动画格子跟图片格子两种
 	 * @author ...
 	 */
 	class TiledMap  {
@@ -29259,91 +28403,6 @@ enum HTMLElementType {
 	}
 
 	/**
-	 * 此类是子纹理类，也包括同类动画的管理
-	 * TiledMap会把纹理分割成无数子纹理，也可以把其中的某块子纹理替换成一个动画序列
-	 * 本类的实现就是如果发现子纹理被替换成一个动画序列，animationKey会被设为true
-	 * 即animationKey为true,就使用TileAniSprite来做显示，把动画序列根据时间画到TileAniSprite上
-	 * @author ...
-	 */
-	class TileTexSet  {
-
-		/**
-		 * 唯一标识
-		 */
-		gid:number;
-
-		/**
-		 * 子纹理的引用
-		 */
-		texture:Texture;
-
-		/**
-		 * 纹理显示时的坐标偏移X
-		 */
-		offX:number;
-
-		/**
-		 * 纹理显示时的坐标偏移Y
-		 */
-		offY:number;
-
-		/**
-		 * 当前要播放动画的纹理序列
-		 */
-		textureArray:any[];
-
-		/**
-		 * 当前动画每帧的时间间隔
-		 */
-		durationTimeArray:any[];
-
-		/**
-		 * 动画播放的总时间
-		 */
-		animationTotalTime:number;
-
-		/**
-		 * true表示当前纹理，是一组动画，false表示当前只有一个纹理
-		 */
-		isAnimation:boolean;
-		private _spriteNum:any;
-		private _aniDic:any;
-		private _frameIndex:any;
-		private _time:any;
-		private _interval:any;
-		private _preFrameTime:any;
-
-		/**
-		 * 加入一个动画显示对象到此动画中
-		 * @param aniName //显示对象的名字
-		 * @param sprite //显示对象
-		 */
-		addAniSprite(aniName:string,sprite:TileAniSprite):void;
-
-		/**
-		 * 把动画画到所有注册的SPRITE上
-		 */
-		private animate:any;
-		private drawTexture:any;
-
-		/**
-		 * 移除不需要更新的SPRITE
-		 * @param _name 
-		 */
-		removeAniSprite(_name:string):void;
-
-		/**
-		 * 显示当前动画的使用情况
-		 */
-		showDebugInfo():string;
-
-		/**
-		 * 清理
-		 */
-		clearAll():void;
-	}
-
-	/**
 	 * @private 计算贝塞尔曲线的工具类。
 	 */
 	class Bezier  {
@@ -29522,7 +28581,7 @@ enum HTMLElementType {
 
 	/**
 	 * <p> <code>Matrix</code> 类表示一个转换矩阵，它确定如何将点从一个坐标空间映射到另一个坐标空间。</p>
-	 * <p>您可以对一个显示对象执行不同的图形转换，方法是设置 Matrix 对象的属性，将该 Matrix 对象应用于 Transform 对象的 matrix 属性，然后应用该 Transform 对象作为显示对象的 transform 属性。这些转换函数包括平移（x 和 y 重新定位）、旋转、缩放和倾斜。</p>
+<p>您可以对一个显示对象执行不同的图形转换，方法是设置 Matrix 对象的属性，将该 Matrix 对象应用于 Transform 对象的 matrix 属性，然后应用该 Transform 对象作为显示对象的 transform 属性。这些转换函数包括平移（x 和 y 重新定位）、旋转、缩放和倾斜。</p>
 	 */
 	class Matrix  {
 
@@ -29831,7 +28890,7 @@ enum HTMLElementType {
 
 	/**
 	 * <p><code>Rectangle</code> 对象是按其位置（由它左上角的点 (x, y) 确定）以及宽度和高度定义的区域。</p>
-	 * <p>Rectangle 类的 x、y、width 和 height 属性相互独立；更改一个属性的值不会影响其他属性。</p>
+<p>Rectangle 类的 x、y、width 和 height 属性相互独立；更改一个属性的值不会影响其他属性。</p>
 	 */
 	class Rectangle  {
 
@@ -29952,7 +29011,7 @@ enum HTMLElementType {
 
 		/**
 		 * <p>矩形联合，通过填充两个矩形之间的水平和垂直空间，将这两个矩形组合在一起以创建一个新的 Rectangle 对象。</p>
-		 * <p>注意：union() 方法忽略高度或宽度值为 0 的矩形，如：var rect2:Rectangle = new Rectangle(300,300,50,0);</p>
+<p>注意：union() 方法忽略高度或宽度值为 0 的矩形，如：var rect2:Rectangle = new Rectangle(300,300,50,0);</p>
 		 * @param 要添加到此 Rectangle 对象的 Rectangle 对象。
 		 * @param out 用于存储输出结果的矩形对象。如果为空，则创建一个新的。建议：尽量复用对象，减少对象创建消耗。Rectangle.TEMP对象用于对象复用。
 		 * @return 充当两个矩形的联合的新 Rectangle 对象。
@@ -29980,7 +29039,7 @@ enum HTMLElementType {
 
 		/**
 		 * <p>为当前矩形对象加一个点，以使当前矩形扩展为包含当前矩形和此点的最小矩形。</p>
-		 * <p>此方法会修改本对象。</p>
+<p>此方法会修改本对象。</p>
 		 * @param x 点的 X 坐标。
 		 * @param y 点的 Y 坐标。
 		 * @return 返回此 Rectangle 对象。
@@ -29995,129 +29054,8 @@ enum HTMLElementType {
 	}
 
 	/**
-	 * @private 使用Audio标签播放声音
-	 */
-	class AudioSound extends EventDispatcher  {
-
-		/**
-		 * @private 
-		 */
-		private static _audioCache:any;
-
-		/**
-		 * 声音URL
-		 */
-		url:string;
-
-		/**
-		 * 播放用的audio标签
-		 */
-		audio:HTMLAudioElement;
-
-		/**
-		 * 是否已加载完成
-		 */
-		loaded:boolean;
-
-		/**
-		 * 释放声音
-		 */
-		dispose():void;
-
-		/**
-		 * @private 
-		 */
-		private static _makeMusicOK:any;
-
-		/**
-		 * 加载声音
-		 * @param url 
-		 */
-		load(url:string):void;
-
-		/**
-		 * 播放声音
-		 * @param startTime 起始时间
-		 * @param loops 循环次数
-		 * @return 
-		 */
-		play(startTime?:number,loops?:number):SoundChannel;
-
-		/**
-		 * 获取总时间。
-		 */
-		get duration():number;
-	}
-
-	/**
-	 * @private audio标签播放声音的音轨控制
-	 */
-	class AudioSoundChannel extends SoundChannel  {
-
-		/**
-		 * 播放用的audio标签
-		 */
-		private _audio:any;
-		private _onEnd:any;
-		private _resumePlay:any;
-
-		constructor(audio:HTMLAudioElement);
-		private __onEnd:any;
-		private __resumePlay:any;
-
-		/**
-		 * 播放
-		 * @override 
-		 */
-		play():void;
-
-		/**
-		 * 当前播放到的位置
-		 * @return 
-		 * @override 
-		 */
-		get position():number;
-
-		/**
-		 * 获取总时间。
-		 * @override 
-		 */
-		get duration():number;
-
-		/**
-		 * 停止播放
-		 * @override 
-		 */
-		stop():void;
-
-		/**
-		 * @override 
-		 */
-		pause():void;
-
-		/**
-		 * @override 
-		 */
-		resume():void;
-
-		/**
-		 * 设置音量
-		 * @param v 
-		 * @override 
-		 */
-		set volume(v:number);
-
-		/**
-		 * 获取音量
-		 * @return 
-		 * @override 
-		 */
-		get volume():number;
-	}
-
-	/**
 	 * <code>Sound</code> 类是用来播放控制声音的类。
-	 * 引擎默认有两套声音方案，优先使用WebAudio播放声音，如果WebAudio不可用，则用H5Audio播放，H5Audio在部分机器上有兼容问题（比如不能混音，播放有延迟等）。
+引擎默认有两套声音方案，优先使用WebAudio播放声音，如果WebAudio不可用，则用H5Audio播放，H5Audio在部分机器上有兼容问题（比如不能混音，播放有延迟等）。
 	 */
 	class Sound extends EventDispatcher  {
 
@@ -30148,7 +29086,7 @@ enum HTMLElementType {
 
 	/**
 	 * <p> <code>SoundChannel</code> 用来控制程序中的声音。每个声音均分配给一个声道，而且应用程序可以具有混合在一起的多个声道。</p>
-	 * <p> <code>SoundChannel</code> 类包含控制声音的播放、暂停、停止、音量的方法，以及获取声音的播放状态、总时间、当前播放时间、总循环次数、播放地址等信息的方法。</p>
+<p> <code>SoundChannel</code> 类包含控制声音的播放、暂停、停止、音量的方法，以及获取声音的播放状态、总时间、当前播放时间、总循环次数、播放地址等信息的方法。</p>
 	 */
 	class SoundChannel extends EventDispatcher  {
 
@@ -30221,11 +29159,11 @@ enum HTMLElementType {
 
 	/**
 	 * <code>SoundManager</code> 是一个声音管理类。提供了对背景音乐、音效的播放控制方法。
-	 * 引擎默认有两套声音方案：WebAudio和H5Audio
-	 * 播放音效，优先使用WebAudio播放声音，如果WebAudio不可用，则用H5Audio播放，H5Audio在部分机器上有兼容问题（比如不能混音，播放有延迟等）。
-	 * 播放背景音乐，则使用H5Audio播放（使用WebAudio会增加特别大的内存，并且要等加载完毕后才能播放，有延迟）
-	 * 建议背景音乐用mp3类型，音效用wav或者mp3类型（如果打包为app，音效只能用wav格式）。
-	 * 详细教程及声音格式请参考：http://ldc2.layabox.com/doc/?nav=ch-as-1-7-0
+引擎默认有两套声音方案：WebAudio和H5Audio
+播放音效，优先使用WebAudio播放声音，如果WebAudio不可用，则用H5Audio播放，H5Audio在部分机器上有兼容问题（比如不能混音，播放有延迟等）。
+播放背景音乐，则使用H5Audio播放（使用WebAudio会增加特别大的内存，并且要等加载完毕后才能播放，有延迟）
+建议背景音乐用mp3类型，音效用wav或者mp3类型（如果打包为app，音效只能用wav格式）。
+详细教程及声音格式请参考：http://ldc2.layabox.com/doc/?nav=ch-as-1-7-0
 	 */
 	class SoundManager  {
 
@@ -30500,6 +29438,127 @@ enum HTMLElementType {
 	}
 
 	/**
+	 * @private 使用Audio标签播放声音
+	 */
+	class AudioSound extends EventDispatcher  {
+
+		/**
+		 * @private 
+		 */
+		private static _audioCache:any;
+
+		/**
+		 * 声音URL
+		 */
+		url:string;
+
+		/**
+		 * 播放用的audio标签
+		 */
+		audio:HTMLAudioElement;
+
+		/**
+		 * 是否已加载完成
+		 */
+		loaded:boolean;
+
+		/**
+		 * 释放声音
+		 */
+		dispose():void;
+
+		/**
+		 * @private 
+		 */
+		private static _makeMusicOK:any;
+
+		/**
+		 * 加载声音
+		 * @param url 
+		 */
+		load(url:string):void;
+
+		/**
+		 * 播放声音
+		 * @param startTime 起始时间
+		 * @param loops 循环次数
+		 * @return 
+		 */
+		play(startTime?:number,loops?:number):SoundChannel;
+
+		/**
+		 * 获取总时间。
+		 */
+		get duration():number;
+	}
+
+	/**
+	 * @private audio标签播放声音的音轨控制
+	 */
+	class AudioSoundChannel extends SoundChannel  {
+
+		/**
+		 * 播放用的audio标签
+		 */
+		private _audio:any;
+		private _onEnd:any;
+		private _resumePlay:any;
+
+		constructor(audio:HTMLAudioElement);
+		private __onEnd:any;
+		private __resumePlay:any;
+
+		/**
+		 * 播放
+		 * @override 
+		 */
+		play():void;
+
+		/**
+		 * 当前播放到的位置
+		 * @return 
+		 * @override 
+		 */
+		get position():number;
+
+		/**
+		 * 获取总时间。
+		 * @override 
+		 */
+		get duration():number;
+
+		/**
+		 * 停止播放
+		 * @override 
+		 */
+		stop():void;
+
+		/**
+		 * @override 
+		 */
+		pause():void;
+
+		/**
+		 * @override 
+		 */
+		resume():void;
+
+		/**
+		 * 设置音量
+		 * @param v 
+		 * @override 
+		 */
+		set volume(v:number);
+
+		/**
+		 * 获取音量
+		 * @return 
+		 * @override 
+		 */
+		get volume():number;
+	}
+
+	/**
 	 * @private web audio api方式播放声音
 	 */
 	class WebAudioSound extends EventDispatcher  {
@@ -30751,7 +29810,7 @@ enum HTMLElementType {
 
 	/**
 	 * <p> <code>HttpRequest</code> 通过封装 HTML <code>XMLHttpRequest</code> 对象提供了对 HTTP 协议的完全的访问，包括做出 POST 和 HEAD 请求以及普通的 GET 请求的能力。 <code>HttpRequest</code> 只提供以异步的形式返回 Web 服务器的响应，并且能够以文本或者二进制的形式返回内容。</p>
-	 * <p><b>注意：</b>建议每次请求都使用新的 <code>HttpRequest</code> 对象，因为每次调用该对象的send方法时，都会清空之前设置的数据，并重置 HTTP 请求的状态，这会导致之前还未返回响应的请求被重置，从而得不到之前请求的响应结果。</p>
+<p><b>注意：</b>建议每次请求都使用新的 <code>HttpRequest</code> 对象，因为每次调用该对象的send方法时，都会清空之前设置的数据，并重置 HTTP 请求的状态，这会导致之前还未返回响应的请求被重置，从而得不到之前请求的响应结果。</p>
 	 */
 	class HttpRequest extends EventDispatcher  {
 
@@ -31030,23 +30089,7 @@ enum HTMLElementType {
 		 * @private 
 		 */
 		protected static _startIndex:number;
-
-		/**
-		 * 获取指定资源地址的数据类型。
-		 * @param url 资源地址。
-		 * @return 数据类型。
-		 */
-		static getTypeFromUrl(url:string):string;
-
-		/**
-		 * @private 
-		 */
-		protected _url:string;
-
-		/**
-		 * @private 
-		 */
-		protected _type:string;
+		_mipmap:boolean;
 
 		/**
 		 * @private 
@@ -31059,77 +30102,24 @@ enum HTMLElementType {
 		protected _useWorkerLoader:boolean;
 
 		/**
-		 * 加载资源。加载错误会派发 Event.ERROR 事件，参数为错误信息。
-		 * @param url 资源地址。
-		 * @param type (default = null)资源类型。可选值为：Loader.TEXT、Loader.JSON、Loader.XML、Loader.BUFFER、Loader.IMAGE、Loader.SOUND、Loader.ATLAS、Loader.FONT。如果为null，则根据文件后缀分析类型。
-		 * @param cache (default = true)是否缓存数据。
-		 * @param group (default = null)分组名称。
-		 * @param ignoreCache (default = false)是否忽略缓存，强制重新加载。
-		 * @param useWorkerLoader (default = false)是否使用worker加载（只针对IMAGE类型和ATLAS类型，并且浏览器支持的情况下生效）
+		 * 返回的数据。
 		 */
-		load(url:string,type?:string|null,cache?:boolean,group?:string|null,ignoreCache?:boolean,useWorkerLoader?:boolean):void;
-
-		/**
-		 * @private onload、onprocess、onerror必须写在本类
-		 */
-		private _loadHttpRequest:any;
+		get data():any;
 
 		/**
 		 * @private 
 		 */
-		private _loadHtmlImage:any;
-
-		/**
-		 * @private 加载TTF资源。
-		 * @param url 资源地址。
-		 */
-		protected _loadTTF(url:string):void;
-
-		/**
-		 * @private 
-		 */
-		protected _loadImage(url:string,isformatURL?:boolean):void;
-
-		/**
-		 * @private 
-		 */
-		protected onProgress(value:number):void;
-
-		/**
-		 * @private 
-		 */
-		protected onError(message:string):void;
-
-		/**
-		 * 资源加载完成的处理函数。
-		 * @param data 数据。
-		 */
-		protected onLoaded(data?:any):void;
-		private parsePLFData:any;
-		private parsePLFBData:any;
-		private parseOnePLFBFile:any;
-
-		/**
-		 * 加载完成。
-		 * @param data 加载的数据。
-		 */
-		protected complete(data:any):void;
-
-		/**
-		 * @private 
-		 */
-		private static checkNext:any;
-
-		/**
-		 * 结束加载，处理是否缓存及派发完成事件 <code>Event.COMPLETE</code> 。
-		 * @param content 加载后的数据
-		 */
-		endLoad(content?:any):void;
+		protected _url:string;
 
 		/**
 		 * 加载地址。
 		 */
 		get url():string;
+
+		/**
+		 * @private 
+		 */
+		protected _type:string;
 
 		/**
 		 * 加载类型。
@@ -31142,9 +30132,11 @@ enum HTMLElementType {
 		get cache():boolean;
 
 		/**
-		 * 返回的数据。
+		 * 获取指定资源地址的数据类型。
+		 * @param url 资源地址。
+		 * @return 数据类型。
 		 */
-		get data():any;
+		static getTypeFromUrl(url:string):string;
 
 		/**
 		 * 清理指定资源地址的缓存。
@@ -31154,8 +30146,8 @@ enum HTMLElementType {
 
 		/**
 		 * 销毁Texture使用的图片资源，保留texture壳，如果下次渲染的时候，发现texture使用的图片资源不存在，则会自动恢复
-		 * 相比clearRes，clearTextureRes只是清理texture里面使用的图片资源，并不销毁texture，再次使用到的时候会自动恢复图片资源
-		 * 而clearRes会彻底销毁texture，导致不能再使用；clearTextureRes能确保立即销毁图片资源，并且不用担心销毁错误，clearRes则采用引用计数方式销毁
+相比clearRes，clearTextureRes只是清理texture里面使用的图片资源，并不销毁texture，再次使用到的时候会自动恢复图片资源
+而clearRes会彻底销毁texture，导致不能再使用；clearTextureRes能确保立即销毁图片资源，并且不用担心销毁错误，clearRes则采用引用计数方式销毁
 		 * @param url 图集地址或者texture地址，比如 Loader.clearTextureRes("res/atlas/comp.atlas"); Loader.clearTextureRes("hall/bg.jpg");
 		 */
 		static clearTextureRes(url:string):void;
@@ -31176,7 +30168,7 @@ enum HTMLElementType {
 
 		/**
 		 * 缓存资源。
-		 * 如果资源已经存在则缓存失败。
+如果资源已经存在则缓存失败。
 		 * @param url 资源地址。
 		 * @param data 要缓存的内容。
 		 */
@@ -31208,6 +30200,74 @@ enum HTMLElementType {
 		 * @param group 分组名。
 		 */
 		static clearResByGroup(group:string):void;
+
+		/**
+		 * @private 
+		 */
+		private static checkNext:any;
+
+		/**
+		 * 加载资源。加载错误会派发 Event.ERROR 事件，参数为错误信息。
+		 * @param url 资源地址。
+		 * @param type (default = null)资源类型。可选值为：Loader.TEXT、Loader.JSON、Loader.XML、Loader.BUFFER、Loader.IMAGE、Loader.SOUND、Loader.ATLAS、Loader.FONT。如果为null，则根据文件后缀分析类型。
+		 * @param cache (default = true)是否缓存数据。
+		 * @param group (default = null)分组名称。
+		 * @param ignoreCache (default = false)是否忽略缓存，强制重新加载。
+		 * @param useWorkerLoader (default = false)是否使用worker加载（只针对IMAGE类型和ATLAS类型，并且浏览器支持的情况下生效）
+		 */
+		load(url:string,type?:string|null,cache?:boolean,group?:string|null,ignoreCache?:boolean,useWorkerLoader?:boolean):void;
+
+		/**
+		 * 结束加载，处理是否缓存及派发完成事件 <code>Event.COMPLETE</code> 。
+		 * @param content 加载后的数据
+		 */
+		endLoad(content?:any):void;
+
+		/**
+		 * @private 加载TTF资源。
+		 * @param url 资源地址。
+		 */
+		protected _loadTTF(url:string):void;
+
+		/**
+		 * @private 
+		 */
+		protected _loadImage(url:string,isformatURL?:boolean):void;
+
+		/**
+		 * @private 
+		 */
+		protected onProgress(value:number):void;
+
+		/**
+		 * @private 
+		 */
+		protected onError(message:string):void;
+
+		/**
+		 * 资源加载完成的处理函数。
+		 * @param data 数据。
+		 */
+		protected onLoaded(data?:any):void;
+
+		/**
+		 * 加载完成。
+		 * @param data 加载的数据。
+		 */
+		protected complete(data:any):void;
+
+		/**
+		 * @private onload、onprocess、onerror必须写在本类
+		 */
+		private _loadHttpRequest:any;
+
+		/**
+		 * @private 
+		 */
+		private _loadHtmlImage:any;
+		private parsePLFData:any;
+		private parsePLFBData:any;
+		private parseOnePLFBFile:any;
 	}
 
 	/**
@@ -31222,12 +30282,12 @@ enum HTMLElementType {
 
 	/**
 	 * <p> <code>LoaderManager</code> 类用于用于批量加载资源。此类是单例，不要手动实例化此类，请通过Laya.loader访问。</p>
-	 * <p>全部队列加载完成，会派发 Event.COMPLETE 事件；如果队列中任意一个加载失败，会派发 Event.ERROR 事件，事件回调参数值为加载出错的资源地址。</p>
-	 * <p> <code>LoaderManager</code> 类提供了以下几种功能：<br/>
-	 * 多线程：默认5个加载线程，可以通过maxLoader属性修改线程数量；<br/>
-	 * 多优先级：有0-4共5个优先级，优先级高的优先加载。0最高，4最低；<br/>
-	 * 重复过滤：自动过滤重复加载（不会有多个相同地址的资源同时加载）以及复用缓存资源，防止重复加载；<br/>
-	 * 错误重试：资源加载失败后，会重试加载（以最低优先级插入加载队列），retryNum设定加载失败后重试次数，retryDelay设定加载重试的时间间隔。</p>
+<p>全部队列加载完成，会派发 Event.COMPLETE 事件；如果队列中任意一个加载失败，会派发 Event.ERROR 事件，事件回调参数值为加载出错的资源地址。</p>
+<p> <code>LoaderManager</code> 类提供了以下几种功能：<br/>
+多线程：默认5个加载线程，可以通过maxLoader属性修改线程数量；<br/>
+多优先级：有0-4共5个优先级，优先级高的优先加载。0最高，4最低；<br/>
+重复过滤：自动过滤重复加载（不会有多个相同地址的资源同时加载）以及复用缓存资源，防止重复加载；<br/>
+错误重试：资源加载失败后，会重试加载（以最低优先级插入加载队列），retryNum设定加载失败后重试次数，retryDelay设定加载重试的时间间隔。</p>
 	 * @see laya.net.Loader
 	 */
 	class LoaderManager extends EventDispatcher  {
@@ -31304,15 +30364,15 @@ enum HTMLElementType {
 
 		/**
 		 * <p>创建一个新的 <code>LoaderManager</code> 实例。</p>
-		 * <p><b>注意：</b>请使用Laya.loader加载资源，这是一个单例，不要手动实例化此类，否则会导致不可预料的问题。</p>
+<p><b>注意：</b>请使用Laya.loader加载资源，这是一个单例，不要手动实例化此类，否则会导致不可预料的问题。</p>
 		 */
 
 		constructor();
 
 		/**
 		 * <p>根据clas类型创建一个未初始化资源的对象，随后进行异步加载，资源加载完成后，初始化对象的资源，并通过此对象派发 Event.LOADED 事件，事件回调参数值为此对象本身。套嵌资源的子资源会保留资源路径"?"后的部分。</p>
-		 * <p>如果url为数组，返回true；否则返回指定的资源类对象，可以通过侦听此对象的 Event.LOADED 事件来判断资源是否已经加载完毕。</p>
-		 * <p><b>注意：</b>cache参数只能对文件后缀为atlas的资源进行缓存控制，其他资源会忽略缓存，强制重新加载。</p>
+<p>如果url为数组，返回true；否则返回指定的资源类对象，可以通过侦听此对象的 Event.LOADED 事件来判断资源是否已经加载完毕。</p>
+<p><b>注意：</b>cache参数只能对文件后缀为atlas的资源进行缓存控制，其他资源会忽略缓存，强制重新加载。</p>
 		 * @param url 资源地址或者数组。如果url和clas同时指定了资源类型，优先使用url指定的资源类型。参数形如：[{url:xx,clas:xx,priority:xx,params:xx},{url:xx,clas:xx,priority:xx,params:xx}]。
 		 * @param complete 加载结束回调。根据url类型不同分为2种情况：1. url为String类型，也就是单个资源地址，如果加载成功，则回调参数值为加载完成的资源，否则为null；2. url为数组类型，指定了一组要加载的资源，如果全部加载成功，则回调参数值为true，否则为false。
 		 * @param progress 资源加载进度回调，回调参数值为当前资源加载的进度信息(0-1)。
@@ -31332,7 +30392,7 @@ enum HTMLElementType {
 
 		/**
 		 * <p>加载资源。资源加载错误时，本对象会派发 Event.ERROR 事件，事件回调参数值为加载出错的资源地址。</p>
-		 * <p>因为返回值为 LoaderManager 对象本身，所以可以使用如下语法：loaderManager.load(...).load(...);</p>
+<p>因为返回值为 LoaderManager 对象本身，所以可以使用如下语法：loaderManager.load(...).load(...);</p>
 		 * @param url 要加载的单个资源地址或资源信息数组。比如：简单数组：["a.png","b.png"]；复杂数组[{url:"a.png",type:Loader.IMAGE,size:100,priority:1},{url:"b.json",type:Loader.JSON,size:50,priority:1}]。
 		 * @param complete 加载结束回调。根据url类型不同分为2种情况：1. url为String类型，也就是单个资源地址，如果加载成功，则回调参数值为加载完成的资源，否则为null；2. url为数组类型，指定了一组要加载的资源，如果全部加载成功，则回调参数值为true，否则为false。
 		 * @param progress 加载进度回调。回调参数值为当前资源的加载进度信息(0-1)。
@@ -31359,9 +30419,9 @@ enum HTMLElementType {
 
 		/**
 		 * 销毁Texture使用的图片资源，保留texture壳，如果下次渲染的时候，发现texture使用的图片资源不存在，则会自动恢复
-		 * 相比clearRes，clearTextureRes只是清理texture里面使用的图片资源，并不销毁texture，再次使用到的时候会自动恢复图片资源
-		 * 而clearRes会彻底销毁texture，导致不能再使用；clearTextureRes能确保立即销毁图片资源，并且不用担心销毁错误，clearRes则采用引用计数方式销毁
-		 * 【注意】如果图片本身在自动合集里面（默认图片小于512*512），内存是不能被销毁的，此图片被大图合集管理器管理
+相比clearRes，clearTextureRes只是清理texture里面使用的图片资源，并不销毁texture，再次使用到的时候会自动恢复图片资源
+而clearRes会彻底销毁texture，导致不能再使用；clearTextureRes能确保立即销毁图片资源，并且不用担心销毁错误，clearRes则采用引用计数方式销毁
+【注意】如果图片本身在自动合集里面（默认图片小于512*512），内存是不能被销毁的，此图片被大图合集管理器管理
 		 * @param url 图集地址或者texture地址，比如 Loader.clearTextureRes("res/atlas/comp.atlas"); Loader.clearTextureRes("hall/bg.jpg");
 		 */
 		clearTextureRes(url:string):void;
@@ -31520,7 +30580,7 @@ enum HTMLElementType {
 
 	/**
 	 * <p>资源版本的生成由layacmd或IDE完成，使用 <code>ResourceVersion</code> 简化使用过程。</p>
-	 * <p>调用 <code>enable</code> 启用资源版本管理。</p>
+<p>调用 <code>enable</code> 启用资源版本管理。</p>
 	 */
 	class ResourceVersion  {
 
@@ -31546,7 +30606,7 @@ enum HTMLElementType {
 
 		/**
 		 * <p>启用资源版本管理。</p>
-		 * <p>由于只有发布版本需要资源管理。因此没有资源管理文件时，可以设置manifestFile为null或者不存在的路径。</p>
+<p>由于只有发布版本需要资源管理。因此没有资源管理文件时，可以设置manifestFile为null或者不存在的路径。</p>
 		 * @param manifestFile 清单（json）文件的路径。
 		 * @param callback 清单（json）文件加载完成后执行。
 		 * @param type FOLDER_VERSION为基于文件夹管理方式（老版本IDE默认类型），FILENAME_VERSION为基于文件名映射管理（新版本IDE默认类型
@@ -31608,21 +30668,21 @@ enum HTMLElementType {
 
 	/**
 	 * <p> <code>Socket</code> 封装了 HTML5 WebSocket ，允许服务器端与客户端进行全双工（full-duplex）的实时通信，并且允许跨域通信。在建立连接后，服务器和 Browser/Client Agent 都能主动的向对方发送或接收文本和二进制数据。</p>
-	 * <p>要使用 <code>Socket</code> 类的方法，请先使用构造函数 <code>new Socket</code> 创建一个 <code>Socket</code> 对象。 <code>Socket</code> 以异步方式传输和接收数据。</p>
+<p>要使用 <code>Socket</code> 类的方法，请先使用构造函数 <code>new Socket</code> 创建一个 <code>Socket</code> 对象。 <code>Socket</code> 以异步方式传输和接收数据。</p>
 	 */
 	class Socket extends EventDispatcher  {
 
 		/**
 		 * <p>主机字节序，是 CPU 存放数据的两种不同顺序，包括小端字节序和大端字节序。</p>
-		 * <p> LITTLE_ENDIAN ：小端字节序，地址低位存储值的低位，地址高位存储值的高位。</p>
-		 * <p> BIG_ENDIAN ：大端字节序，地址低位存储值的高位，地址高位存储值的低位。有时也称之为网络字节序。</p>
+<p> LITTLE_ENDIAN ：小端字节序，地址低位存储值的低位，地址高位存储值的高位。</p>
+<p> BIG_ENDIAN ：大端字节序，地址低位存储值的高位，地址高位存储值的低位。有时也称之为网络字节序。</p>
 		 */
 		static LITTLE_ENDIAN:string;
 
 		/**
 		 * <p>主机字节序，是 CPU 存放数据的两种不同顺序，包括小端字节序和大端字节序。</p>
-		 * <p> BIG_ENDIAN ：大端字节序，地址低位存储值的高位，地址高位存储值的低位。有时也称之为网络字节序。</p>
-		 * <p> LITTLE_ENDIAN ：小端字节序，地址低位存储值的低位，地址高位存储值的高位。</p>
+<p> BIG_ENDIAN ：大端字节序，地址低位存储值的高位，地址高位存储值的低位。有时也称之为网络字节序。</p>
+<p> LITTLE_ENDIAN ：小端字节序，地址低位存储值的低位，地址高位存储值的高位。</p>
 		 */
 		static BIG_ENDIAN:string;
 
@@ -31663,7 +30723,7 @@ enum HTMLElementType {
 
 		/**
 		 * <p>子协议名称。子协议名称字符串，或由多个子协议名称字符串构成的数组。必须在调用 connect 或者 connectByUrl 之前进行赋值，否则无效。</p>
-		 * <p>指定后，只有当服务器选择了其中的某个子协议，连接才能建立成功，否则建立失败，派发 Event.ERROR 事件。</p>
+<p>指定后，只有当服务器选择了其中的某个子协议，连接才能建立成功，否则建立失败，派发 Event.ERROR 事件。</p>
 		 * @see https://html.spec.whatwg.org/multipage/comms.html#dom-websocket
 		 */
 		protocols:any;
@@ -31685,8 +30745,8 @@ enum HTMLElementType {
 
 		/**
 		 * <p>主机字节序，是 CPU 存放数据的两种不同顺序，包括小端字节序和大端字节序。</p>
-		 * <p> LITTLE_ENDIAN ：小端字节序，地址低位存储值的低位，地址高位存储值的高位。</p>
-		 * <p> BIG_ENDIAN ：大端字节序，地址低位存储值的高位，地址高位存储值的低位。</p>
+<p> LITTLE_ENDIAN ：小端字节序，地址低位存储值的低位，地址高位存储值的高位。</p>
+<p> BIG_ENDIAN ：大端字节序，地址低位存储值的高位，地址高位存储值的低位。</p>
 		 */
 		get endian():string;
 		set endian(value:string);
@@ -31704,7 +30764,7 @@ enum HTMLElementType {
 
 		/**
 		 * <p>连接到指定的主机和端口。</p>
-		 * <p>连接成功派发 Event.OPEN 事件；连接失败派发 Event.ERROR 事件；连接被关闭派发 Event.CLOSE 事件；接收到数据派发 Event.MESSAGE 事件； 除了 Event.MESSAGE 事件参数为数据内容，其他事件参数都是原生的 HTML DOM Event 对象。</p>
+<p>连接成功派发 Event.OPEN 事件；连接失败派发 Event.ERROR 事件；连接被关闭派发 Event.CLOSE 事件；接收到数据派发 Event.MESSAGE 事件； 除了 Event.MESSAGE 事件参数为数据内容，其他事件参数都是原生的 HTML DOM Event 对象。</p>
 		 * @param host 服务器地址。
 		 * @param port 服务器端口。
 		 */
@@ -31712,7 +30772,7 @@ enum HTMLElementType {
 
 		/**
 		 * <p>连接到指定的服务端 WebSocket URL。 URL 类似 ws://yourdomain:port。</p>
-		 * <p>连接成功派发 Event.OPEN 事件；连接失败派发 Event.ERROR 事件；连接被关闭派发 Event.CLOSE 事件；接收到数据派发 Event.MESSAGE 事件； 除了 Event.MESSAGE 事件参数为数据内容，其他事件参数都是原生的 HTML DOM Event 对象。</p>
+<p>连接成功派发 Event.OPEN 事件；连接失败派发 Event.ERROR 事件；连接被关闭派发 Event.CLOSE 事件；接收到数据派发 Event.MESSAGE 事件； 除了 Event.MESSAGE 事件参数为数据内容，其他事件参数都是原生的 HTML DOM Event 对象。</p>
 		 * @param url 要连接的服务端 WebSocket URL。 URL 类似 ws://yourdomain:port。
 		 */
 		connectByUrl(url:string):void;
@@ -31787,10 +30847,10 @@ enum HTMLElementType {
 
 	/**
 	 * <p><code>URL</code> 提供URL格式化，URL版本管理的类。</p>
-	 * <p>引擎加载资源的时候，会自动调用formatURL函数格式化URL路径</p>
-	 * <p>通过basePath属性可以设置网络基础路径</p>
-	 * <p>通过设置customFormat函数，可以自定义URL格式化的方式</p>
-	 * <p>除了默认的通过增加后缀的格式化外，通过VersionManager类，可以开启IDE提供的，基于目录的管理方式来替代 "?v=" 的管理方式</p>
+<p>引擎加载资源的时候，会自动调用formatURL函数格式化URL路径</p>
+<p>通过basePath属性可以设置网络基础路径</p>
+<p>通过设置customFormat函数，可以自定义URL格式化的方式</p>
+<p>除了默认的通过增加后缀的格式化外，通过VersionManager类，可以开启IDE提供的，基于目录的管理方式来替代 "?v=" 的管理方式</p>
 	 * @see laya.net.VersionManager
 	 */
 	class URL  {
@@ -31857,7 +30917,7 @@ enum HTMLElementType {
 
 		/**
 		 * 获取指定 URL 的文件夹路径（不包括文件名）。
-		 * <p><b>注意：</b>末尾有斜杠（/）。</p>
+<p><b>注意：</b>末尾有斜杠（/）。</p>
 		 * @param url url地址。
 		 * @return 返回文件夹路径。
 		 */
@@ -31961,101 +31021,6 @@ enum HTMLElementType {
 		 * @param url 资源地址。
 		 */
 		protected _loadImage(url:string):void;
-	}
-
-	/**
-	 * @private 
-	 */
-	class Emitter2D extends EmitterBase  {
-		setting:ParticleSetting;
-		private _posRange:any;
-		private _canvasTemplate:any;
-		private _emitFun:any;
-
-		constructor(_template:ParticleTemplateBase);
-		set template(template:ParticleTemplateBase);
-		get template():ParticleTemplateBase;
-
-		/**
-		 * @override 
-		 */
-		emit():void;
-		getRandom(value:number):number;
-		webGLEmit():void;
-		canvasEmit():void;
-	}
-
-	/**
-	 * <code>EmitterBase</code> 类是粒子发射器类
-	 */
-	class EmitterBase  {
-
-		/**
-		 * 积累的帧时间
-		 */
-		protected _frameTime:number;
-
-		/**
-		 * 粒子发射速率
-		 */
-		protected _emissionRate:number;
-
-		/**
-		 * 当前剩余发射时间
-		 */
-		protected _emissionTime:number;
-
-		/**
-		 * 发射粒子最小时间间隔
-		 */
-		minEmissionTime:number;
-
-		/**
-		 * 设置粒子粒子模板
-		 * @param particleTemplate 粒子模板
-		 */
-		set particleTemplate(particleTemplate:ParticleTemplateBase);
-
-		/**
-		 * 设置粒子发射速率
-		 * @param emissionRate 粒子发射速率 (个/秒)
-		 */
-		set emissionRate(_emissionRate:number);
-
-		/**
-		 * 获取粒子发射速率
-		 * @return 发射速率  粒子发射速率 (个/秒)
-		 */
-		get emissionRate():number;
-
-		/**
-		 * 开始发射粒子
-		 * @param duration 发射持续的时间(秒)
-		 */
-		start(duration?:number):void;
-
-		/**
-		 * 停止发射粒子
-		 * @param clearParticles 是否清理当前的粒子
-		 */
-		stop():void;
-
-		/**
-		 * 清理当前的活跃粒子
-		 * @param clearTexture 是否清理贴图数据,若清除贴图数据将无法再播放
-		 */
-		clear():void;
-
-		/**
-		 * 发射一个粒子
-		 */
-		emit():void;
-
-		/**
-		 * 时钟前进
-		 * @param passedTime 前进时间
-		 */
-		advanceTime(passedTime?:number):void;
 	}
 
 	/**
@@ -32560,6 +31525,101 @@ enum HTMLElementType {
 	/**
 	 * @private 
 	 */
+	class Emitter2D extends EmitterBase  {
+		setting:ParticleSetting;
+		private _posRange:any;
+		private _canvasTemplate:any;
+		private _emitFun:any;
+
+		constructor(_template:ParticleTemplateBase);
+		set template(template:ParticleTemplateBase);
+		get template():ParticleTemplateBase;
+
+		/**
+		 * @override 
+		 */
+		emit():void;
+		getRandom(value:number):number;
+		webGLEmit():void;
+		canvasEmit():void;
+	}
+
+	/**
+	 * <code>EmitterBase</code> 类是粒子发射器类
+	 */
+	class EmitterBase  {
+
+		/**
+		 * 积累的帧时间
+		 */
+		protected _frameTime:number;
+
+		/**
+		 * 粒子发射速率
+		 */
+		protected _emissionRate:number;
+
+		/**
+		 * 当前剩余发射时间
+		 */
+		protected _emissionTime:number;
+
+		/**
+		 * 发射粒子最小时间间隔
+		 */
+		minEmissionTime:number;
+
+		/**
+		 * 设置粒子粒子模板
+		 * @param particleTemplate 粒子模板
+		 */
+		set particleTemplate(particleTemplate:ParticleTemplateBase);
+
+		/**
+		 * 设置粒子发射速率
+		 * @param emissionRate 粒子发射速率 (个/秒)
+		 */
+		set emissionRate(_emissionRate:number);
+
+		/**
+		 * 获取粒子发射速率
+		 * @return 发射速率  粒子发射速率 (个/秒)
+		 */
+		get emissionRate():number;
+
+		/**
+		 * 开始发射粒子
+		 * @param duration 发射持续的时间(秒)
+		 */
+		start(duration?:number):void;
+
+		/**
+		 * 停止发射粒子
+		 * @param clearParticles 是否清理当前的粒子
+		 */
+		stop():void;
+
+		/**
+		 * 清理当前的活跃粒子
+		 * @param clearTexture 是否清理贴图数据,若清除贴图数据将无法再播放
+		 */
+		clear():void;
+
+		/**
+		 * 发射一个粒子
+		 */
+		emit():void;
+
+		/**
+		 * 时钟前进
+		 * @param passedTime 前进时间
+		 */
+		advanceTime(passedTime?:number):void;
+	}
+
+	/**
+	 * @private 
+	 */
 	class ParticleShader extends Shader  {
 		static vs:string;
 		static ps:string;
@@ -32840,7 +31900,7 @@ enum HTMLElementType {
 
 	/**
 	 * JS实现Box2D SayGoodbyeParticle
-	 * 相关类型对象被隐性移除时触发对应的SayGoodBye方法
+相关类型对象被隐性移除时触发对应的SayGoodBye方法
 	 */
 	class DestructionListener  {
 
@@ -32912,6 +31972,648 @@ enum HTMLElementType {
 		 */
 		get points():string;
 		set points(value:string);
+	}
+
+	/**
+	 * 2D物理引擎，使用Box2d驱动
+	 */
+	class Physics extends EventDispatcher  {
+
+		/**
+		 * 2D游戏默认单位为像素，物理默认单位为米，此值设置了像素和米的转换比率，默认50像素=1米
+		 */
+		static PIXEL_RATIO:number;
+
+		/**
+		 * @private 
+		 */
+		private static _I:any;
+
+		/**
+		 * Box2d引擎的全局引用，更多属性和api请参考 http://box2d.org
+		 */
+		box2d:any;
+
+		/**
+		 * [只读]物理世界引用，更多属性请参考官网
+		 */
+		world:any;
+
+		/**
+		 * 旋转迭代次数，增大数字会提高精度，但是会降低性能
+		 */
+		velocityIterations:number;
+
+		/**
+		 * 位置迭代次数，增大数字会提高精度，但是会降低性能
+		 */
+		positionIterations:number;
+
+		/**
+		 * @private 是否已经激活
+		 */
+		private _enabled:any;
+
+		/**
+		 * @private 根容器
+		 */
+		private _worldRoot:any;
+
+		/**
+		 * @private 空的body节点，给一些不需要节点的关节使用
+		 */
+		_emptyBody:any;
+
+		/**
+		 * @private 
+		 */
+		_eventList:any[];
+
+		/**
+		 * 全局物理单例
+		 */
+		static get I():Physics;
+
+		constructor();
+
+		/**
+		 * 开启物理世界
+options值参考如下：
+allowSleeping:true,
+gravity:10,
+customUpdate:false 自己控制物理更新时机，自己调用Physics.update
+		 */
+		static enable(options?:any):void;
+
+		/**
+		 * 开启物理世界
+options值参考如下：
+allowSleeping:true,
+gravity:10,
+customUpdate:false 自己控制物理更新时机，自己调用Physics.update
+		 */
+		start(options?:any):void;
+		private _update:any;
+		private _sendEvent:any;
+
+		/**
+		 * @private 
+		 */
+		_createBody(def:any):any;
+
+		/**
+		 * @private 
+		 */
+		_removeBody(body:any):void;
+
+		/**
+		 * @private 
+		 */
+		_createJoint(def:any):any;
+
+		/**
+		 * @private 
+		 */
+		_removeJoint(joint:any):void;
+
+		/**
+		 * 停止物理世界
+		 */
+		stop():void;
+
+		/**
+		 * 设置是否允许休眠，休眠可以提高稳定性和性能，但通常会牺牲准确性
+		 */
+		get allowSleeping():boolean;
+		set allowSleeping(value:boolean);
+
+		/**
+		 * 物理世界重力环境，默认值为{x:0,y:1}
+如果修改y方向重力方向向上，可以直接设置gravity.y=-1;
+		 */
+		get gravity():any;
+		set gravity(value:any);
+
+		/**
+		 * 获得刚体总数量
+		 */
+		getBodyCount():number;
+
+		/**
+		 * 获得碰撞总数量
+		 */
+		getContactCount():number;
+
+		/**
+		 * 获得关节总数量
+		 */
+		getJointCount():number;
+
+		/**
+		 * 物理世界根容器，将根据此容器作为物理世界坐标世界，进行坐标变换，默认值为stage
+设置特定容器后，就可整体位移物理对象，保持物理世界不变。
+注意，仅会在 set worldRoot 时平移一次，其他情况请配合 updatePhysicsByWorldRoot 函数使用
+		 */
+		get worldRoot():Sprite;
+		set worldRoot(value:Sprite);
+
+		/**
+		 * 设定 worldRoot 后，手动触发物理世界更新
+		 */
+		updatePhysicsByWorldRoot():void;
+	}
+
+	/**
+	 * 物理辅助线，调用PhysicsDebugDraw.enable()开启，或者通过IDE设置打开
+	 */
+	class PhysicsDebugDraw extends Sprite  {
+
+		/**
+		 * @private 
+		 */
+		m_drawFlags:number;
+
+		/**
+		 * @private 
+		 */
+		static box2d:any;
+
+		/**
+		 * @private 
+		 */
+		static DrawString_s_color:any;
+
+		/**
+		 * @private 
+		 */
+		static DrawStringWorld_s_p:any;
+
+		/**
+		 * @private 
+		 */
+		static DrawStringWorld_s_cc:any;
+
+		/**
+		 * @private 
+		 */
+		static DrawStringWorld_s_color:any;
+
+		/**
+		 * @private 
+		 */
+		world:any;
+
+		/**
+		 * @private 
+		 */
+		private _camera:any;
+
+		/**
+		 * @private 
+		 */
+		private static _canvas:any;
+
+		/**
+		 * @private 
+		 */
+		private static _inited:any;
+
+		/**
+		 * @private 
+		 */
+		private _mG:any;
+
+		/**
+		 * @private 
+		 */
+		private _textSp:any;
+
+		/**
+		 * @private 
+		 */
+		private _textG:any;
+
+		/**
+		 * @private 
+		 */
+		static init():void;
+
+		constructor();
+
+		/**
+		 * @private 
+		 * @override 
+		 */
+		render(ctx:Context,x:number,y:number):void;
+
+		/**
+		 * @private 
+		 */
+		private lineWidth:any;
+
+		/**
+		 * @private 
+		 */
+		private _renderToGraphic:any;
+
+		/**
+		 * @private 
+		 */
+		SetFlags(flags:number):void;
+
+		/**
+		 * @private 
+		 */
+		GetFlags():number;
+
+		/**
+		 * @private 
+		 */
+		AppendFlags(flags:number):void;
+
+		/**
+		 * @private 
+		 */
+		ClearFlags(flags:any):void;
+
+		/**
+		 * @private 
+		 */
+		PushTransform(xf:any):void;
+
+		/**
+		 * @private 
+		 */
+		PopTransform(xf:any):void;
+
+		/**
+		 * @private 
+		 */
+		DrawPolygon(vertices:any,vertexCount:any,color:any):void;
+
+		/**
+		 * @private 
+		 */
+		DrawSolidPolygon(vertices:any,vertexCount:any,color:any):void;
+
+		/**
+		 * @private 
+		 */
+		DrawCircle(center:any,radius:any,color:any):void;
+
+		/**
+		 * @private 
+		 */
+		DrawSolidCircle(center:any,radius:any,axis:any,color:any):void;
+
+		/**
+		 * @private 
+		 */
+		DrawParticles(centers:any,radius:any,colors:any,count:any):void;
+
+		/**
+		 * @private 
+		 */
+		DrawSegment(p1:any,p2:any,color:any):void;
+
+		/**
+		 * @private 
+		 */
+		DrawTransform(xf:any):void;
+
+		/**
+		 * @private 
+		 */
+		DrawPoint(p:any,size:any,color:any):void;
+
+		/**
+		 * @private 
+		 */
+		DrawString(x:any,y:any,message:any):void;
+
+		/**
+		 * @private 
+		 */
+		DrawStringWorld(x:any,y:any,message:any):void;
+
+		/**
+		 * @private 
+		 */
+		DrawAABB(aabb:any,color:any):void;
+
+		/**
+		 * @private 
+		 */
+		static I:PhysicsDebugDraw;
+
+		/**
+		 * 激活物理辅助线
+		 * @param flags 位标记值，其值是AND的结果，其值有-1:显示形状，2:显示关节，4:显示AABB包围盒,8:显示broad-phase pairs,16:显示质心
+		 * @return 返回一个Sprite对象，本对象用来显示物理辅助线
+		 */
+		static enable(flags?:number):PhysicsDebugDraw;
+	}
+
+	/**
+	 * 2D多边形碰撞体，暂时不支持凹多边形，如果是凹多边形，先手动拆分为多个凸多边形
+节点个数最多是b2_maxPolygonVertices，这数值默认是8，所以点的数量不建议超过8个，也不能小于3个
+	 */
+	class PolygonCollider extends ColliderBase  {
+
+		/**
+		 * 相对节点的x轴偏移
+		 */
+		private _x:any;
+
+		/**
+		 * 相对节点的y轴偏移
+		 */
+		private _y:any;
+
+		/**
+		 * 用逗号隔开的点的集合，格式：x,y,x,y ...
+		 */
+		private _points:any;
+
+		/**
+		 * @override 
+		 */
+		protected getDef():any;
+		private _setShape:any;
+
+		/**
+		 * 相对节点的x轴偏移
+		 */
+		get x():number;
+		set x(value:number);
+
+		/**
+		 * 相对节点的y轴偏移
+		 */
+		get y():number;
+		set y(value:number);
+
+		/**
+		 * 用逗号隔开的点的集合，格式：x,y,x,y ...
+		 */
+		get points():string;
+		set points(value:string);
+	}
+
+	/**
+	 * 2D刚体，显示对象通过RigidBody和物理世界进行绑定，保持物理和显示对象之间的位置同步
+物理世界的位置变化会自动同步到显示对象，显示对象本身的位移，旋转（父对象位移无效）也会自动同步到物理世界
+由于引擎限制，暂时不支持以下情形：
+1.不支持绑定节点缩放
+2.不支持绑定节点的父节点缩放和旋转
+3.不支持实时控制父对象位移，IDE内父对象位移是可以的
+如果想整体位移物理世界，可以Physics.I.worldRoot=场景，然后移动场景即可
+可以通过IDE-"项目设置" 开启物理辅助线显示，或者通过代码PhysicsDebugDraw.enable();
+	 */
+	class RigidBody extends Component  {
+
+		/**
+		 * 刚体类型，支持三种类型static，dynamic和kinematic类型，默认为dynamic类型
+static为静态类型，静止不动，不受重力影响，质量无限大，可以通过节点移动，旋转，缩放进行控制
+dynamic为动态类型，受重力影响
+kinematic为运动类型，不受重力影响，可以通过施加速度或者力的方式使其运动
+		 */
+		protected _type:string;
+
+		/**
+		 * 是否允许休眠，允许休眠能提高性能
+		 */
+		protected _allowSleep:boolean;
+
+		/**
+		 * 角速度，设置会导致旋转
+		 */
+		protected _angularVelocity:number;
+
+		/**
+		 * 旋转速度阻尼系数，范围可以在0到无穷大之间，0表示没有阻尼，无穷大表示满阻尼，通常阻尼的值应该在0到0.1之间
+		 */
+		protected _angularDamping:number;
+
+		/**
+		 * 线性运动速度，比如{x:10,y:10}
+		 */
+		protected _linearVelocity:any;
+
+		/**
+		 * 线性速度阻尼系数，范围可以在0到无穷大之间，0表示没有阻尼，无穷大表示满阻尼，通常阻尼的值应该在0到0.1之间
+		 */
+		protected _linearDamping:number;
+
+		/**
+		 * 是否高速移动的物体，设置为true，可以防止高速穿透
+		 */
+		protected _bullet:boolean;
+
+		/**
+		 * 是否允许旋转，如果不希望刚体旋转，这设置为false
+		 */
+		protected _allowRotation:boolean;
+
+		/**
+		 * 重力缩放系数，设置为0为没有重力
+		 */
+		protected _gravityScale:number;
+
+		/**
+		 * [只读] 指定了该主体所属的碰撞组，默认为0，碰撞规则如下：
+1.如果两个对象group相等
+group值大于零，它们将始终发生碰撞
+group值小于零，它们将永远不会发生碰撞
+group值等于0，则使用规则3
+2.如果group值不相等，则使用规则3
+3.每个刚体都有一个category类别，此属性接收位字段，范围为[1,2^31]范围内的2的幂
+每个刚体也都有一个mask类别，指定与其碰撞的类别值之和（值是所有category按位AND的值）
+		 */
+		group:number;
+
+		/**
+		 * [只读]碰撞类别，使用2的幂次方值指定，有32种不同的碰撞类别可用
+		 */
+		category:number;
+
+		/**
+		 * [只读]指定冲突位掩码碰撞的类别，category位操作的结果
+		 */
+		mask:number;
+
+		/**
+		 * [只读]自定义标签
+		 */
+		label:string;
+
+		/**
+		 * [只读]原始刚体
+		 */
+		protected _body:any;
+		private _createBody:any;
+
+		/**
+		 * 获取对象某属性的get set方法
+通过其本身无法获取该方法，只能从原型上获取
+		 * @param obj 
+		 * @param prop 
+		 * @param accessor 
+		 */
+		private accessGetSetFunc:any;
+
+		/**
+		 * 重置Collider
+		 * @param resetShape 是否先重置形状，比如缩放导致碰撞体变化
+		 */
+		private resetCollider:any;
+
+		/**
+		 * @private 同步物理坐标到游戏坐标
+		 */
+		private _sysPhysicToNode:any;
+
+		/**
+		 * @private 同步节点坐标及旋转到物理世界
+		 */
+		private _sysNodeToPhysic:any;
+
+		/**
+		 * @private 同步节点坐标到物理世界
+		 */
+		private _sysPosToPhysic:any;
+
+		/**
+		 * @private 
+		 */
+		private _overSet:any;
+
+		/**
+		 * 获得原始body对象
+		 */
+		getBody():any;
+		_getOriBody():any;
+
+		/**
+		 * [只读]获得原始body对象
+		 */
+		get body():any;
+
+		/**
+		 * 对刚体施加力
+		 * @param position 施加力的点，如{x:100,y:100}，全局坐标
+		 * @param force 施加的力，如{x:0.1,y:0.1}
+		 */
+		applyForce(position:any,force:any):void;
+
+		/**
+		 * 从中心点对刚体施加力，防止对象旋转
+		 * @param force 施加的力，如{x:0.1,y:0.1}
+		 */
+		applyForceToCenter(force:any):void;
+
+		/**
+		 * 施加速度冲量，添加的速度冲量会与刚体原有的速度叠加，产生新的速度
+		 * @param position 施加力的点，如{x:100,y:100}，全局坐标
+		 * @param impulse 施加的速度冲量，如{x:0.1,y:0.1}
+		 */
+		applyLinearImpulse(position:any,impulse:any):void;
+
+		/**
+		 * 施加速度冲量，添加的速度冲量会与刚体原有的速度叠加，产生新的速度
+		 * @param impulse 施加的速度冲量，如{x:0.1,y:0.1}
+		 */
+		applyLinearImpulseToCenter(impulse:any):void;
+
+		/**
+		 * 对刚体施加扭矩，使其旋转
+		 * @param torque 施加的扭矩
+		 */
+		applyTorque(torque:number):void;
+
+		/**
+		 * 设置速度，比如{x:10,y:10}
+		 * @param velocity 
+		 */
+		setVelocity(velocity:any):void;
+
+		/**
+		 * 设置角度
+		 * @param value 单位为弧度
+		 */
+		setAngle(value:any):void;
+
+		/**
+		 * 获得刚体质量
+		 */
+		getMass():number;
+
+		/**
+		 * 获得质心的相对节点0,0点的位置偏移
+		 */
+		getCenter():any;
+
+		/**
+		 * 获得质心的世界坐标，相对于Physics.I.worldRoot节点
+		 */
+		getWorldCenter():any;
+
+		/**
+		 * 刚体类型，支持三种类型static，dynamic和kinematic类型
+static为静态类型，静止不动，不受重力影响，质量无限大，可以通过节点移动，旋转，缩放进行控制
+dynamic为动态类型，接受重力影响
+kinematic为运动类型，不受重力影响，可以通过施加速度或者力的方式使其运动
+		 */
+		get type():string;
+		set type(value:string);
+
+		/**
+		 * 重力缩放系数，设置为0为没有重力
+		 */
+		get gravityScale():number;
+		set gravityScale(value:number);
+
+		/**
+		 * 是否允许旋转，如果不希望刚体旋转，这设置为false
+		 */
+		get allowRotation():boolean;
+		set allowRotation(value:boolean);
+
+		/**
+		 * 是否允许休眠，允许休眠能提高性能
+		 */
+		get allowSleep():boolean;
+		set allowSleep(value:boolean);
+
+		/**
+		 * 旋转速度阻尼系数，范围可以在0到无穷大之间，0表示没有阻尼，无穷大表示满阻尼，通常阻尼的值应该在0到0.1之间
+		 */
+		get angularDamping():number;
+		set angularDamping(value:number);
+
+		/**
+		 * 角速度，设置会导致旋转
+		 */
+		get angularVelocity():number;
+		set angularVelocity(value:number);
+
+		/**
+		 * 线性速度阻尼系数，范围可以在0到无穷大之间，0表示没有阻尼，无穷大表示满阻尼，通常阻尼的值应该在0到0.1之间
+		 */
+		get linearDamping():number;
+		set linearDamping(value:number);
+
+		/**
+		 * 线性运动速度，比如{x:5,y:5}
+		 */
+		get linearVelocity():any;
+		set linearVelocity(value:any);
+
+		/**
+		 * 是否高速移动的物体，设置为true，可以防止高速穿透
+		 */
+		get bullet():boolean;
+		set bullet(value:boolean);
 	}
 
 	/**
@@ -33676,648 +33378,6 @@ enum HTMLElementType {
 	}
 
 	/**
-	 * 2D物理引擎，使用Box2d驱动
-	 */
-	class Physics extends EventDispatcher  {
-
-		/**
-		 * 2D游戏默认单位为像素，物理默认单位为米，此值设置了像素和米的转换比率，默认50像素=1米
-		 */
-		static PIXEL_RATIO:number;
-
-		/**
-		 * @private 
-		 */
-		private static _I:any;
-
-		/**
-		 * Box2d引擎的全局引用，更多属性和api请参考 http://box2d.org
-		 */
-		box2d:any;
-
-		/**
-		 * [只读]物理世界引用，更多属性请参考官网
-		 */
-		world:any;
-
-		/**
-		 * 旋转迭代次数，增大数字会提高精度，但是会降低性能
-		 */
-		velocityIterations:number;
-
-		/**
-		 * 位置迭代次数，增大数字会提高精度，但是会降低性能
-		 */
-		positionIterations:number;
-
-		/**
-		 * @private 是否已经激活
-		 */
-		private _enabled:any;
-
-		/**
-		 * @private 根容器
-		 */
-		private _worldRoot:any;
-
-		/**
-		 * @private 空的body节点，给一些不需要节点的关节使用
-		 */
-		_emptyBody:any;
-
-		/**
-		 * @private 
-		 */
-		_eventList:any[];
-
-		/**
-		 * 全局物理单例
-		 */
-		static get I():Physics;
-
-		constructor();
-
-		/**
-		 * 开启物理世界
-		 * options值参考如下：
-		 * allowSleeping:true,
-		 * gravity:10,
-		 * customUpdate:false 自己控制物理更新时机，自己调用Physics.update
-		 */
-		static enable(options?:any):void;
-
-		/**
-		 * 开启物理世界
-		 * options值参考如下：
-		 * allowSleeping:true,
-		 * gravity:10,
-		 * customUpdate:false 自己控制物理更新时机，自己调用Physics.update
-		 */
-		start(options?:any):void;
-		private _update:any;
-		private _sendEvent:any;
-
-		/**
-		 * @private 
-		 */
-		_createBody(def:any):any;
-
-		/**
-		 * @private 
-		 */
-		_removeBody(body:any):void;
-
-		/**
-		 * @private 
-		 */
-		_createJoint(def:any):any;
-
-		/**
-		 * @private 
-		 */
-		_removeJoint(joint:any):void;
-
-		/**
-		 * 停止物理世界
-		 */
-		stop():void;
-
-		/**
-		 * 设置是否允许休眠，休眠可以提高稳定性和性能，但通常会牺牲准确性
-		 */
-		get allowSleeping():boolean;
-		set allowSleeping(value:boolean);
-
-		/**
-		 * 物理世界重力环境，默认值为{x:0,y:1}
-		 * 如果修改y方向重力方向向上，可以直接设置gravity.y=-1;
-		 */
-		get gravity():any;
-		set gravity(value:any);
-
-		/**
-		 * 获得刚体总数量
-		 */
-		getBodyCount():number;
-
-		/**
-		 * 获得碰撞总数量
-		 */
-		getContactCount():number;
-
-		/**
-		 * 获得关节总数量
-		 */
-		getJointCount():number;
-
-		/**
-		 * 物理世界根容器，将根据此容器作为物理世界坐标世界，进行坐标变换，默认值为stage
-		 * 设置特定容器后，就可整体位移物理对象，保持物理世界不变。
-		 * 注意，仅会在 set worldRoot 时平移一次，其他情况请配合 updatePhysicsByWorldRoot 函数使用
-		 */
-		get worldRoot():Sprite;
-		set worldRoot(value:Sprite);
-
-		/**
-		 * 设定 worldRoot 后，手动触发物理世界更新
-		 */
-		updatePhysicsByWorldRoot():void;
-	}
-
-	/**
-	 * 物理辅助线，调用PhysicsDebugDraw.enable()开启，或者通过IDE设置打开
-	 */
-	class PhysicsDebugDraw extends Sprite  {
-
-		/**
-		 * @private 
-		 */
-		m_drawFlags:number;
-
-		/**
-		 * @private 
-		 */
-		static box2d:any;
-
-		/**
-		 * @private 
-		 */
-		static DrawString_s_color:any;
-
-		/**
-		 * @private 
-		 */
-		static DrawStringWorld_s_p:any;
-
-		/**
-		 * @private 
-		 */
-		static DrawStringWorld_s_cc:any;
-
-		/**
-		 * @private 
-		 */
-		static DrawStringWorld_s_color:any;
-
-		/**
-		 * @private 
-		 */
-		world:any;
-
-		/**
-		 * @private 
-		 */
-		private _camera:any;
-
-		/**
-		 * @private 
-		 */
-		private static _canvas:any;
-
-		/**
-		 * @private 
-		 */
-		private static _inited:any;
-
-		/**
-		 * @private 
-		 */
-		private _mG:any;
-
-		/**
-		 * @private 
-		 */
-		private _textSp:any;
-
-		/**
-		 * @private 
-		 */
-		private _textG:any;
-
-		/**
-		 * @private 
-		 */
-		static init():void;
-
-		constructor();
-
-		/**
-		 * @private 
-		 * @override 
-		 */
-		render(ctx:Context,x:number,y:number):void;
-
-		/**
-		 * @private 
-		 */
-		private lineWidth:any;
-
-		/**
-		 * @private 
-		 */
-		private _renderToGraphic:any;
-
-		/**
-		 * @private 
-		 */
-		SetFlags(flags:number):void;
-
-		/**
-		 * @private 
-		 */
-		GetFlags():number;
-
-		/**
-		 * @private 
-		 */
-		AppendFlags(flags:number):void;
-
-		/**
-		 * @private 
-		 */
-		ClearFlags(flags:any):void;
-
-		/**
-		 * @private 
-		 */
-		PushTransform(xf:any):void;
-
-		/**
-		 * @private 
-		 */
-		PopTransform(xf:any):void;
-
-		/**
-		 * @private 
-		 */
-		DrawPolygon(vertices:any,vertexCount:any,color:any):void;
-
-		/**
-		 * @private 
-		 */
-		DrawSolidPolygon(vertices:any,vertexCount:any,color:any):void;
-
-		/**
-		 * @private 
-		 */
-		DrawCircle(center:any,radius:any,color:any):void;
-
-		/**
-		 * @private 
-		 */
-		DrawSolidCircle(center:any,radius:any,axis:any,color:any):void;
-
-		/**
-		 * @private 
-		 */
-		DrawParticles(centers:any,radius:any,colors:any,count:any):void;
-
-		/**
-		 * @private 
-		 */
-		DrawSegment(p1:any,p2:any,color:any):void;
-
-		/**
-		 * @private 
-		 */
-		DrawTransform(xf:any):void;
-
-		/**
-		 * @private 
-		 */
-		DrawPoint(p:any,size:any,color:any):void;
-
-		/**
-		 * @private 
-		 */
-		DrawString(x:any,y:any,message:any):void;
-
-		/**
-		 * @private 
-		 */
-		DrawStringWorld(x:any,y:any,message:any):void;
-
-		/**
-		 * @private 
-		 */
-		DrawAABB(aabb:any,color:any):void;
-
-		/**
-		 * @private 
-		 */
-		static I:PhysicsDebugDraw;
-
-		/**
-		 * 激活物理辅助线
-		 * @param flags 位标记值，其值是AND的结果，其值有-1:显示形状，2:显示关节，4:显示AABB包围盒,8:显示broad-phase pairs,16:显示质心
-		 * @return 返回一个Sprite对象，本对象用来显示物理辅助线
-		 */
-		static enable(flags?:number):PhysicsDebugDraw;
-	}
-
-	/**
-	 * 2D多边形碰撞体，暂时不支持凹多边形，如果是凹多边形，先手动拆分为多个凸多边形
-	 * 节点个数最多是b2_maxPolygonVertices，这数值默认是8，所以点的数量不建议超过8个，也不能小于3个
-	 */
-	class PolygonCollider extends ColliderBase  {
-
-		/**
-		 * 相对节点的x轴偏移
-		 */
-		private _x:any;
-
-		/**
-		 * 相对节点的y轴偏移
-		 */
-		private _y:any;
-
-		/**
-		 * 用逗号隔开的点的集合，格式：x,y,x,y ...
-		 */
-		private _points:any;
-
-		/**
-		 * @override 
-		 */
-		protected getDef():any;
-		private _setShape:any;
-
-		/**
-		 * 相对节点的x轴偏移
-		 */
-		get x():number;
-		set x(value:number);
-
-		/**
-		 * 相对节点的y轴偏移
-		 */
-		get y():number;
-		set y(value:number);
-
-		/**
-		 * 用逗号隔开的点的集合，格式：x,y,x,y ...
-		 */
-		get points():string;
-		set points(value:string);
-	}
-
-	/**
-	 * 2D刚体，显示对象通过RigidBody和物理世界进行绑定，保持物理和显示对象之间的位置同步
-	 * 物理世界的位置变化会自动同步到显示对象，显示对象本身的位移，旋转（父对象位移无效）也会自动同步到物理世界
-	 * 由于引擎限制，暂时不支持以下情形：
-	 * 1.不支持绑定节点缩放
-	 * 2.不支持绑定节点的父节点缩放和旋转
-	 * 3.不支持实时控制父对象位移，IDE内父对象位移是可以的
-	 * 如果想整体位移物理世界，可以Physics.I.worldRoot=场景，然后移动场景即可
-	 * 可以通过IDE-"项目设置" 开启物理辅助线显示，或者通过代码PhysicsDebugDraw.enable();
-	 */
-	class RigidBody extends Component  {
-
-		/**
-		 * 刚体类型，支持三种类型static，dynamic和kinematic类型，默认为dynamic类型
-		 * static为静态类型，静止不动，不受重力影响，质量无限大，可以通过节点移动，旋转，缩放进行控制
-		 * dynamic为动态类型，受重力影响
-		 * kinematic为运动类型，不受重力影响，可以通过施加速度或者力的方式使其运动
-		 */
-		protected _type:string;
-
-		/**
-		 * 是否允许休眠，允许休眠能提高性能
-		 */
-		protected _allowSleep:boolean;
-
-		/**
-		 * 角速度，设置会导致旋转
-		 */
-		protected _angularVelocity:number;
-
-		/**
-		 * 旋转速度阻尼系数，范围可以在0到无穷大之间，0表示没有阻尼，无穷大表示满阻尼，通常阻尼的值应该在0到0.1之间
-		 */
-		protected _angularDamping:number;
-
-		/**
-		 * 线性运动速度，比如{x:10,y:10}
-		 */
-		protected _linearVelocity:any;
-
-		/**
-		 * 线性速度阻尼系数，范围可以在0到无穷大之间，0表示没有阻尼，无穷大表示满阻尼，通常阻尼的值应该在0到0.1之间
-		 */
-		protected _linearDamping:number;
-
-		/**
-		 * 是否高速移动的物体，设置为true，可以防止高速穿透
-		 */
-		protected _bullet:boolean;
-
-		/**
-		 * 是否允许旋转，如果不希望刚体旋转，这设置为false
-		 */
-		protected _allowRotation:boolean;
-
-		/**
-		 * 重力缩放系数，设置为0为没有重力
-		 */
-		protected _gravityScale:number;
-
-		/**
-		 * [只读] 指定了该主体所属的碰撞组，默认为0，碰撞规则如下：
-		 * 1.如果两个对象group相等
-		 * group值大于零，它们将始终发生碰撞
-		 * group值小于零，它们将永远不会发生碰撞
-		 * group值等于0，则使用规则3
-		 * 2.如果group值不相等，则使用规则3
-		 * 3.每个刚体都有一个category类别，此属性接收位字段，范围为[1,2^31]范围内的2的幂
-		 * 每个刚体也都有一个mask类别，指定与其碰撞的类别值之和（值是所有category按位AND的值）
-		 */
-		group:number;
-
-		/**
-		 * [只读]碰撞类别，使用2的幂次方值指定，有32种不同的碰撞类别可用
-		 */
-		category:number;
-
-		/**
-		 * [只读]指定冲突位掩码碰撞的类别，category位操作的结果
-		 */
-		mask:number;
-
-		/**
-		 * [只读]自定义标签
-		 */
-		label:string;
-
-		/**
-		 * [只读]原始刚体
-		 */
-		protected _body:any;
-		private _createBody:any;
-
-		/**
-		 * 获取对象某属性的get set方法
-		 * 通过其本身无法获取该方法，只能从原型上获取
-		 * @param obj 
-		 * @param prop 
-		 * @param accessor 
-		 */
-		private accessGetSetFunc:any;
-
-		/**
-		 * 重置Collider
-		 * @param resetShape 是否先重置形状，比如缩放导致碰撞体变化
-		 */
-		private resetCollider:any;
-
-		/**
-		 * @private 同步物理坐标到游戏坐标
-		 */
-		private _sysPhysicToNode:any;
-
-		/**
-		 * @private 同步节点坐标及旋转到物理世界
-		 */
-		private _sysNodeToPhysic:any;
-
-		/**
-		 * @private 同步节点坐标到物理世界
-		 */
-		private _sysPosToPhysic:any;
-
-		/**
-		 * @private 
-		 */
-		private _overSet:any;
-
-		/**
-		 * 获得原始body对象
-		 */
-		getBody():any;
-		_getOriBody():any;
-
-		/**
-		 * [只读]获得原始body对象
-		 */
-		get body():any;
-
-		/**
-		 * 对刚体施加力
-		 * @param position 施加力的点，如{x:100,y:100}，全局坐标
-		 * @param force 施加的力，如{x:0.1,y:0.1}
-		 */
-		applyForce(position:any,force:any):void;
-
-		/**
-		 * 从中心点对刚体施加力，防止对象旋转
-		 * @param force 施加的力，如{x:0.1,y:0.1}
-		 */
-		applyForceToCenter(force:any):void;
-
-		/**
-		 * 施加速度冲量，添加的速度冲量会与刚体原有的速度叠加，产生新的速度
-		 * @param position 施加力的点，如{x:100,y:100}，全局坐标
-		 * @param impulse 施加的速度冲量，如{x:0.1,y:0.1}
-		 */
-		applyLinearImpulse(position:any,impulse:any):void;
-
-		/**
-		 * 施加速度冲量，添加的速度冲量会与刚体原有的速度叠加，产生新的速度
-		 * @param impulse 施加的速度冲量，如{x:0.1,y:0.1}
-		 */
-		applyLinearImpulseToCenter(impulse:any):void;
-
-		/**
-		 * 对刚体施加扭矩，使其旋转
-		 * @param torque 施加的扭矩
-		 */
-		applyTorque(torque:number):void;
-
-		/**
-		 * 设置速度，比如{x:10,y:10}
-		 * @param velocity 
-		 */
-		setVelocity(velocity:any):void;
-
-		/**
-		 * 设置角度
-		 * @param value 单位为弧度
-		 */
-		setAngle(value:any):void;
-
-		/**
-		 * 获得刚体质量
-		 */
-		getMass():number;
-
-		/**
-		 * 获得质心的相对节点0,0点的位置偏移
-		 */
-		getCenter():any;
-
-		/**
-		 * 获得质心的世界坐标，相对于Physics.I.worldRoot节点
-		 */
-		getWorldCenter():any;
-
-		/**
-		 * 刚体类型，支持三种类型static，dynamic和kinematic类型
-		 * static为静态类型，静止不动，不受重力影响，质量无限大，可以通过节点移动，旋转，缩放进行控制
-		 * dynamic为动态类型，接受重力影响
-		 * kinematic为运动类型，不受重力影响，可以通过施加速度或者力的方式使其运动
-		 */
-		get type():string;
-		set type(value:string);
-
-		/**
-		 * 重力缩放系数，设置为0为没有重力
-		 */
-		get gravityScale():number;
-		set gravityScale(value:number);
-
-		/**
-		 * 是否允许旋转，如果不希望刚体旋转，这设置为false
-		 */
-		get allowRotation():boolean;
-		set allowRotation(value:boolean);
-
-		/**
-		 * 是否允许休眠，允许休眠能提高性能
-		 */
-		get allowSleep():boolean;
-		set allowSleep(value:boolean);
-
-		/**
-		 * 旋转速度阻尼系数，范围可以在0到无穷大之间，0表示没有阻尼，无穷大表示满阻尼，通常阻尼的值应该在0到0.1之间
-		 */
-		get angularDamping():number;
-		set angularDamping(value:number);
-
-		/**
-		 * 角速度，设置会导致旋转
-		 */
-		get angularVelocity():number;
-		set angularVelocity(value:number);
-
-		/**
-		 * 线性速度阻尼系数，范围可以在0到无穷大之间，0表示没有阻尼，无穷大表示满阻尼，通常阻尼的值应该在0到0.1之间
-		 */
-		get linearDamping():number;
-		set linearDamping(value:number);
-
-		/**
-		 * 线性运动速度，比如{x:5,y:5}
-		 */
-		get linearVelocity():any;
-		set linearVelocity(value:any);
-
-		/**
-		 * 是否高速移动的物体，设置为true，可以防止高速穿透
-		 */
-		get bullet():boolean;
-		set bullet(value:boolean);
-	}
-
-	/**
 	 * <code>Render</code> 是渲染管理类。它是一个单例，可以使用 Laya.render 访问。
 	 */
 	class Render  {
@@ -34677,7 +33737,7 @@ enum HTMLElementType {
 
 		/**
 		 * *
-		 * 获取高度。
+获取高度。
 		 */
 		get height():number;
 		set height(height:number);
@@ -34807,8 +33867,8 @@ enum HTMLElementType {
 
 		/**
 		 * 所cacheAs精灵
-		 * 对于cacheas bitmap的情况，如果图片还没准备好，需要有机会重画，所以要保存sprite。例如在图片
-		 * 加载完成后，调用repaint
+对于cacheas bitmap的情况，如果图片还没准备好，需要有机会重画，所以要保存sprite。例如在图片
+加载完成后，调用repaint
 		 */
 		sprite:Sprite|null;
 		private _fillColor:any;
@@ -34842,15 +33902,15 @@ enum HTMLElementType {
 
 		/**
 		 * 当前canvas请求保存渲染结果。
-		 * 实现：
-		 * 如果value==true，就要给_target赋值
+实现：
+如果value==true，就要给_target赋值
 		 * @param value 
 		 */
 		set asBitmap(value:boolean);
 
 		/**
 		 * 获得当前矩阵的缩放值
-		 * 避免每次都计算getScaleX
+避免每次都计算getScaleX
 		 * @return 
 		 */
 		getMatScaleX():number;
@@ -34940,7 +34000,7 @@ enum HTMLElementType {
 
 		/**
 		 * 强制拒绝submit合并
-		 * 例如切换rt的时候
+例如切换rt的时候
 		 */
 		breakNextMerge():void;
 		private _repaintSprite:any;
@@ -34975,7 +34035,7 @@ enum HTMLElementType {
 
 		/**
 		 * 从setIBVB改为drawMesh
-		 * type 参数不知道是干什么的，先删掉。offset好像跟attribute有关，删掉
+type 参数不知道是干什么的，先删掉。offset好像跟attribute有关，删掉
 		 * @param x 
 		 * @param y 
 		 * @param ib 
@@ -35167,8 +34227,8 @@ enum FilterMode {
 
 		/**
 		 * <p><b>不支持canvas了，所以备Texture2D替换了</p>
-		 * <p>创建一个 <code>HTMLImage</code> 实例。</p>
-		 * <p>请使用 <code>HTMLImage.create()<code>创建实例，不要直接使用 <code>new HTMLImage<code> 。</p>
+<p>创建一个 <code>HTMLImage</code> 实例。</p>
+<p>请使用 <code>HTMLImage.create()<code>创建实例，不要直接使用 <code>new HTMLImage<code> 。</p>
 		 */
 		static create:Function;
 	}
@@ -35246,7 +34306,7 @@ enum FilterMode {
 
 		/**
 		 * *
-		 * 获取高度。
+获取高度。
 		 */
 		get sourceHeight():number;
 
@@ -35257,7 +34317,7 @@ enum FilterMode {
 
 		/**
 		 * *
-		 * 获取offsetY
+获取offsetY
 		 */
 		get offsetY():number;
 
@@ -35801,7 +34861,7 @@ enum RTDEPTHATTACHMODE {
 
 		/**
 		 * 通过图片源填充纹理,可为HTMLImageElement、HTMLCanvasElement、HTMLVideoElement、ImageBitmap、ImageData,
-		 * 设置之后纹理宽高可能会发生变化。
+设置之后纹理宽高可能会发生变化。
 		 */
 		loadImageSource(source:any,premultiplyAlpha?:boolean):void;
 
@@ -35919,7 +34979,7 @@ enum TextureFormat {
 
 		/**
 		 * 获得绑定的资源Video
-		 * return HTMLVideoElement
+return HTMLVideoElement
 		 */
 		get video():any;
 
@@ -35942,14 +35002,14 @@ enum TextureFormat {
 
 	/**
 	 * WebGLRTMgr 管理WebGLRenderTarget的创建和回收
-	 * TODO 需求不大，管理成本高。先去掉。
+TODO 需求不大，管理成本高。先去掉。
 	 */
 	class WebGLRTMgr  {
 		private static dict:any;
 
 		/**
 		 * 获得一个renderTarget
-		 * 暂时先按照严格大小判断。
+暂时先按照严格大小判断。
 		 * @param w 
 		 * @param h 
 		 * @return 
@@ -36127,7 +35187,7 @@ enum WarpMode {
 
 		/**
 		 * 获取骨骼信息(spine.Bone)
-		 * 注意: 获取到的是spine运行时的骨骼信息(spine.Bone)，不适用引擎的方法
+注意: 获取到的是spine运行时的骨骼信息(spine.Bone)，不适用引擎的方法
 		 * @param boneName 
 		 */
 		getBoneByName(boneName:string):spine.Bone;
@@ -36421,7 +35481,7 @@ enum SpineFormat {
 
 	/**
 	 * <code>AutoBitmap</code> 类是用于表示位图图像或绘制图形的显示对象。
-	 * <p>封装了位置，宽高及九宫格的处理，供UI组件使用。</p>
+<p>封装了位置，宽高及九宫格的处理，供UI组件使用。</p>
 	 */
 	class AutoBitmap extends Graphics  {
 
@@ -36465,30 +35525,30 @@ enum SpineFormat {
 
 		/**
 		 * 当前实例的有效缩放网格数据。
-		 * <p>如果设置为null,则在应用任何缩放转换时，将正常缩放整个显示对象。</p>
-		 * <p>数据格式：[上边距,右边距,下边距,左边距,是否重复填充(值为0：不重复填充，1：重复填充)]。
-		 * <ul><li>例如：[4,4,4,4,1]</li></ul></p>
-		 * <p> <code>sizeGrid</code> 的值如下所示：
-		 * <ol>
-		 * <li>上边距</li>
-		 * <li>右边距</li>
-		 * <li>下边距</li>
-		 * <li>左边距</li>
-		 * <li>是否重复填充(值为0：不重复填充，1：重复填充)</li>
-		 * </ol></p>
-		 * <p>当定义 <code>sizeGrid</code> 属性时，该显示对象被分割到以 <code>sizeGrid</code> 数据中的"上边距,右边距,下边距,左边距" 组成的矩形为基础的具有九个区域的网格中，该矩形定义网格的中心区域。网格的其它八个区域如下所示：
-		 * <ul>
-		 * <li>矩形上方的区域</li>
-		 * <li>矩形外的右上角</li>
-		 * <li>矩形左侧的区域</li>
-		 * <li>矩形右侧的区域</li>
-		 * <li>矩形外的左下角</li>
-		 * <li>矩形下方的区域</li>
-		 * <li>矩形外的右下角</li>
-		 * <li>矩形外的左上角</li>
-		 * </ul>
-		 * 同时也支持3宫格，比如0,4,0,4,1为水平3宫格，4,0,4,0,1为垂直3宫格，3宫格性能比9宫格高。
-		 * </p>
+<p>如果设置为null,则在应用任何缩放转换时，将正常缩放整个显示对象。</p>
+<p>数据格式：[上边距,右边距,下边距,左边距,是否重复填充(值为0：不重复填充，1：重复填充)]。
+<ul><li>例如：[4,4,4,4,1]</li></ul></p>
+<p> <code>sizeGrid</code> 的值如下所示：
+<ol>
+<li>上边距</li>
+<li>右边距</li>
+<li>下边距</li>
+<li>左边距</li>
+<li>是否重复填充(值为0：不重复填充，1：重复填充)</li>
+</ol></p>
+<p>当定义 <code>sizeGrid</code> 属性时，该显示对象被分割到以 <code>sizeGrid</code> 数据中的"上边距,右边距,下边距,左边距" 组成的矩形为基础的具有九个区域的网格中，该矩形定义网格的中心区域。网格的其它八个区域如下所示：
+<ul>
+<li>矩形上方的区域</li>
+<li>矩形外的右上角</li>
+<li>矩形左侧的区域</li>
+<li>矩形右侧的区域</li>
+<li>矩形外的左下角</li>
+<li>矩形下方的区域</li>
+<li>矩形外的右下角</li>
+<li>矩形外的左上角</li>
+</ul>
+同时也支持3宫格，比如0,4,0,4,1为水平3宫格，4,0,4,0,1为垂直3宫格，3宫格性能比9宫格高。
+</p>
 		 */
 		get sizeGrid():number[];
 		set sizeGrid(value:number[]);
@@ -36564,7 +35624,7 @@ enum SpineFormat {
 
 	/**
 	 * <code>Button</code> 组件用来表示常用的多态按钮。 <code>Button</code> 组件可显示文本标签、图标或同时显示两者。	 *
-	 * <p>可以是单态，两态和三态，默认三态(up,over,down)。</p>
+<p>可以是单态，两态和三态，默认三态(up,over,down)。</p>
 	 * @example <caption>以下示例代码，创建了一个 <code>Button</code> 实例。</caption>
 package
 {
@@ -36804,8 +35864,8 @@ function onClickButton(button) {
 
 		/**
 		 * <p>对象的皮肤资源地址。</p>
-		 * 支持单态，两态和三态，用 <code>stateNum</code> 属性设置
-		 * <p>对象的皮肤地址，以字符串表示。</p>
+支持单态，两态和三态，用 <code>stateNum</code> 属性设置
+<p>对象的皮肤地址，以字符串表示。</p>
 		 * @see #stateNum
 		 */
 		get skin():string;
@@ -36814,17 +35874,17 @@ function onClickButton(button) {
 
 		/**
 		 * <p>指定对象的状态值，以数字表示。</p>
-		 * <p>默认值为3。此值决定皮肤资源图片的切割方式。</p>
-		 * <p><b>取值：</b>
-		 * <li>1：单态。图片不做切割，按钮的皮肤状态只有一种。</li>
-		 * <li>2：两态。图片将以竖直方向被等比切割为2部分，从上向下，依次为
-		 * 弹起状态皮肤、
-		 * 按下和经过及选中状态皮肤。</li>
-		 * <li>3：三态。图片将以竖直方向被等比切割为3部分，从上向下，依次为
-		 * 弹起状态皮肤、
-		 * 经过状态皮肤、
-		 * 按下和选中状态皮肤</li>
-		 * </p>
+<p>默认值为3。此值决定皮肤资源图片的切割方式。</p>
+<p><b>取值：</b>
+<li>1：单态。图片不做切割，按钮的皮肤状态只有一种。</li>
+<li>2：两态。图片将以竖直方向被等比切割为2部分，从上向下，依次为
+弹起状态皮肤、
+按下和经过及选中状态皮肤。</li>
+<li>3：三态。图片将以竖直方向被等比切割为3部分，从上向下，依次为
+弹起状态皮肤、
+经过状态皮肤、
+按下和选中状态皮肤</li>
+</p>
 		 */
 		get stateNum():number;
 		set stateNum(value:number);
@@ -36854,7 +35914,7 @@ function onClickButton(button) {
 
 		/**
 		 * 表示按钮的选中状态。
-		 * <p>如果值为true，表示该对象处于选中状态。否则该对象处于未选中状态。</p>
+<p>如果值为true，表示该对象处于选中状态。否则该对象处于未选中状态。</p>
 		 * @implements 
 		 */
 		get selected():boolean;
@@ -36874,21 +35934,21 @@ function onClickButton(button) {
 
 		/**
 		 * 表示按钮各个状态下的文本颜色。
-		 * <p><b>格式:</b> "upColor,overColor,downColor,disableColor"。</p>
+<p><b>格式:</b> "upColor,overColor,downColor,disableColor"。</p>
 		 */
 		get labelColors():string;
 		set labelColors(value:string);
 
 		/**
 		 * 表示按钮各个状态下的描边颜色。
-		 * <p><b>格式:</b> "upColor,overColor,downColor,disableColor"。</p>
+<p><b>格式:</b> "upColor,overColor,downColor,disableColor"。</p>
 		 */
 		get strokeColors():string;
 		set strokeColors(value:string);
 
 		/**
 		 * 表示按钮文本标签的边距。
-		 * <p><b>格式：</b>"上边距,右边距,下边距,左边距"。</p>
+<p><b>格式：</b>"上边距,右边距,下边距,左边距"。</p>
 		 */
 		get labelPadding():string;
 		set labelPadding(value:string);
@@ -36902,7 +35962,7 @@ function onClickButton(button) {
 
 		/**
 		 * <p>描边宽度（以像素为单位）。</p>
-		 * 默认值0，表示不描边。
+默认值0，表示不描边。
 		 * @see laya.display.Text.stroke()
 		 */
 		get labelStroke():number;
@@ -36910,7 +35970,7 @@ function onClickButton(button) {
 
 		/**
 		 * <p>描边颜色，以字符串表示。</p>
-		 * 默认值为 "#000000"（黑色）;
+默认值为 "#000000"（黑色）;
 		 * @see laya.display.Text.strokeColor()
 		 */
 		get labelStrokeColor():string;
@@ -36950,8 +36010,8 @@ function onClickButton(button) {
 
 		/**
 		 * <p>当前实例的位图 <code>AutoImage</code> 实例的有效缩放网格数据。</p>
-		 * <p>数据格式："上边距,右边距,下边距,左边距,是否重复填充(值为0：不重复填充，1：重复填充)"，以逗号分隔。
-		 * <ul><li>例如："4,4,4,4,1"</li></ul></p>
+<p>数据格式："上边距,右边距,下边距,左边距,是否重复填充(值为0：不重复填充，1：重复填充)"，以逗号分隔。
+<ul><li>例如："4,4,4,4,1"</li></ul></p>
 		 * @see laya.ui.AutoBitmap.sizeGrid
 		 */
 		get sizeGrid():string;
@@ -37012,8 +36072,8 @@ function onClickButton(button) {
 
 	/**
 	 * <code>CheckBox</code> 组件显示一个小方框，该方框内可以有选中标记。
-	 * <code>CheckBox</code> 组件还可以显示可选的文本标签，默认该标签位于 CheckBox 右侧。
-	 * <p><code>CheckBox</code> 使用 <code>dataSource</code>赋值时的的默认属性是：<code>selected</code>。</p>
+<code>CheckBox</code> 组件还可以显示可选的文本标签，默认该标签位于 CheckBox 右侧。
+<p><code>CheckBox</code> 使用 <code>dataSource</code>赋值时的的默认属性是：<code>selected</code>。</p>
 	 * @example <caption>以下示例代码，创建了一个 <code>CheckBox</code> 实例。</caption>
 package
 {
@@ -37128,10 +36188,10 @@ class CheckBox_Example{
 
 	/**
 	 * <p> <code>Clip</code> 类是位图切片动画。</p>
-	 * <p> <code>Clip</code> 可将一张图片，按横向分割数量 <code>clipX</code> 、竖向分割数量 <code>clipY</code> ，
-	 * 或横向分割每个切片的宽度 <code>clipWidth</code> 、竖向分割每个切片的高度 <code>clipHeight</code> ，
-	 * 从左向右，从上到下，分割组合为一个切片动画。</p>
-	 * Image和Clip组件是唯一支持异步加载的两个组件，比如clip.skin = "abc/xxx.png"，其他UI组件均不支持异步加载。
+<p> <code>Clip</code> 可将一张图片，按横向分割数量 <code>clipX</code> 、竖向分割数量 <code>clipY</code> ，
+或横向分割每个切片的宽度 <code>clipWidth</code> 、竖向分割每个切片的高度 <code>clipHeight</code> ，
+从左向右，从上到下，分割组合为一个切片动画。</p>
+Image和Clip组件是唯一支持异步加载的两个组件，比如clip.skin = "abc/xxx.png"，其他UI组件均不支持异步加载。
 	 * @example <caption>以下示例代码，创建了一个 <code>Clip</code> 实例。</caption>
 package
 {
@@ -37421,8 +36481,8 @@ class Clip_Example {
 
 		/**
 		 * <p>当前实例的位图 <code>AutoImage</code> 实例的有效缩放网格数据。</p>
-		 * <p>数据格式："上边距,右边距,下边距,左边距,是否重复填充(值为0：不重复填充，1：重复填充)"，以逗号分隔。
-		 * <ul><li>例如："4,4,4,4,1"</li></ul></p>
+<p>数据格式："上边距,右边距,下边距,左边距,是否重复填充(值为0：不重复填充，1：重复填充)"，以逗号分隔。
+<ul><li>例如："4,4,4,4,1"</li></ul></p>
 		 * @see laya.ui.AutoBitmap.sizeGrid
 		 */
 		get sizeGrid():string;
@@ -37441,7 +36501,7 @@ class Clip_Example {
 
 		/**
 		 * 表示是否自动播放动画，若自动播放值为true,否则值为false;
-		 * <p>可控制切片动画的播放、停止。</p>
+<p>可控制切片动画的播放、停止。</p>
 		 */
 		get autoPlay():boolean;
 		set autoPlay(value:boolean);
@@ -37454,7 +36514,7 @@ class Clip_Example {
 
 		/**
 		 * 表示动画的当前播放状态。
-		 * 如果动画正在播放中，则为true，否则为flash。
+如果动画正在播放中，则为true，否则为flash。
 		 */
 		get isPlaying():boolean;
 		set isPlaying(value:boolean);
@@ -37578,7 +36638,7 @@ class ColorPicker_Example {
 
 		/**
 		 * 当颜色发生改变时执行的函数处理器。
-		 * 默认返回参数color：颜色值字符串。
+默认返回参数color：颜色值字符串。
 		 */
 		changeHandler:Handler;
 
@@ -38054,7 +37114,7 @@ class ComboBox_Example {
 
 		/**
 		 * 下拉列表项颜色。
-		 * <p><b>格式：</b>"悬停或被选中时背景颜色,悬停或被选中时标签颜色,标签颜色,边框颜色,背景颜色"</p>
+<p><b>格式：</b>"悬停或被选中时背景颜色,悬停或被选中时标签颜色,标签颜色,边框颜色,背景颜色"</p>
 		 */
 		get itemColors():string;
 		set itemColors(value:string);
@@ -38085,8 +37145,8 @@ class ComboBox_Example {
 
 		/**
 		 * <p>当前实例的位图 <code>AutoImage</code> 实例的有效缩放网格数据。</p>
-		 * <p>数据格式："上边距,右边距,下边距,左边距,是否重复填充(值为0：不重复填充，1：重复填充)"，以逗号分隔。
-		 * <ul><li>例如："4,4,4,4,1"</li></ul></p>
+<p>数据格式："上边距,右边距,下边距,左边距,是否重复填充(值为0：不重复填充，1：重复填充)"，以逗号分隔。
+<ul><li>例如："4,4,4,4,1"</li></ul></p>
 		 * @see laya.ui.AutoBitmap.sizeGrid
 		 */
 		get sizeGrid():string;
@@ -38122,14 +37182,14 @@ class ComboBox_Example {
 
 		/**
 		 * 获取或设置对 <code>ComboBox</code> 组件所包含的 <code>Button</code> 组件的文本标签颜色。
-		 * <p><b>格式：</b>upColor,overColor,downColor,disableColor</p>
+<p><b>格式：</b>upColor,overColor,downColor,disableColor</p>
 		 */
 		get labelColors():string;
 		set labelColors(value:string);
 
 		/**
 		 * 获取或设置对 <code>ComboBox</code> 组件所包含的 <code>Button</code> 组件的文本边距。
-		 * <p><b>格式：</b>上边距,右边距,下边距,左边距</p>
+<p><b>格式：</b>上边距,右边距,下边距,左边距</p>
 		 */
 		get labelPadding():string;
 		set labelPadding(value:string);
@@ -38164,9 +37224,9 @@ class ComboBox_Example {
 
 	/**
 	 * <code>Dialog</code> 组件是一个弹出对话框，实现对话框弹出，拖动，模式窗口功能。
-	 * 可以通过UIConfig设置弹出框背景透明度，模式窗口点击边缘是否关闭等
-	 * 通过设置zOrder属性，可以更改弹出的层次
-	 * 通过设置popupEffect和closeEffect可以设置弹出效果和关闭效果，如果不想有任何弹出关闭效果，可以设置前述属性为空
+可以通过UIConfig设置弹出框背景透明度，模式窗口点击边缘是否关闭等
+通过设置zOrder属性，可以更改弹出的层次
+通过设置popupEffect和closeEffect可以设置弹出效果和关闭效果，如果不想有任何弹出关闭效果，可以设置前述属性为空
 	 * @example <caption>以下示例代码，创建了一个 <code>Dialog</code> 实例。</caption>
 package
 {
@@ -38330,26 +37390,26 @@ class Dialog_Instance extends Dialog {
 
 		/**
 		 * 对话框管理容器，所有的对话框都在该容器内，并且受管理器管理，可以自定义自己的管理器，来更改窗口管理的流程。
-		 * 任意对话框打开和关闭，都会触发管理类的open和close事件
+任意对话框打开和关闭，都会触发管理类的open和close事件
 		 */
 		static get manager():DialogManager;
 		static set manager(value:DialogManager);
 
 		/**
 		 * 对话框被关闭时会触发的回调函数处理器。
-		 * <p>回调函数参数为用户点击的按钮名字name:String。</p>
+<p>回调函数参数为用户点击的按钮名字name:String。</p>
 		 */
 		closeHandler:Handler;
 
 		/**
 		 * 弹出对话框效果，可以设置一个效果代替默认的弹出效果，如果不想有任何效果，可以赋值为null
-		 * 全局默认弹出效果可以通过manager.popupEffect修改
+全局默认弹出效果可以通过manager.popupEffect修改
 		 */
 		popupEffect:Handler;
 
 		/**
 		 * 关闭对话框效果，可以设置一个效果代替默认的关闭效果，如果不想有任何效果，可以赋值为null
-		 * 全局默认关闭效果可以通过manager.closeEffect修改
+全局默认关闭效果可以通过manager.closeEffect修改
 		 */
 		closeEffect:Handler;
 
@@ -38392,8 +37452,8 @@ class Dialog_Instance extends Dialog {
 
 		/**
 		 * 用来指定对话框的拖拽区域。默认值为"0,0,0,0"。
-		 * <p><b>格式：</b>构成一个矩形所需的 x,y,width,heith 值，用逗号连接为字符串。
-		 * 例如："0,0,100,200"。</p>
+<p><b>格式：</b>构成一个矩形所需的 x,y,width,heith 值，用逗号连接为字符串。
+例如："0,0,100,200"。</p>
 		 * @see #includeExamplesSummary 请参考示例
 		 */
 		get dragArea():string;
@@ -38506,9 +37566,9 @@ class Dialog_Instance extends Dialog {
 
 	/**
 	 * <code>DialogManager</code> 对话框管理容器，所有的对话框都在该容器内，并且受管理器管理。
-	 * 任意对话框打开和关闭，都会出发管理类的open和close事件
-	 * 可以通过UIConfig设置弹出框背景透明度，模式窗口点击边缘是否关闭，点击窗口是否切换层次等
-	 * 通过设置对话框的zOrder属性，可以更改弹出的层次
+任意对话框打开和关闭，都会出发管理类的open和close事件
+可以通过UIConfig设置弹出框背景透明度，模式窗口点击边缘是否关闭，点击窗口是否切换层次等
+通过设置对话框的zOrder属性，可以更改弹出的层次
 	 */
 	class DialogManager extends Sprite  {
 
@@ -38623,10 +37683,10 @@ class Dialog_Instance extends Dialog {
 
 	/**
 	 * 字体切片，简化版的位图字体，只需设置一个切片图片和文字内容即可使用，效果同位图字体
-	 * 使用方式：设置位图字体皮肤skin，设置皮肤对应的字体内容sheet（如果多行，可以使用空格换行），示例：
-	 * fontClip.skin = "font1.png";//设置皮肤
-	 * fontClip.sheet = "abc123 456";//设置皮肤对应的内容，空格换行。此皮肤为2行5列（显示时skin会被等分为2行5列），第一行对应的文字为"abc123"，第二行为"456"
-	 * fontClip.value = "a1326";//显示"a1326"文字
+使用方式：设置位图字体皮肤skin，设置皮肤对应的字体内容sheet（如果多行，可以使用空格换行），示例：
+fontClip.skin = "font1.png";//设置皮肤
+fontClip.sheet = "abc123 456";//设置皮肤对应的内容，空格换行。此皮肤为2行5列（显示时skin会被等分为2行5列），第一行对应的文字为"abc123"，第二行为"456"
+fontClip.value = "a1326";//显示"a1326"文字
 	 */
 	class FontClip extends Clip  {
 
@@ -38706,11 +37766,11 @@ class Dialog_Instance extends Dialog {
 
 		/**
 		 * 布局方向。
-		 * <p>默认值为"horizontal"。</p>
-		 * <p><b>取值：</b>
-		 * <li>"horizontal"：表示水平布局。</li>
-		 * <li>"vertical"：表示垂直布局。</li>
-		 * </p>
+<p>默认值为"horizontal"。</p>
+<p><b>取值：</b>
+<li>"horizontal"：表示水平布局。</li>
+<li>"vertical"：表示垂直布局。</li>
+</p>
 		 */
 		get direction():string;
 		set direction(value:string);
@@ -38909,7 +37969,7 @@ class HScrollBar_Example {
 
 	/**
 	 * 使用 <code>HSlider</code> 控件，用户可以通过在滑块轨道的终点之间移动滑块来选择值。
-	 * <p> <code>HSlider</code> 控件采用水平方向。滑块轨道从左向右扩展，而标签位于轨道的顶部或底部。</p>
+<p> <code>HSlider</code> 控件采用水平方向。滑块轨道从左向右扩展，而标签位于轨道的顶部或底部。</p>
 	 * @example <caption>以下示例代码，创建了一个 <code>HSlider</code> 实例。</caption>
 package
 {
@@ -39015,6 +38075,29 @@ class HSlider_Example {
 	}
 
 
+	interface IRender{
+
+		/**
+		 * 渲染项。
+		 */
+		itemRender:any;
+	}
+
+
+	interface ISelect{
+
+		/**
+		 * 一个布尔值，表示是否被选择。
+		 */
+		selected:boolean;
+
+		/**
+		 * 对象的点击事件回掉函数处理器。
+		 */
+		clickHandler:Handler;
+	}
+
+
 	/**
 	 * 资源加载完成后调度。
 	 * @eventType Event.LOADED
@@ -39022,7 +38105,7 @@ class HSlider_Example {
 
 	/**
 	 * <code>Image</code> 类是用于表示位图图像或绘制图形的显示对象。
-	 * Image和Clip组件是唯一支持异步加载的两个组件，比如img.skin = "abc/xxx.png"，其他UI组件均不支持异步加载。
+Image和Clip组件是唯一支持异步加载的两个组件，比如img.skin = "abc/xxx.png"，其他UI组件均不支持异步加载。
 	 * @example <caption>以下示例代码，创建了一个新的 <code>Image</code> 实例，设置了它的皮肤、位置信息，并添加到舞台上。</caption>
 package
 {
@@ -39127,8 +38210,8 @@ function onInit() {
 
 		/**
 		 * <p>对象的皮肤地址，以字符串表示。</p>
-		 * <p>如果资源未加载，则先加载资源，加载完成后应用于此对象。</p>
-		 * <b>注意：</b>资源加载完成后，会自动缓存至资源库中。
+<p>如果资源未加载，则先加载资源，加载完成后应用于此对象。</p>
+<b>注意：</b>资源加载完成后，会自动缓存至资源库中。
 		 */
 		get skin():string;
 		set skin(value:string);
@@ -39188,8 +38271,8 @@ function onInit() {
 
 		/**
 		 * <p>当前实例的位图 <code>AutoImage</code> 实例的有效缩放网格数据。</p>
-		 * <p>数据格式："上边距,右边距,下边距,左边距,是否重复填充(值为0：不重复填充，1：重复填充)"，以逗号分隔。
-		 * <ul><li>例如："4,4,4,4,1"。</li></ul></p>
+<p>数据格式："上边距,右边距,下边距,左边距,是否重复填充(值为0：不重复填充，1：重复填充)"，以逗号分隔。
+<ul><li>例如："4,4,4,4,1"。</li></ul></p>
 		 * @see laya.ui.AutoBitmap#sizeGrid
 		 */
 		get sizeGrid():string;
@@ -39207,29 +38290,6 @@ function onInit() {
 		 */
 		get dataSource():any;
 	}
-
-	interface IRender{
-
-		/**
-		 * 渲染项。
-		 */
-		itemRender:any;
-	}
-
-
-	interface ISelect{
-
-		/**
-		 * 一个布尔值，表示是否被选择。
-		 */
-		selected:boolean;
-
-		/**
-		 * 对象的点击事件回掉函数处理器。
-		 */
-		clickHandler:Handler;
-	}
-
 
 	/**
 	 * 文本内容发生改变后调度。
@@ -39436,7 +38496,7 @@ class Label_Example {
 
 		/**
 		 * <p>边距信息</p>
-		 * <p>"上边距，右边距，下边距 , 左边距（边距以像素为单位）"</p>
+<p>"上边距，右边距，下边距 , 左边距（边距以像素为单位）"</p>
 		 * @see laya.display.Text.padding
 		 */
 		get padding():string;
@@ -39959,11 +39019,11 @@ class Item extends Box {
 
 		/**
 		 * 单元格渲染器。
-		 * <p><b>取值：</b>
-		 * <ol>
-		 * <li>单元格类对象。</li>
-		 * <li> UI 的 JSON 描述。</li>
-		 * </ol></p>
+<p><b>取值：</b>
+<ol>
+<li>单元格类对象。</li>
+<li> UI 的 JSON 描述。</li>
+</ol></p>
 		 * @implements 
 		 */
 		get itemRender():any;
@@ -40039,7 +39099,7 @@ class Item extends Box {
 
 		/**
 		 * 设置可视区域大小。
-		 * <p>以（0，0，width参数，height参数）组成的矩形区域为可视区域。</p>
+<p>以（0，0，width参数，height参数）组成的矩形区域为可视区域。</p>
 		 * @param width 可视区域宽度。
 		 * @param height 可视区域高度。
 		 */
@@ -40272,7 +39332,7 @@ class Item extends Box {
 
 		/**
 		 * 创建一个新的 <code>Panel</code> 类实例。
-		 * <p>在 <code>Panel</code> 构造函数中设置属性width、height的值都为100。</p>
+<p>在 <code>Panel</code> 构造函数中设置属性width、height的值都为100。</p>
 		 */
 
 		constructor();
@@ -40583,7 +39643,7 @@ class ProgressBar_Example {
 
 		/**
 		 * 当 <code>ProgressBar</code> 实例的 <code>value</code> 属性发生变化时的函数处理器。
-		 * <p>默认返回参数<code>value</code> 属性（进度值）。</p>
+<p>默认返回参数<code>value</code> 属性（进度值）。</p>
 		 */
 		changeHandler:Handler;
 
@@ -40647,7 +39707,7 @@ class ProgressBar_Example {
 
 		/**
 		 * 当前的进度量。
-		 * <p><b>取值：</b>介于0和1之间。</p>
+<p><b>取值：</b>介于0和1之间。</p>
 		 */
 		get value():number;
 		set value(num:number);
@@ -40669,8 +39729,8 @@ class ProgressBar_Example {
 
 		/**
 		 * <p>当前 <code>ProgressBar</code> 实例的进度条背景位图（ <code>Image</code> 实例）的有效缩放网格数据。</p>
-		 * <p>数据格式："上边距,右边距,下边距,左边距,是否重复填充(值为0：不重复填充，1：重复填充)"，以逗号分隔。
-		 * <ul><li>例如："4,4,4,4,1"</li></ul></p>
+<p>数据格式："上边距,右边距,下边距,左边距,是否重复填充(值为0：不重复填充，1：重复填充)"，以逗号分隔。
+<ul><li>例如："4,4,4,4,1"</li></ul></p>
 		 * @see laya.ui.AutoBitmap.sizeGrid
 		 */
 		get sizeGrid():string;
@@ -40715,7 +39775,7 @@ class ProgressBar_Example {
 
 	/**
 	 * <code>Radio</code> 控件使用户可在一组互相排斥的选择中做出一种选择。
-	 * 用户一次只能选择 <code>Radio</code> 组中的一个成员。选择未选中的组成员将取消选择该组中当前所选的 <code>Radio</code> 控件。
+用户一次只能选择 <code>Radio</code> 组中的一个成员。选择未选中的组成员将取消选择该组中当前所选的 <code>Radio</code> 控件。
 	 * @see laya.ui.RadioGroup
 	 */
 	class Radio extends Button  {
@@ -40769,7 +39829,7 @@ class ProgressBar_Example {
 
 	/**
 	 * <code>RadioGroup</code> 控件定义一组 <code>Radio</code> 控件，这些控件相互排斥；
-	 * 因此，用户每次只能选择一个 <code>Radio</code> 控件。
+因此，用户每次只能选择一个 <code>Radio</code> 控件。
 	 * @example <caption>以下示例代码，创建了一个 <code>RadioGroup</code> 实例。</caption>
 package
 {
@@ -40905,8 +39965,8 @@ class RadioGroup_Example {
 
 	/**
 	 * <code>ScrollBar</code> 组件是一个滚动条组件。
-	 * <p>当数据太多以至于显示区域无法容纳时，最终用户可以使用 <code>ScrollBar</code> 组件控制所显示的数据部分。</p>
-	 * <p> 滚动条由四部分组成：两个箭头按钮、一个轨道和一个滑块。 </p>	 *
+<p>当数据太多以至于显示区域无法容纳时，最终用户可以使用 <code>ScrollBar</code> 组件控制所显示的数据部分。</p>
+<p> 滚动条由四部分组成：两个箭头按钮、一个轨道和一个滑块。 </p>	 *
 	 * @see laya.ui.VScrollBar
 	 * @see laya.ui.HScrollBar
 	 */
@@ -41148,15 +40208,15 @@ class RadioGroup_Example {
 
 		/**
 		 * 一个布尔值，指示滚动条是否为垂直滚动。如果值为true，则为垂直滚动，否则为水平滚动。
-		 * <p>默认值为：true。</p>
+<p>默认值为：true。</p>
 		 */
 		get isVertical():boolean;
 		set isVertical(value:boolean);
 
 		/**
 		 * <p>当前实例的 <code>Slider</code> 实例的有效缩放网格数据。</p>
-		 * <p>数据格式："上边距,右边距,下边距,左边距,是否重复填充(值为0：不重复填充，1：重复填充)"，以逗号分隔。
-		 * <ul><li>例如："4,4,4,4,1"</li></ul></p>
+<p>数据格式："上边距,右边距,下边距,左边距,是否重复填充(值为0：不重复填充，1：重复填充)"，以逗号分隔。
+<ul><li>例如："4,4,4,4,1"</li></ul></p>
 		 * @see laya.ui.AutoBitmap.sizeGrid
 		 */
 		get sizeGrid():string;
@@ -41280,8 +40340,8 @@ class RadioGroup_Example {
 
 	/**
 	 * 使用 <code>Slider</code> 控件，用户可以通过在滑块轨道的终点之间移动滑块来选择值。
-	 * <p>滑块的当前值由滑块端点（对应于滑块的最小值和最大值）之间滑块的相对位置确定。</p>
-	 * <p>滑块允许最小值和最大值之间特定间隔内的值。滑块还可以使用数据提示显示其当前值。</p>
+<p>滑块的当前值由滑块端点（对应于滑块的最小值和最大值）之间滑块的相对位置确定。</p>
+<p>滑块允许最小值和最大值之间特定间隔内的值。滑块还可以使用数据提示显示其当前值。</p>
 	 * @see laya.ui.HSlider
 	 * @see laya.ui.VSlider
 	 */
@@ -41294,13 +40354,13 @@ class RadioGroup_Example {
 
 		/**
 		 * 数据变化处理器。
-		 * <p>默认回调参数为滑块位置属性 <code>value</code>属性值：Number 。</p>
+<p>默认回调参数为滑块位置属性 <code>value</code>属性值：Number 。</p>
 		 */
 		changeHandler:Handler;
 
 		/**
 		 * 一个布尔值，指示是否为垂直滚动。如果值为true，则为垂直方向，否则为水平方向。
-		 * <p>默认值为：true。</p>
+<p>默认值为：true。</p>
 		 * @default true
 		 */
 		isVertical:boolean;
@@ -41463,8 +40523,8 @@ class RadioGroup_Example {
 
 		/**
 		 * <p>当前实例的背景图（ <code>Image</code> ）和滑块按钮（ <code>Button</code> ）实例的有效缩放网格数据。</p>
-		 * <p>数据格式："上边距,右边距,下边距,左边距,是否重复填充(值为0：不重复填充，1：重复填充)"，以逗号分隔。
-		 * <ul><li>例如："4,4,4,4,1"</li></ul></p>
+<p>数据格式："上边距,右边距,下边距,左边距,是否重复填充(值为0：不重复填充，1：重复填充)"，以逗号分隔。
+<ul><li>例如："4,4,4,4,1"</li></ul></p>
 		 * @see laya.ui.AutoBitmap.sizeGrid
 		 */
 		get sizeGrid():string;
@@ -41554,13 +40614,13 @@ class RadioGroup_Example {
 
 		/**
 		 * 标签的边距。
-		 * <p><b>格式：</b>[上边距，右边距，下边距，左边距]。</p>
+<p><b>格式：</b>[上边距，右边距，下边距，左边距]。</p>
 		 */
 		static labelPadding:any[];
 
 		/**
 		 * 标签的边距。
-		 * <p><b>格式：</b>[上边距，右边距，下边距，左边距]。</p>
+<p><b>格式：</b>[上边距，右边距，下边距，左边距]。</p>
 		 */
 		static inputLabelPadding:any[];
 
@@ -41571,13 +40631,13 @@ class RadioGroup_Example {
 
 		/**
 		 * 按钮标签颜色。
-		 * <p><b>格式：</b>[upColor,overColor,downColor,disableColor]。</p>
+<p><b>格式：</b>[upColor,overColor,downColor,disableColor]。</p>
 		 */
 		static buttonLabelColors:any[];
 
 		/**
 		 * 下拉框项颜色。
-		 * <p><b>格式：</b>[overBgColor,overLabelColor,outLabelColor,borderColor,bgColor]。</p>
+<p><b>格式：</b>[overBgColor,overLabelColor,outLabelColor,borderColor,bgColor]。</p>
 		 */
 		static comboBoxItemColors:any[];
 
@@ -41599,7 +40659,7 @@ class RadioGroup_Example {
 
 	/**
 	 * <code>Tab</code> 组件用来定义选项卡按钮组。	 *
-	 * <p>属性：<code>selectedIndex</code> 的默认值为-1。</p>
+<p>属性：<code>selectedIndex</code> 的默认值为-1。</p>
 	 * @example <caption>以下示例代码，创建了一个 <code>Tab</code> 实例。</caption>
 package
 {
@@ -42032,8 +41092,8 @@ class TextInput_Example {
 
 		/**
 		 * <p>当前实例的背景图（ <code>AutoBitmap</code> ）实例的有效缩放网格数据。</p>
-		 * <p>数据格式："上边距,右边距,下边距,左边距,是否重复填充(值为0：不重复填充，1：重复填充)"，以逗号分隔。
-		 * <ul><li>例如："4,4,4,4,1"</li></ul></p>
+<p>数据格式："上边距,右边距,下边距,左边距,是否重复填充(值为0：不重复填充，1：重复填充)"，以逗号分隔。
+<ul><li>例如："4,4,4,4,1"</li></ul></p>
 		 * @see laya.ui.AutoBitmap.sizeGrid
 		 */
 		get sizeGrid():string;
@@ -42077,7 +41137,7 @@ class TextInput_Example {
 
 		/**
 		 * <p>指示当前是否是文本域。</p>
-		 * 值为true表示当前是文本域，否则不是文本域。
+值为true表示当前是文本域，否则不是文本域。
 		 */
 		get multiline():boolean;
 		set multiline(value:boolean);
@@ -42432,7 +41492,7 @@ class Item extends Box {
 
 		/**
 		 * 创建一个新的 <code>Tree</code> 类实例。
-		 * <p>在 <code>Tree</code> 构造函数中设置属性width、height的值都为200。</p>
+<p>在 <code>Tree</code> 构造函数中设置属性width、height的值都为200。</p>
 		 */
 
 		constructor();
@@ -42455,10 +41515,10 @@ class Item extends Box {
 
 		/**
 		 * 数据源发生变化后，是否保持之前打开状态，默认为true。
-		 * <p><b>取值：</b>
-		 * <li>true：保持之前打开状态。</li>
-		 * <li>false：不保持之前打开状态。</li>
-		 * </p>
+<p><b>取值：</b>
+<li>true：保持之前打开状态。</li>
+<li>false：不保持之前打开状态。</li>
+</p>
 		 */
 		get keepStatus():boolean;
 		set keepStatus(value:boolean);
@@ -42481,11 +41541,11 @@ class Item extends Box {
 
 		/**
 		 * 此对象包含的<code>List</code>实例的单元格渲染器。
-		 * <p><b>取值：</b>
-		 * <ol>
-		 * <li>单元格类对象。</li>
-		 * <li> UI 的 JSON 描述。</li>
-		 * </ol></p>
+<p><b>取值：</b>
+<ol>
+<li>单元格类对象。</li>
+<li> UI 的 JSON 描述。</li>
+</ol></p>
 		 * @implements 
 		 */
 		get itemRender():any;
@@ -42504,7 +41564,7 @@ class Item extends Box {
 
 		/**
 		 * 单元格鼠标事件处理器。
-		 * <p>默认返回参数（e:Event,index:int）。</p>
+<p>默认返回参数（e:Event,index:int）。</p>
 		 */
 		get mouseHandler():Handler;
 		set mouseHandler(value:Handler);
@@ -42656,7 +41716,7 @@ class Item extends Box {
 
 	/**
 	 * <code>Component</code> 是ui控件类的基类。
-	 * <p>生命周期：preinitialize > createChildren > initialize > 组件构造函数</p>
+<p>生命周期：preinitialize > createChildren > initialize > 组件构造函数</p>
 	 */
 	class UIComponent extends Sprite  {
 
@@ -42714,25 +41774,25 @@ class Item extends Box {
 
 		/**
 		 * <p>预初始化。</p>
-		 * 子类可在此函数内设置、修改属性默认值
+子类可在此函数内设置、修改属性默认值
 		 */
 		protected preinitialize():void;
 
 		/**
 		 * <p>创建并添加控件子节点。</p>
-		 * 子类可在此函数内创建并添加子节点。
+子类可在此函数内创建并添加子节点。
 		 */
 		protected createChildren():void;
 
 		/**
 		 * <p>控件初始化。</p>
-		 * 在此子对象已被创建，可以对子对象进行修改。
+在此子对象已被创建，可以对子对象进行修改。
 		 */
 		protected initialize():void;
 
 		/**
 		 * <p>表示显示对象的宽度，以像素为单位。</p>
-		 * <p><b>注：</b>当值为0时，宽度为自适应大小。</p>
+<p><b>注：</b>当值为0时，宽度为自适应大小。</p>
 		 * @override 
 		 */
 		get width():number;
@@ -42749,7 +41809,7 @@ class Item extends Box {
 
 		/**
 		 * <p>立即执行影响宽高度量的延迟调用函数。</p>
-		 * <p>使用 <code>runCallLater</code> 函数，立即执行影响宽高度量的延迟运行函数(使用 <code>callLater</code> 设置延迟执行函数)。</p>
+<p>使用 <code>runCallLater</code> 函数，立即执行影响宽高度量的延迟运行函数(使用 <code>callLater</code> 设置延迟执行函数)。</p>
 		 * @see #callLater()
 		 * @see #runCallLater()
 		 */
@@ -42757,7 +41817,7 @@ class Item extends Box {
 
 		/**
 		 * <p>表示显示对象的高度，以像素为单位。</p>
-		 * <p><b>注：</b>当值为0时，高度为自适应大小。</p>
+<p><b>注：</b>当值为0时，高度为自适应大小。</p>
 		 * @override 
 		 */
 		get height():number;
@@ -42828,14 +41888,14 @@ dataSource = {label2: {text:"改变了label",size:14}, checkbox2: {selected:true
 
 		/**
 		 * <p>对象的标签。</p>
-		 * 冗余字段，可以用来储存数据。
+冗余字段，可以用来储存数据。
 		 */
 		get tag():any;
 		set tag(value:any);
 
 		/**
 		 * <p>鼠标悬停提示。</p>
-		 * <p>可以赋值为文本 <code>String</code> 或函数 <code>Handler</code> ，用来实现自定义样式的鼠标提示和参数携带等。</p>
+<p>可以赋值为文本 <code>String</code> 或函数 <code>Handler</code> ，用来实现自定义样式的鼠标提示和参数携带等。</p>
 		 * @example private var _testTips:TestTipsUI = new TestTipsUI();
 private function testTips():void {
 //简单鼠标提示
@@ -42991,8 +42051,8 @@ tip.addChild(_testTips);
 
 	/**
 	 * <code>Group</code> 是一个可以自动布局的项集合控件。
-	 * <p> <code>Group</code> 的默认项对象为 <code>Button</code> 类实例。
-	 * <code>Group</code> 是 <code>Tab</code> 和 <code>RadioGroup</code> 的基类。</p>
+<p> <code>Group</code> 的默认项对象为 <code>Button</code> 类实例。
+<code>Group</code> 是 <code>Tab</code> 和 <code>RadioGroup</code> 的基类。</p>
 	 */
 	class UIGroup extends Box implements IItem  {
 
@@ -43172,7 +42232,7 @@ tip.addChild(_testTips);
 
 		/**
 		 * <p>描边宽度（以像素为单位）。</p>
-		 * 默认值0，表示不描边。
+默认值0，表示不描边。
 		 * @see laya.display.Text.stroke()
 		 */
 		get labelStroke():number;
@@ -43180,7 +42240,7 @@ tip.addChild(_testTips);
 
 		/**
 		 * <p>描边颜色，以字符串表示。</p>
-		 * 默认值为 "#000000"（黑色）;
+默认值为 "#000000"（黑色）;
 		 * @see laya.display.Text.strokeColor()
 		 */
 		get labelStrokeColor():string;
@@ -43221,18 +42281,18 @@ tip.addChild(_testTips);
 
 		/**
 		 * 表示按钮文本标签的边距。
-		 * <p><b>格式：</b>"上边距,右边距,下边距,左边距"。</p>
+<p><b>格式：</b>"上边距,右边距,下边距,左边距"。</p>
 		 */
 		get labelPadding():string;
 		set labelPadding(value:string);
 
 		/**
 		 * 布局方向。
-		 * <p>默认值为"horizontal"。</p>
-		 * <p><b>取值：</b>
-		 * <li>"horizontal"：表示水平布局。</li>
-		 * <li>"vertical"：表示垂直布局。</li>
-		 * </p>
+<p>默认值为"horizontal"。</p>
+<p><b>取值：</b>
+<li>"horizontal"：表示水平布局。</li>
+<li>"vertical"：表示垂直布局。</li>
+</p>
 		 */
 		get direction():string;
 		set direction(value:string);
@@ -43407,6 +42467,166 @@ tip.addChild(_testTips);
 	}
 
 	/**
+	 * 使用 <code>VScrollBar</code> （垂直 <code>ScrollBar</code> ）控件，可以在因数据太多而不能在显示区域完全显示时控制显示的数据部分。
+	 * @example <caption>以下示例代码，创建了一个 <code>VScrollBar</code> 实例。</caption>
+package
+{
+import laya.ui.vScrollBar;
+import laya.ui.VScrollBar;
+import laya.utils.Handler;
+public class VScrollBar_Example
+{
+private var vScrollBar:VScrollBar;
+public function VScrollBar_Example()
+{
+Laya.init(640, 800);//设置游戏画布宽高、渲染模式。
+Laya.stage.bgColor = "#efefef";//设置画布的背景颜色。
+Laya.loader.load(["resource/ui/vscroll.png", "resource/ui/vscroll$bar.png", "resource/ui/vscroll$down.png", "resource/ui/vscroll$up.png"], Handler.create(this, onLoadComplete));
+}
+private function onLoadComplete():void
+{
+vScrollBar = new VScrollBar();//创建一个 vScrollBar 类的实例对象 hScrollBar 。
+vScrollBar.skin = "resource/ui/vscroll.png";//设置 vScrollBar 的皮肤。
+vScrollBar.x = 100;//设置 vScrollBar 对象的属性 x 的值，用于控制 vScrollBar 对象的显示位置。
+vScrollBar.y = 100;//设置 vScrollBar 对象的属性 y 的值，用于控制 vScrollBar 对象的显示位置。
+vScrollBar.changeHandler = new Handler(this, onChange);//设置 vScrollBar 的滚动变化处理器。
+Laya.stage.addChild(vScrollBar);//将此 vScrollBar 对象添加到显示列表。
+}
+private function onChange(value:Number):void
+{
+trace("滚动条的位置： value=" + value);
+}
+}
+}
+	 * @example Laya.init(640, 800);//设置游戏画布宽高
+Laya.stage.bgColor = "#efefef";//设置画布的背景颜色
+var vScrollBar;
+var res = ["resource/ui/vscroll.png", "resource/ui/vscroll$bar.png", "resource/ui/vscroll$down.png", "resource/ui/vscroll$up.png"];
+Laya.loader.load(res, laya.utils.Handler.create(this, onLoadComplete));//加载资源。
+function onLoadComplete() {
+    vScrollBar = new laya.ui.VScrollBar();//创建一个 vScrollBar 类的实例对象 hScrollBar 。
+    vScrollBar.skin = "resource/ui/vscroll.png";//设置 vScrollBar 的皮肤。
+    vScrollBar.x = 100;//设置 vScrollBar 对象的属性 x 的值，用于控制 vScrollBar 对象的显示位置。
+    vScrollBar.y = 100;//设置 vScrollBar 对象的属性 y 的值，用于控制 vScrollBar 对象的显示位置。
+    vScrollBar.changeHandler = new laya.utils.Handler(this, onChange);//设置 vScrollBar 的滚动变化处理器。
+    Laya.stage.addChild(vScrollBar);//将此 vScrollBar 对象添加到显示列表。
+}
+function onChange(value) {
+    console.log("滚动条的位置： value=" + value);
+}
+	 * @example import VScrollBar = laya.ui.VScrollBar;
+import Handler = laya.utils.Handler;
+class VScrollBar_Example {
+    private vScrollBar: VScrollBar;
+    constructor() {
+        Laya.init(640, 800);//设置游戏画布宽高、渲染模式。
+        Laya.stage.bgColor = "#efefef";//设置画布的背景颜色。
+        Laya.loader.load(["resource/ui/vscroll.png", "resource/ui/vscroll$bar.png", "resource/ui/vscroll$down.png", "resource/ui/vscroll$up.png"], Handler.create(this, this.onLoadComplete));
+    }
+    private onLoadComplete(): void {
+        this.vScrollBar = new VScrollBar();//创建一个 vScrollBar 类的实例对象 hScrollBar 。
+        this.vScrollBar.skin = "resource/ui/vscroll.png";//设置 vScrollBar 的皮肤。
+        this.vScrollBar.x = 100;//设置 vScrollBar 对象的属性 x 的值，用于控制 vScrollBar 对象的显示位置。
+        this.vScrollBar.y = 100;//设置 vScrollBar 对象的属性 y 的值，用于控制 vScrollBar 对象的显示位置。
+        this.vScrollBar.changeHandler = new Handler(this, this.onChange);//设置 vScrollBar 的滚动变化处理器。
+        Laya.stage.addChild(this.vScrollBar);//将此 vScrollBar 对象添加到显示列表。
+    }
+    private onChange(value: number): void {
+        console.log("滚动条的位置： value=" + value);
+    }
+}
+	 */
+	class VScrollBar extends ScrollBar  {
+	}
+
+	/**
+	 * 使用 <code>VSlider</code> 控件，用户可以通过在滑块轨道的终点之间移动滑块来选择值。
+<p> <code>VSlider</code> 控件采用垂直方向。滑块轨道从下往上扩展，而标签位于轨道的左右两侧。</p>
+	 * @example <caption>以下示例代码，创建了一个 <code>VSlider</code> 实例。</caption>
+package
+{
+import laya.ui.HSlider;
+import laya.ui.VSlider;
+import laya.utils.Handler;
+public class VSlider_Example
+{
+private var vSlider:VSlider;
+public function VSlider_Example()
+{
+Laya.init(640, 800);//设置游戏画布宽高。
+Laya.stage.bgColor = "#efefef";//设置画布的背景颜色。
+Laya.loader.load(["resource/ui/vslider.png", "resource/ui/vslider$bar.png"], Handler.create(this, onLoadComplete));//加载资源。
+}
+private function onLoadComplete():void
+{
+vSlider = new VSlider();//创建一个 VSlider 类的实例对象 vSlider 。
+vSlider.skin = "resource/ui/vslider.png";//设置 vSlider 的皮肤。
+vSlider.min = 0;//设置 vSlider 最低位置值。
+vSlider.max = 10;//设置 vSlider 最高位置值。
+vSlider.value = 2;//设置 vSlider 当前位置值。
+vSlider.tick = 1;//设置 vSlider 刻度值。
+vSlider.x = 100;//设置 vSlider 对象的属性 x 的值，用于控制 vSlider 对象的显示位置。
+vSlider.y = 100;//设置 vSlider 对象的属性 y 的值，用于控制 vSlider 对象的显示位置。
+vSlider.changeHandler = new Handler(this, onChange);//设置 vSlider 位置变化处理器。
+Laya.stage.addChild(vSlider);//把 vSlider 添加到显示列表。
+}
+private function onChange(value:Number):void
+{
+trace("滑块的位置： value=" + value);
+}
+}
+}
+	 * @example Laya.init(640, 800);//设置游戏画布宽高
+Laya.stage.bgColor = "#efefef";//设置画布的背景颜色
+var vSlider;
+Laya.loader.load(["resource/ui/vslider.png", "resource/ui/vslider$bar.png"], laya.utils.Handler.create(this, onLoadComplete));//加载资源。
+function onLoadComplete() {
+    vSlider = new laya.ui.VSlider();//创建一个 VSlider 类的实例对象 vSlider 。
+    vSlider.skin = "resource/ui/vslider.png";//设置 vSlider 的皮肤。
+    vSlider.min = 0;//设置 vSlider 最低位置值。
+    vSlider.max = 10;//设置 vSlider 最高位置值。
+    vSlider.value = 2;//设置 vSlider 当前位置值。
+    vSlider.tick = 1;//设置 vSlider 刻度值。
+    vSlider.x = 100;//设置 vSlider 对象的属性 x 的值，用于控制 vSlider 对象的显示位置。
+    vSlider.y = 100;//设置 vSlider 对象的属性 y 的值，用于控制 vSlider 对象的显示位置。
+    vSlider.changeHandler = new laya.utils.Handler(this, onChange);//设置 vSlider 位置变化处理器。
+    Laya.stage.addChild(vSlider);//把 vSlider 添加到显示列表。
+}
+function onChange(value) {
+    console.log("滑块的位置： value=" + value);
+}
+	 * @example import HSlider = laya.ui.HSlider;
+import VSlider = laya.ui.VSlider;
+import Handler = laya.utils.Handler;
+class VSlider_Example {
+    private vSlider: VSlider;
+    constructor() {
+        Laya.init(640, 800);//设置游戏画布宽高。
+        Laya.stage.bgColor = "#efefef";//设置画布的背景颜色。
+        Laya.loader.load(["resource/ui/vslider.png", "resource/ui/vslider$bar.png"], Handler.create(this, this.onLoadComplete));//加载资源。
+    }
+    private onLoadComplete(): void {
+        this.vSlider = new VSlider();//创建一个 VSlider 类的实例对象 vSlider 。
+        this.vSlider.skin = "resource/ui/vslider.png";//设置 vSlider 的皮肤。
+        this.vSlider.min = 0;//设置 vSlider 最低位置值。
+        this.vSlider.max = 10;//设置 vSlider 最高位置值。
+        this.vSlider.value = 2;//设置 vSlider 当前位置值。
+        this.vSlider.tick = 1;//设置 vSlider 刻度值。
+        this.vSlider.x = 100;//设置 vSlider 对象的属性 x 的值，用于控制 vSlider 对象的显示位置。
+        this.vSlider.y = 100;//设置 vSlider 对象的属性 y 的值，用于控制 vSlider 对象的显示位置。
+        this.vSlider.changeHandler = new Handler(this, this.onChange);//设置 vSlider 位置变化处理器。
+        Laya.stage.addChild(this.vSlider);//把 vSlider 添加到显示列表。
+    }
+    private onChange(value: number): void {
+        console.log("滑块的位置： value=" + value);
+    }
+}
+	 * @see laya.ui.Slider
+	 */
+	class VSlider extends Slider  {
+	}
+
+	/**
 	 * <code>View</code> 是一个视图类，2.0开始，更改继承至Scene类，相对于Scene，增加相对布局功能。
 	 */
 	class View extends Scene  {
@@ -43575,7 +42795,7 @@ tip.addChild(_testTips);
 
 		/**
 		 * 添加视图。
-		 * 添加视图对象，并设置此视图对象的<code>name</code> 属性。
+添加视图对象，并设置此视图对象的<code>name</code> 属性。
 		 * @param view 需要添加的视图对象。
 		 */
 		addItem(view:Node):void;
@@ -43606,7 +42826,7 @@ tip.addChild(_testTips);
 
 		/**
 		 * 索引设置处理器。
-		 * <p>默认回调参数：index:int</p>
+<p>默认回调参数：index:int</p>
 		 */
 		get setIndexHandler():Handler;
 		set setIndexHandler(value:Handler);
@@ -43636,163 +42856,68 @@ tip.addChild(_testTips);
 	}
 
 	/**
-	 * 使用 <code>VScrollBar</code> （垂直 <code>ScrollBar</code> ）控件，可以在因数据太多而不能在显示区域完全显示时控制显示的数据部分。
-	 * @example <caption>以下示例代码，创建了一个 <code>VScrollBar</code> 实例。</caption>
-package
-{
-import laya.ui.vScrollBar;
-import laya.ui.VScrollBar;
-import laya.utils.Handler;
-public class VScrollBar_Example
-{
-private var vScrollBar:VScrollBar;
-public function VScrollBar_Example()
-{
-Laya.init(640, 800);//设置游戏画布宽高、渲染模式。
-Laya.stage.bgColor = "#efefef";//设置画布的背景颜色。
-Laya.loader.load(["resource/ui/vscroll.png", "resource/ui/vscroll$bar.png", "resource/ui/vscroll$down.png", "resource/ui/vscroll$up.png"], Handler.create(this, onLoadComplete));
-}
-private function onLoadComplete():void
-{
-vScrollBar = new VScrollBar();//创建一个 vScrollBar 类的实例对象 hScrollBar 。
-vScrollBar.skin = "resource/ui/vscroll.png";//设置 vScrollBar 的皮肤。
-vScrollBar.x = 100;//设置 vScrollBar 对象的属性 x 的值，用于控制 vScrollBar 对象的显示位置。
-vScrollBar.y = 100;//设置 vScrollBar 对象的属性 y 的值，用于控制 vScrollBar 对象的显示位置。
-vScrollBar.changeHandler = new Handler(this, onChange);//设置 vScrollBar 的滚动变化处理器。
-Laya.stage.addChild(vScrollBar);//将此 vScrollBar 对象添加到显示列表。
-}
-private function onChange(value:Number):void
-{
-trace("滚动条的位置： value=" + value);
-}
-}
-}
-	 * @example Laya.init(640, 800);//设置游戏画布宽高
-Laya.stage.bgColor = "#efefef";//设置画布的背景颜色
-var vScrollBar;
-var res = ["resource/ui/vscroll.png", "resource/ui/vscroll$bar.png", "resource/ui/vscroll$down.png", "resource/ui/vscroll$up.png"];
-Laya.loader.load(res, laya.utils.Handler.create(this, onLoadComplete));//加载资源。
-function onLoadComplete() {
-    vScrollBar = new laya.ui.VScrollBar();//创建一个 vScrollBar 类的实例对象 hScrollBar 。
-    vScrollBar.skin = "resource/ui/vscroll.png";//设置 vScrollBar 的皮肤。
-    vScrollBar.x = 100;//设置 vScrollBar 对象的属性 x 的值，用于控制 vScrollBar 对象的显示位置。
-    vScrollBar.y = 100;//设置 vScrollBar 对象的属性 y 的值，用于控制 vScrollBar 对象的显示位置。
-    vScrollBar.changeHandler = new laya.utils.Handler(this, onChange);//设置 vScrollBar 的滚动变化处理器。
-    Laya.stage.addChild(vScrollBar);//将此 vScrollBar 对象添加到显示列表。
-}
-function onChange(value) {
-    console.log("滚动条的位置： value=" + value);
-}
-	 * @example import VScrollBar = laya.ui.VScrollBar;
-import Handler = laya.utils.Handler;
-class VScrollBar_Example {
-    private vScrollBar: VScrollBar;
-    constructor() {
-        Laya.init(640, 800);//设置游戏画布宽高、渲染模式。
-        Laya.stage.bgColor = "#efefef";//设置画布的背景颜色。
-        Laya.loader.load(["resource/ui/vscroll.png", "resource/ui/vscroll$bar.png", "resource/ui/vscroll$down.png", "resource/ui/vscroll$up.png"], Handler.create(this, this.onLoadComplete));
-    }
-    private onLoadComplete(): void {
-        this.vScrollBar = new VScrollBar();//创建一个 vScrollBar 类的实例对象 hScrollBar 。
-        this.vScrollBar.skin = "resource/ui/vscroll.png";//设置 vScrollBar 的皮肤。
-        this.vScrollBar.x = 100;//设置 vScrollBar 对象的属性 x 的值，用于控制 vScrollBar 对象的显示位置。
-        this.vScrollBar.y = 100;//设置 vScrollBar 对象的属性 y 的值，用于控制 vScrollBar 对象的显示位置。
-        this.vScrollBar.changeHandler = new Handler(this, this.onChange);//设置 vScrollBar 的滚动变化处理器。
-        Laya.stage.addChild(this.vScrollBar);//将此 vScrollBar 对象添加到显示列表。
-    }
-    private onChange(value: number): void {
-        console.log("滚动条的位置： value=" + value);
-    }
-}
+	 * 微信开放数据展示组件，直接实例本组件，即可根据组件宽高，位置，以最优的方式显示开放域数据
 	 */
-	class VScrollBar extends ScrollBar  {
-	}
+	class WXOpenDataViewer extends UIComponent  {
 
-	/**
-	 * 使用 <code>VSlider</code> 控件，用户可以通过在滑块轨道的终点之间移动滑块来选择值。
-	 * <p> <code>VSlider</code> 控件采用垂直方向。滑块轨道从下往上扩展，而标签位于轨道的左右两侧。</p>
-	 * @example <caption>以下示例代码，创建了一个 <code>VSlider</code> 实例。</caption>
-package
-{
-import laya.ui.HSlider;
-import laya.ui.VSlider;
-import laya.utils.Handler;
-public class VSlider_Example
-{
-private var vSlider:VSlider;
-public function VSlider_Example()
-{
-Laya.init(640, 800);//设置游戏画布宽高。
-Laya.stage.bgColor = "#efefef";//设置画布的背景颜色。
-Laya.loader.load(["resource/ui/vslider.png", "resource/ui/vslider$bar.png"], Handler.create(this, onLoadComplete));//加载资源。
-}
-private function onLoadComplete():void
-{
-vSlider = new VSlider();//创建一个 VSlider 类的实例对象 vSlider 。
-vSlider.skin = "resource/ui/vslider.png";//设置 vSlider 的皮肤。
-vSlider.min = 0;//设置 vSlider 最低位置值。
-vSlider.max = 10;//设置 vSlider 最高位置值。
-vSlider.value = 2;//设置 vSlider 当前位置值。
-vSlider.tick = 1;//设置 vSlider 刻度值。
-vSlider.x = 100;//设置 vSlider 对象的属性 x 的值，用于控制 vSlider 对象的显示位置。
-vSlider.y = 100;//设置 vSlider 对象的属性 y 的值，用于控制 vSlider 对象的显示位置。
-vSlider.changeHandler = new Handler(this, onChange);//设置 vSlider 位置变化处理器。
-Laya.stage.addChild(vSlider);//把 vSlider 添加到显示列表。
-}
-private function onChange(value:Number):void
-{
-trace("滑块的位置： value=" + value);
-}
-}
-}
-	 * @example Laya.init(640, 800);//设置游戏画布宽高
-Laya.stage.bgColor = "#efefef";//设置画布的背景颜色
-var vSlider;
-Laya.loader.load(["resource/ui/vslider.png", "resource/ui/vslider$bar.png"], laya.utils.Handler.create(this, onLoadComplete));//加载资源。
-function onLoadComplete() {
-    vSlider = new laya.ui.VSlider();//创建一个 VSlider 类的实例对象 vSlider 。
-    vSlider.skin = "resource/ui/vslider.png";//设置 vSlider 的皮肤。
-    vSlider.min = 0;//设置 vSlider 最低位置值。
-    vSlider.max = 10;//设置 vSlider 最高位置值。
-    vSlider.value = 2;//设置 vSlider 当前位置值。
-    vSlider.tick = 1;//设置 vSlider 刻度值。
-    vSlider.x = 100;//设置 vSlider 对象的属性 x 的值，用于控制 vSlider 对象的显示位置。
-    vSlider.y = 100;//设置 vSlider 对象的属性 y 的值，用于控制 vSlider 对象的显示位置。
-    vSlider.changeHandler = new laya.utils.Handler(this, onChange);//设置 vSlider 位置变化处理器。
-    Laya.stage.addChild(vSlider);//把 vSlider 添加到显示列表。
-}
-function onChange(value) {
-    console.log("滑块的位置： value=" + value);
-}
-	 * @example import HSlider = laya.ui.HSlider;
-import VSlider = laya.ui.VSlider;
-import Handler = laya.utils.Handler;
-class VSlider_Example {
-    private vSlider: VSlider;
-    constructor() {
-        Laya.init(640, 800);//设置游戏画布宽高。
-        Laya.stage.bgColor = "#efefef";//设置画布的背景颜色。
-        Laya.loader.load(["resource/ui/vslider.png", "resource/ui/vslider$bar.png"], Handler.create(this, this.onLoadComplete));//加载资源。
-    }
-    private onLoadComplete(): void {
-        this.vSlider = new VSlider();//创建一个 VSlider 类的实例对象 vSlider 。
-        this.vSlider.skin = "resource/ui/vslider.png";//设置 vSlider 的皮肤。
-        this.vSlider.min = 0;//设置 vSlider 最低位置值。
-        this.vSlider.max = 10;//设置 vSlider 最高位置值。
-        this.vSlider.value = 2;//设置 vSlider 当前位置值。
-        this.vSlider.tick = 1;//设置 vSlider 刻度值。
-        this.vSlider.x = 100;//设置 vSlider 对象的属性 x 的值，用于控制 vSlider 对象的显示位置。
-        this.vSlider.y = 100;//设置 vSlider 对象的属性 y 的值，用于控制 vSlider 对象的显示位置。
-        this.vSlider.changeHandler = new Handler(this, this.onChange);//设置 vSlider 位置变化处理器。
-        Laya.stage.addChild(this.vSlider);//把 vSlider 添加到显示列表。
-    }
-    private onChange(value: number): void {
-        console.log("滑块的位置： value=" + value);
-    }
-}
-	 * @see laya.ui.Slider
-	 */
-	class VSlider extends Slider  {
+		constructor();
+
+		/**
+		 * @override 
+		 */
+		onEnable():void;
+
+		/**
+		 * @override 
+		 */
+		onDisable():void;
+		private _onLoop:any;
+
+		/**
+		 * @override 
+		 */
+		set width(value:number);
+
+		/**
+		 * @override 
+		 */
+		get width():number;
+
+		/**
+		 * @override 
+		 */
+		set height(value:number);
+
+		/**
+		 * @override 
+		 */
+		get height():number;
+
+		/**
+		 * @override 
+		 */
+		set x(value:number);
+
+		/**
+		 * @override 
+		 */
+		get x():number;
+
+		/**
+		 * @override 
+		 */
+		set y(value:number);
+
+		/**
+		 * @override 
+		 */
+		get y():number;
+		private _postMsg:any;
+
+		/**
+		 * 向开放数据域发送消息
+		 */
+		postMsg(msg:any):void;
 	}
 
 	/**
@@ -43873,71 +42998,6 @@ class VSlider_Example {
 		 */
 		get centerY():number;
 		set centerY(value:number);
-	}
-
-	/**
-	 * 微信开放数据展示组件，直接实例本组件，即可根据组件宽高，位置，以最优的方式显示开放域数据
-	 */
-	class WXOpenDataViewer extends UIComponent  {
-
-		constructor();
-
-		/**
-		 * @override 
-		 */
-		onEnable():void;
-
-		/**
-		 * @override 
-		 */
-		onDisable():void;
-		private _onLoop:any;
-
-		/**
-		 * @override 
-		 */
-		set width(value:number);
-
-		/**
-		 * @override 
-		 */
-		get width():number;
-
-		/**
-		 * @override 
-		 */
-		set height(value:number);
-
-		/**
-		 * @override 
-		 */
-		get height():number;
-
-		/**
-		 * @override 
-		 */
-		set x(value:number);
-
-		/**
-		 * @override 
-		 */
-		get x():number;
-
-		/**
-		 * @override 
-		 */
-		set y(value:number);
-
-		/**
-		 * @override 
-		 */
-		get y():number;
-		private _postMsg:any;
-
-		/**
-		 * 向开放数据域发送消息
-		 */
-		postMsg(msg:any):void;
 	}
 
 	/**
@@ -44178,13 +43238,13 @@ class VSlider_Example {
 
 		/**
 		 * 浏览器窗口可视宽度。
-		 * 通过分析浏览器信息获得。浏览器多个属性值优先级为：window.innerWidth(包含滚动条宽度) > document.body.clientWidth(不包含滚动条宽度)，如果前者为0或为空，则选择后者。
+通过分析浏览器信息获得。浏览器多个属性值优先级为：window.innerWidth(包含滚动条宽度) > document.body.clientWidth(不包含滚动条宽度)，如果前者为0或为空，则选择后者。
 		 */
 		static get clientWidth():number;
 
 		/**
 		 * 浏览器窗口可视高度。
-		 * 通过分析浏览器信息获得。浏览器多个属性值优先级为：window.innerHeight(包含滚动条高度) > document.body.clientHeight(不包含滚动条高度) > document.documentElement.clientHeight(不包含滚动条高度)，如果前者为0或为空，则选择后者。
+通过分析浏览器信息获得。浏览器多个属性值优先级为：window.innerHeight(包含滚动条高度) > document.body.clientHeight(不包含滚动条高度) > document.documentElement.clientHeight(不包含滚动条高度)，如果前者为0或为空，则选择后者。
 		 */
 		static get clientHeight():number;
 
@@ -44222,21 +43282,21 @@ class VSlider_Example {
 
 	/**
 	 * <p> <code>Byte</code> 类提供用于优化读取、写入以及处理二进制数据的方法和属性。</p>
-	 * <p> <code>Byte</code> 类适用于需要在字节层访问数据的高级开发人员。</p>
+<p> <code>Byte</code> 类适用于需要在字节层访问数据的高级开发人员。</p>
 	 */
 	class Byte  {
 
 		/**
 		 * <p>主机字节序，是 CPU 存放数据的两种不同顺序，包括小端字节序和大端字节序。通过 <code>getSystemEndian</code> 可以获取当前系统的字节序。</p>
-		 * <p> <code>BIG_ENDIAN</code> ：大端字节序，地址低位存储值的高位，地址高位存储值的低位。有时也称之为网络字节序。<br/>
-		 * <code>LITTLE_ENDIAN</code> ：小端字节序，地址低位存储值的低位，地址高位存储值的高位。</p>
+<p> <code>BIG_ENDIAN</code> ：大端字节序，地址低位存储值的高位，地址高位存储值的低位。有时也称之为网络字节序。<br/>
+<code>LITTLE_ENDIAN</code> ：小端字节序，地址低位存储值的低位，地址高位存储值的高位。</p>
 		 */
 		static BIG_ENDIAN:string;
 
 		/**
 		 * <p>主机字节序，是 CPU 存放数据的两种不同顺序，包括小端字节序和大端字节序。通过 <code>getSystemEndian</code> 可以获取当前系统的字节序。</p>
-		 * <p> <code>LITTLE_ENDIAN</code> ：小端字节序，地址低位存储值的低位，地址高位存储值的高位。<br/>
-		 * <code>BIG_ENDIAN</code> ：大端字节序，地址低位存储值的高位，地址高位存储值的低位。有时也称之为网络字节序。</p>
+<p> <code>LITTLE_ENDIAN</code> ：小端字节序，地址低位存储值的低位，地址高位存储值的高位。<br/>
+<code>BIG_ENDIAN</code> ：大端字节序，地址低位存储值的高位，地址高位存储值的低位。有时也称之为网络字节序。</p>
 		 */
 		static LITTLE_ENDIAN:string;
 
@@ -44277,9 +43337,9 @@ class VSlider_Example {
 
 		/**
 		 * <p>获取当前主机的字节序。</p>
-		 * <p>主机字节序，是 CPU 存放数据的两种不同顺序，包括小端字节序和大端字节序。</p>
-		 * <p> <code>BIG_ENDIAN</code> ：大端字节序，地址低位存储值的高位，地址高位存储值的低位。有时也称之为网络字节序。<br/>
-		 * <code>LITTLE_ENDIAN</code> ：小端字节序，地址低位存储值的低位，地址高位存储值的高位。</p>
+<p>主机字节序，是 CPU 存放数据的两种不同顺序，包括小端字节序和大端字节序。</p>
+<p> <code>BIG_ENDIAN</code> ：大端字节序，地址低位存储值的高位，地址高位存储值的低位。有时也称之为网络字节序。<br/>
+<code>LITTLE_ENDIAN</code> ：小端字节序，地址低位存储值的低位，地址高位存储值的高位。</p>
 		 * @return 当前系统的字节序。
 		 */
 		static getSystemEndian():string;
@@ -44298,17 +43358,17 @@ class VSlider_Example {
 
 		/**
 		 * <p> <code>Byte</code> 实例的字节序。取值为：<code>BIG_ENDIAN</code> 或 <code>BIG_ENDIAN</code> 。</p>
-		 * <p>主机字节序，是 CPU 存放数据的两种不同顺序，包括小端字节序和大端字节序。通过 <code>getSystemEndian</code> 可以获取当前系统的字节序。</p>
-		 * <p> <code>BIG_ENDIAN</code> ：大端字节序，地址低位存储值的高位，地址高位存储值的低位。有时也称之为网络字节序。<br/>
-		 *   <code>LITTLE_ENDIAN</code> ：小端字节序，地址低位存储值的低位，地址高位存储值的高位。</p>
+<p>主机字节序，是 CPU 存放数据的两种不同顺序，包括小端字节序和大端字节序。通过 <code>getSystemEndian</code> 可以获取当前系统的字节序。</p>
+<p> <code>BIG_ENDIAN</code> ：大端字节序，地址低位存储值的高位，地址高位存储值的低位。有时也称之为网络字节序。<br/>
+  <code>LITTLE_ENDIAN</code> ：小端字节序，地址低位存储值的低位，地址高位存储值的高位。</p>
 		 */
 		get endian():string;
 		set endian(value:string);
 
 		/**
 		 * <p> <code>Byte</code> 对象的长度（以字节为单位）。</p>
-		 * <p>如果将长度设置为大于当前长度的值，则用零填充字节数组的右侧；如果将长度设置为小于当前长度的值，将会截断该字节数组。</p>
-		 * <p>如果要设置的长度大于当前已分配的内存空间的字节长度，则重新分配内存空间，大小为以下两者较大者：要设置的长度、当前已分配的长度的2倍，并将原有数据拷贝到新的内存空间中；如果要设置的长度小于当前已分配的内存空间的字节长度，也会重新分配内存空间，大小为要设置的长度，并将原有数据从头截断为要设置的长度存入新的内存空间中。</p>
+<p>如果将长度设置为大于当前长度的值，则用零填充字节数组的右侧；如果将长度设置为小于当前长度的值，将会截断该字节数组。</p>
+<p>如果要设置的长度大于当前已分配的内存空间的字节长度，则重新分配内存空间，大小为以下两者较大者：要设置的长度、当前已分配的长度的2倍，并将原有数据拷贝到新的内存空间中；如果要设置的长度小于当前已分配的内存空间的字节长度，也会重新分配内存空间，大小为要设置的长度，并将原有数据从头截断为要设置的长度存入新的内存空间中。</p>
 		 */
 		set length(value:number);
 		get length():number;
@@ -44327,7 +43387,7 @@ class VSlider_Example {
 
 		/**
 		 * <p>常用于解析固定格式的字节流。</p>
-		 * <p>先从字节流的当前字节偏移位置处读取一个 <code>Uint16</code> 值，然后以此值为长度，读取此长度的字符串。</p>
+<p>先从字节流的当前字节偏移位置处读取一个 <code>Uint16</code> 值，然后以此值为长度，读取此长度的字符串。</p>
 		 * @return 读取的字符串。
 		 */
 		readString():string;
@@ -44547,14 +43607,14 @@ class VSlider_Example {
 
 		/**
 		 * <p>将 UTF-8 字符串写入字节流。类似于 writeUTF() 方法，但 writeUTFBytes() 不使用 16 位长度的字为字符串添加前缀。</p>
-		 * <p>对应的读取方法为： getUTFBytes 。</p>
+<p>对应的读取方法为： getUTFBytes 。</p>
 		 * @param value 要写入的字符串。
 		 */
 		writeUTFBytes(value:string):void;
 
 		/**
 		 * <p>将 UTF-8 字符串写入字节流。先写入以字节表示的 UTF-8 字符串长度（作为 16 位整数），然后写入表示字符串字符的字节。</p>
-		 * <p>对应的读取方法为： getUTFString 。</p>
+<p>对应的读取方法为： getUTFString 。</p>
 		 * @param value 要写入的字符串值。
 		 */
 		writeUTFString(value:string):void;
@@ -44578,7 +43638,7 @@ class VSlider_Example {
 
 		/**
 		 * <p>从字节流中读取一个 UTF-8 字符串。假定字符串的前缀是一个无符号的短整型（以此字节表示要读取的长度）。</p>
-		 * <p>对应的写入方法为： writeUTFString 。</p>
+<p>对应的写入方法为： writeUTFString 。</p>
 		 * @return 读取的字符串。
 		 */
 		getUTFString():string;
@@ -44592,7 +43652,7 @@ class VSlider_Example {
 
 		/**
 		 * <p>从字节流中读取一个由 length 参数指定的长度的 UTF-8 字节序列，并返回一个字符串。</p>
-		 * <p>一般读取的是由 writeUTFBytes 方法写入的字符串。</p>
+<p>一般读取的是由 writeUTFBytes 方法写入的字符串。</p>
 		 * @param len 要读的buffer长度，默认将读取缓冲区全部数据。
 		 * @return 读取的字符串。
 		 */
@@ -44600,14 +43660,14 @@ class VSlider_Example {
 
 		/**
 		 * <p>在字节流中写入一个字节。</p>
-		 * <p>使用参数的低 8 位。忽略高 24 位。</p>
+<p>使用参数的低 8 位。忽略高 24 位。</p>
 		 * @param value 
 		 */
 		writeByte(value:number):void;
 
 		/**
 		 * <p>从字节流中读取带符号的字节。</p>
-		 * <p>返回值的范围是从 -128 到 127。</p>
+<p>返回值的范围是从 -128 到 127。</p>
 		 * @return 介于 -128 和 127 之间的整数。
 		 */
 		readByte():number;
@@ -44619,8 +43679,8 @@ class VSlider_Example {
 
 		/**
 		 * <p>将指定 arraybuffer 对象中的以 offset 为起始偏移量， length 为长度的字节序列写入字节流。</p>
-		 * <p>如果省略 length 参数，则使用默认长度 0，该方法将从 offset 开始写入整个缓冲区；如果还省略了 offset 参数，则写入整个缓冲区。</p>
-		 * <p>如果 offset 或 length 小于0，本函数将抛出异常。</p>
+<p>如果省略 length 参数，则使用默认长度 0，该方法将从 offset 开始写入整个缓冲区；如果还省略了 offset 参数，则写入整个缓冲区。</p>
+<p>如果 offset 或 length 小于0，本函数将抛出异常。</p>
 		 * @param arraybuffer 需要写入的 Arraybuffer 对象。
 		 * @param offset Arraybuffer 对象的索引的偏移量（以字节为单位）
 		 * @param length 从 Arraybuffer 对象写入到 Byte 对象的长度（以字节为单位）
@@ -44800,32 +43860,32 @@ class VSlider_Example {
 
 		/**
 		 * 根据指定的 json 数据创建节点对象。
-		 * 比如:
-		 * {
-		 *  	"type":"Sprite",
-		 *  	"props":{
-		 *  		"x":100,
-		 *  		"y":50,
-		 *  		"name":"item1",
-		 *  		"scale":[2,2]
-		 *  	},
-		 *  	"customProps":{
-		 *  		"x":100,
-		 *  		"y":50,
-		 *  		"name":"item1",
-		 *  		"scale":[2,2]
-		 *  	},
-		 *  	"child":[
-		 *  		{
-		 *  			"type":"Text",
-		 *  			"props":{
-		 *  				"text":"this is a test",
-		 *  				"var":"label",
-		 *  				"rumtime":""
-		 *  			}
-		 *  		}
-		 *  	]
-		 * }
+比如:
+{
+ 	"type":"Sprite",
+ 	"props":{
+ 		"x":100,
+ 		"y":50,
+ 		"name":"item1",
+ 		"scale":[2,2]
+ 	},
+ 	"customProps":{
+ 		"x":100,
+ 		"y":50,
+ 		"name":"item1",
+ 		"scale":[2,2]
+ 	},
+ 	"child":[
+ 		{
+ 			"type":"Text",
+ 			"props":{
+ 				"text":"this is a test",
+ 				"var":"label",
+ 				"rumtime":""
+ 			}
+ 		}
+ 	]
+}
 		 * @param json json字符串或者Object对象。
 		 * @param node node节点，如果为空，则新创建一个。
 		 * @param root 根节点，用来设置var定义。
@@ -45118,7 +44178,7 @@ class VSlider_Example {
 
 		/**
 		 * 方法以零速率开始运动，然后在执行时加快运动速度。
-		 * 它的运动是类似一个球落向地板又弹起后，几次逐渐减小的回弹运动。
+它的运动是类似一个球落向地板又弹起后，几次逐渐减小的回弹运动。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45129,7 +44189,7 @@ class VSlider_Example {
 
 		/**
 		 * 开始运动时速率为零，先对运动进行加速，再减速直到速率为零。
-		 * 它的运动是类似一个球落向地板又弹起后，几次逐渐减小的回弹运动。
+它的运动是类似一个球落向地板又弹起后，几次逐渐减小的回弹运动。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45140,7 +44200,7 @@ class VSlider_Example {
 
 		/**
 		 * 以较快速度开始运动，然后在执行时减慢运动速度，直至速率为零。
-		 * 它的运动是类似一个球落向地板又弹起后，几次逐渐减小的回弹运动。
+它的运动是类似一个球落向地板又弹起后，几次逐渐减小的回弹运动。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45184,7 +44244,7 @@ class VSlider_Example {
 
 		/**
 		 * 方法以零速率开始运动，然后在执行时加快运动速度。
-		 * 其中的运动由按照指数方式衰减的正弦波来定义。
+其中的运动由按照指数方式衰减的正弦波来定义。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45197,7 +44257,7 @@ class VSlider_Example {
 
 		/**
 		 * 开始运动时速率为零，先对运动进行加速，再减速直到速率为零。
-		 * 其中的运动由按照指数方式衰减的正弦波来定义。
+其中的运动由按照指数方式衰减的正弦波来定义。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45210,7 +44270,7 @@ class VSlider_Example {
 
 		/**
 		 * 以较快速度开始运动，然后在执行时减慢运动速度，直至速率为零。
-		 * 其中的运动由按照指数方式衰减的正弦波来定义。
+其中的运动由按照指数方式衰减的正弦波来定义。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45253,7 +44313,7 @@ class VSlider_Example {
 
 		/**
 		 * 开始运动时速率为零，先对运动进行加速，再减速直到速率为零。
-		 * Sine 缓动方程中的运动加速度小于 Quad 方程中的运动加速度。
+Sine 缓动方程中的运动加速度小于 Quad 方程中的运动加速度。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45264,7 +44324,7 @@ class VSlider_Example {
 
 		/**
 		 * 以零速率开始运动，然后在执行时加快运动速度。
-		 * Sine 缓动方程中的运动加速度小于 Quad 方程中的运动加速度。
+Sine 缓动方程中的运动加速度小于 Quad 方程中的运动加速度。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45275,7 +44335,7 @@ class VSlider_Example {
 
 		/**
 		 * 以较快速度开始运动，然后在执行时减慢运动速度，直至速率为零。
-		 * Sine 缓动方程中的运动加速度小于 Quad 方程中的运动加速度。
+Sine 缓动方程中的运动加速度小于 Quad 方程中的运动加速度。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45286,7 +44346,7 @@ class VSlider_Example {
 
 		/**
 		 * 以零速率开始运动，然后在执行时加快运动速度。
-		 * Quint 缓动方程的运动加速大于 Quart 缓动方程。
+Quint 缓动方程的运动加速大于 Quart 缓动方程。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45297,7 +44357,7 @@ class VSlider_Example {
 
 		/**
 		 * 开始运动时速率为零，先对运动进行加速，再减速直到速率为零。
-		 * Quint 缓动方程的运动加速大于 Quart 缓动方程。
+Quint 缓动方程的运动加速大于 Quart 缓动方程。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45308,7 +44368,7 @@ class VSlider_Example {
 
 		/**
 		 * 以较快速度开始运动，然后在执行时减慢运动速度，直至速率为零。
-		 * Quint 缓动方程的运动加速大于 Quart 缓动方程。
+Quint 缓动方程的运动加速大于 Quart 缓动方程。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45319,7 +44379,7 @@ class VSlider_Example {
 
 		/**
 		 * 方法以零速率开始运动，然后在执行时加快运动速度。
-		 * Quart 缓动方程的运动加速大于 Cubic 缓动方程。
+Quart 缓动方程的运动加速大于 Cubic 缓动方程。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45330,7 +44390,7 @@ class VSlider_Example {
 
 		/**
 		 * 开始运动时速率为零，先对运动进行加速，再减速直到速率为零。
-		 * Quart 缓动方程的运动加速大于 Cubic 缓动方程。
+Quart 缓动方程的运动加速大于 Cubic 缓动方程。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45341,7 +44401,7 @@ class VSlider_Example {
 
 		/**
 		 * 以较快速度开始运动，然后在执行时减慢运动速度，直至速率为零。
-		 * Quart 缓动方程的运动加速大于 Cubic 缓动方程。
+Quart 缓动方程的运动加速大于 Cubic 缓动方程。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45352,7 +44412,7 @@ class VSlider_Example {
 
 		/**
 		 * 方法以零速率开始运动，然后在执行时加快运动速度。
-		 * Cubic 缓动方程的运动加速大于 Quad 缓动方程。
+Cubic 缓动方程的运动加速大于 Quad 缓动方程。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45363,7 +44423,7 @@ class VSlider_Example {
 
 		/**
 		 * 开始运动时速率为零，先对运动进行加速，再减速直到速率为零。
-		 * Cubic 缓动方程的运动加速大于 Quad 缓动方程。
+Cubic 缓动方程的运动加速大于 Quad 缓动方程。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45374,7 +44434,7 @@ class VSlider_Example {
 
 		/**
 		 * 以较快速度开始运动，然后在执行时减慢运动速度，直至速率为零。
-		 * Cubic 缓动方程的运动加速大于 Quad 缓动方程。
+Cubic 缓动方程的运动加速大于 Quad 缓动方程。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45385,7 +44445,7 @@ class VSlider_Example {
 
 		/**
 		 * 方法以零速率开始运动，然后在执行时加快运动速度。
-		 * Quad 缓动方程中的运动加速度等于 100% 缓动的时间轴补间的运动加速度，并且显著小于 Cubic 缓动方程中的运动加速度。
+Quad 缓动方程中的运动加速度等于 100% 缓动的时间轴补间的运动加速度，并且显著小于 Cubic 缓动方程中的运动加速度。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45396,7 +44456,7 @@ class VSlider_Example {
 
 		/**
 		 * 开始运动时速率为零，先对运动进行加速，再减速直到速率为零。
-		 * Quad 缓动方程中的运动加速度等于 100% 缓动的时间轴补间的运动加速度，并且显著小于 Cubic 缓动方程中的运动加速度。
+Quad 缓动方程中的运动加速度等于 100% 缓动的时间轴补间的运动加速度，并且显著小于 Cubic 缓动方程中的运动加速度。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45407,7 +44467,7 @@ class VSlider_Example {
 
 		/**
 		 * 以较快速度开始运动，然后在执行时减慢运动速度，直至速率为零。
-		 * Quad 缓动方程中的运动加速度等于 100% 缓动的时间轴补间的运动加速度，并且显著小于 Cubic 缓动方程中的运动加速度。
+Quad 缓动方程中的运动加速度等于 100% 缓动的时间轴补间的运动加速度，并且显著小于 Cubic 缓动方程中的运动加速度。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45418,7 +44478,7 @@ class VSlider_Example {
 
 		/**
 		 * 方法以零速率开始运动，然后在执行时加快运动速度。
-		 * 其中每个时间间隔是剩余距离减去一个固定比例部分。
+其中每个时间间隔是剩余距离减去一个固定比例部分。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45429,7 +44489,7 @@ class VSlider_Example {
 
 		/**
 		 * 开始运动时速率为零，先对运动进行加速，再减速直到速率为零。
-		 * 其中每个时间间隔是剩余距离减去一个固定比例部分。
+其中每个时间间隔是剩余距离减去一个固定比例部分。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45440,7 +44500,7 @@ class VSlider_Example {
 
 		/**
 		 * 以较快速度开始运动，然后在执行时减慢运动速度，直至速率为零。
-		 * 其中每个时间间隔是剩余距离减去一个固定比例部分。
+其中每个时间间隔是剩余距离减去一个固定比例部分。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45451,7 +44511,7 @@ class VSlider_Example {
 
 		/**
 		 * 方法以零速率开始运动，然后在执行时加快运动速度。
-		 * 缓动方程的运动加速会产生突然的速率变化。
+缓动方程的运动加速会产生突然的速率变化。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45462,7 +44522,7 @@ class VSlider_Example {
 
 		/**
 		 * 开始运动时速率为零，先对运动进行加速，再减速直到速率为零。
-		 * 缓动方程的运动加速会产生突然的速率变化。
+缓动方程的运动加速会产生突然的速率变化。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45473,7 +44533,7 @@ class VSlider_Example {
 
 		/**
 		 * 以较快速度开始运动，然后在执行时减慢运动速度，直至速率为零。
-		 * 缓动方程的运动加速会产生突然的速率变化。
+缓动方程的运动加速会产生突然的速率变化。
 		 * @param t 指定当前时间，介于 0 和持续时间之间（包括二者）。
 		 * @param b 指定动画属性的初始值。
 		 * @param c 指定动画属性的更改总计。
@@ -45639,6 +44699,83 @@ class VSlider_Example {
 	}
 
 	/**
+	 * @private <code>HTMLChar</code> 是一个 HTML 字符类。
+	 */
+	class HTMLChar  {
+		private static _isWordRegExp:any;
+
+		/**
+		 * x坐标
+		 */
+		x:number;
+
+		/**
+		 * y坐标
+		 */
+		y:number;
+
+		/**
+		 * 宽
+		 */
+		width:number;
+
+		/**
+		 * 高
+		 */
+		height:number;
+
+		/**
+		 * 表示是否是正常单词(英文|.|数字)。
+		 */
+		isWord:boolean;
+
+		/**
+		 * 字符。
+		 */
+		char:string|null;
+
+		/**
+		 * 字符数量。
+		 */
+		charNum:number;
+
+		/**
+		 * CSS 样式。
+		 */
+		style:any;
+
+		/**
+		 * 创建实例
+		 */
+
+		constructor();
+
+		/**
+		 * 根据指定的字符、宽高、样式，创建一个 <code>HTMLChar</code> 类的实例。
+		 * @param char 字符。
+		 * @param w 宽度。
+		 * @param h 高度。
+		 * @param style CSS 样式。
+		 */
+		setData(char:string,w:number,h:number,style:any):HTMLChar;
+
+		/**
+		 * 重置
+		 */
+		reset():HTMLChar;
+
+		/**
+		 * 回收
+		 */
+		recover():void;
+
+		/**
+		 * 创建
+		 */
+		static create():HTMLChar;
+	}
+
+	/**
 	 * <code>HalfFloatUtils</code> 类用于创建HalfFloat工具。
 	 */
 	class HalfFloatUtils  {
@@ -45658,8 +44795,8 @@ class VSlider_Example {
 
 	/**
 	 * <p><code>Handler</code> 是事件处理器类。</p>
-	 * <p>推荐使用 Handler.create() 方法从对象池创建，减少对象创建消耗。创建的 Handler 对象不再使用后，可以使用 Handler.recover() 将其回收到对象池，回收后不要再使用此对象，否则会导致不可预料的错误。</p>
-	 * <p><b>注意：</b>由于鼠标事件也用本对象池，不正确的回收及调用，可能会影响鼠标事件的执行。</p>
+<p>推荐使用 Handler.create() 方法从对象池创建，减少对象创建消耗。创建的 Handler 对象不再使用后，可以使用 Handler.recover() 将其回收到对象池，回收后不要再使用此对象，否则会导致不可预料的错误。</p>
+<p><b>注意：</b>由于鼠标事件也用本对象池，不正确的回收及调用，可能会影响鼠标事件的执行。</p>
 	 */
 	class Handler  {
 
@@ -45802,83 +44939,6 @@ class VSlider_Example {
 	}
 
 	/**
-	 * @private <code>HTMLChar</code> 是一个 HTML 字符类。
-	 */
-	class HTMLChar  {
-		private static _isWordRegExp:any;
-
-		/**
-		 * x坐标
-		 */
-		x:number;
-
-		/**
-		 * y坐标
-		 */
-		y:number;
-
-		/**
-		 * 宽
-		 */
-		width:number;
-
-		/**
-		 * 高
-		 */
-		height:number;
-
-		/**
-		 * 表示是否是正常单词(英文|.|数字)。
-		 */
-		isWord:boolean;
-
-		/**
-		 * 字符。
-		 */
-		char:string|null;
-
-		/**
-		 * 字符数量。
-		 */
-		charNum:number;
-
-		/**
-		 * CSS 样式。
-		 */
-		style:any;
-
-		/**
-		 * 创建实例
-		 */
-
-		constructor();
-
-		/**
-		 * 根据指定的字符、宽高、样式，创建一个 <code>HTMLChar</code> 类的实例。
-		 * @param char 字符。
-		 * @param w 宽度。
-		 * @param h 高度。
-		 * @param style CSS 样式。
-		 */
-		setData(char:string,w:number,h:number,style:any):HTMLChar;
-
-		/**
-		 * 重置
-		 */
-		reset():HTMLChar;
-
-		/**
-		 * 回收
-		 */
-		recover():void;
-
-		/**
-		 * 创建
-		 */
-		static create():HTMLChar;
-	}
-
-	/**
 	 * @author laya
 	 */
 	class IStatRender  {
@@ -45910,7 +44970,7 @@ class VSlider_Example {
 
 	/**
 	 * <code>Log</code> 类用于在界面内显示日志记录信息。
-	 * 注意：在加速器内不可使用
+注意：在加速器内不可使用
 	 */
 	class Log  {
 
@@ -46031,7 +45091,7 @@ inherit wait w-resize sw-resize
 
 	/**
 	 * <p> <code>Pool</code> 是对象池类，用于对象的存储、重复使用。</p>
-	 * <p>合理使用对象池，可以有效减少对象创建的开销，避免频繁的垃圾回收，从而优化游戏流畅度。</p>
+<p>合理使用对象池，可以有效减少对象创建的开销，避免频繁的垃圾回收，从而优化游戏流畅度。</p>
 	 */
 	class Pool  {
 
@@ -46089,7 +45149,7 @@ inherit wait w-resize sw-resize
 
 		/**
 		 * <p>根据传入的对象类型标识字符，获取对象池中此类型标识的一个对象实例。</p>
-		 * <p>当对象池中无此类型标识的对象时，则根据传入的类型，创建一个新的对象返回。</p>
+<p>当对象池中无此类型标识的对象时，则根据传入的类型，创建一个新的对象返回。</p>
 		 * @param sign 对象类型标识字符。
 		 * @param cls 用于创建该类型对象的类。
 		 * @return 此类型标识的一个对象。
@@ -46098,7 +45158,7 @@ inherit wait w-resize sw-resize
 
 		/**
 		 * <p>根据传入的对象类型标识字符，获取对象池中此类型标识的一个对象实例。</p>
-		 * <p>当对象池中无此类型标识的对象时，则使用传入的创建此类型对象的函数，新建一个对象返回。</p>
+<p>当对象池中无此类型标识的对象时，则使用传入的创建此类型对象的函数，新建一个对象返回。</p>
 		 * @param sign 对象类型标识字符。
 		 * @param createFun 用于创建该类型对象的方法。
 		 * @param caller this对象
@@ -46278,13 +45338,13 @@ inherit wait w-resize sw-resize
 
 	/**
 	 * <p> <code>Stat</code> 是一个性能统计面板，可以实时更新相关的性能参数。</p>
-	 * <p>参与统计的性能参数如下（所有参数都是每大约1秒进行更新）：<br/>
-	 * FPS(WebGL)：WebGL 模式下的帧频，也就是每秒显示的帧数，值越高、越稳定，感觉越流畅；<br/>
-	 * Sprite：统计所有渲染节点（包括容器）数量，它的大小会影响引擎进行节点遍历、数据组织和渲染的效率。其值越小，游戏运行效率越高；<br/>
-	 * DrawCall：此值是决定性能的重要指标，其值越小，游戏运行效率越高。Canvas模式下表示每大约1秒的图像绘制次数；WebGL模式下表示每大约1秒的渲染提交批次，每次准备数据并通知GPU渲染绘制的过程称为1次DrawCall，在每次DrawCall中除了在通知GPU的渲染上比较耗时之外，切换材质与shader也是非常耗时的操作；<br/>
-	 * CurMem：Canvas模式下，表示内存占用大小，值越小越好，过高会导致游戏闪退；WebGL模式下，表示内存与显存的占用，值越小越好；<br/>
-	 * Shader：是 WebGL 模式独有的性能指标，表示每大约1秒 Shader 提交次数，值越小越好；<br/>
-	 * Canvas：由三个数值组成，只有设置 CacheAs 后才会有值，默认为0/0/0。从左到右数值的意义分别为：每帧重绘的画布数量 / 缓存类型为"normal"类型的画布数量 / 缓存类型为"bitmap"类型的画布数量。</p>
+<p>参与统计的性能参数如下（所有参数都是每大约1秒进行更新）：<br/>
+FPS(WebGL)：WebGL 模式下的帧频，也就是每秒显示的帧数，值越高、越稳定，感觉越流畅；<br/>
+Sprite：统计所有渲染节点（包括容器）数量，它的大小会影响引擎进行节点遍历、数据组织和渲染的效率。其值越小，游戏运行效率越高；<br/>
+DrawCall：此值是决定性能的重要指标，其值越小，游戏运行效率越高。Canvas模式下表示每大约1秒的图像绘制次数；WebGL模式下表示每大约1秒的渲染提交批次，每次准备数据并通知GPU渲染绘制的过程称为1次DrawCall，在每次DrawCall中除了在通知GPU的渲染上比较耗时之外，切换材质与shader也是非常耗时的操作；<br/>
+CurMem：Canvas模式下，表示内存占用大小，值越小越好，过高会导致游戏闪退；WebGL模式下，表示内存与显存的占用，值越小越好；<br/>
+Shader：是 WebGL 模式独有的性能指标，表示每大约1秒 Shader 提交次数，值越小越好；<br/>
+Canvas：由三个数值组成，只有设置 CacheAs 后才会有值，默认为0/0/0。从左到右数值的意义分别为：每帧重绘的画布数量 / 缓存类型为"normal"类型的画布数量 / 缓存类型为"bitmap"类型的画布数量。</p>
 	 */
 	class Stat  {
 
@@ -47300,10 +46360,10 @@ inherit wait w-resize sw-resize
 
 	/**
 	 * 封装弱引用WeakMap
-	 * 如果支持WeakMap，则使用WeakMap，如果不支持，则用Object代替
-	 * 注意：如果采用Object，为了防止内存泄漏，则采用定时清理缓存策略
-	 * 
-	 * 这里的设计是错误的，为了兼容，先不删掉这个类，直接采用Object
+如果支持WeakMap，则使用WeakMap，如果不支持，则用Object代替
+注意：如果采用Object，为了防止内存泄漏，则采用定时清理缓存策略
+
+这里的设计是错误的，为了兼容，先不删掉这个类，直接采用Object
 	 */
 	class WeakObject  {
 
@@ -47382,8 +46442,8 @@ inherit wait w-resize sw-resize
 
 		/**
 		 * 自己主动清理缓存，需要把关联的贴图删掉
-		 * 不做也可以，textrender会自动清理不用的
-		 * TODO 重用
+不做也可以，textrender会自动清理不用的
+TODO 重用
 		 */
 		cleanCache():void;
 	}
@@ -47435,6 +46495,74 @@ inherit wait w-resize sw-resize
 		 */
 		unBindForNative():void;
 	}
+
+	/**
+	 * 系统工具。
+	 */
+	class SystemUtils  {
+
+		/**
+		 * 图形设备支持的最大纹理数量。
+		 */
+		static get maxTextureCount():number;
+
+		/**
+		 * 图形设备支持的最大纹理尺寸。
+		 */
+		static get maxTextureSize():number;
+
+		/**
+		 * 图形设备着色器的大致能力等级,类似于DirectX的shader model概念。
+		 */
+		static get shaderCapailityLevel():number;
+
+		/**
+		 * 是否支持纹理格式。
+		 * @param format 纹理格式。
+		 * @returns 是否支持。
+		 */
+		static supportTextureFormat(format:number):boolean;
+
+		/**
+		 * 是否支持渲染纹理格式。
+		 * @param format 渲染纹理格式。
+		 * @returns 是否支持。
+		 */
+		static supportRenderTextureFormat(format:number):boolean;
+	}
+	class VertexArrayObject  {
+
+		constructor();
+	}
+
+	/**
+	 * @private 
+	 */
+	class WebGL  {
+		static _isWebGL2:boolean;
+		static isNativeRender_enable:boolean;
+		private static _uint8ArraySlice:any;
+		private static _float32ArraySlice:any;
+		private static _uint16ArraySlice:any;
+		static _nativeRender_enable():void;
+		static enable():boolean;
+		static inner_enable():boolean;
+		static onStageResize(width:number,height:number):void;
+	}
+
+	/**
+	 * @private 
+	 */
+	class WebGLContext  {
+
+		/**
+		 * 模板写入开关
+		 * @param gl 
+		 * @param value 
+		 */
+		static setStencilMask(gl:WebGLRenderingContext,value:boolean):void;
+		static getUniformMaxVector():number;
+	}
 	class BlendMode  {
 		static activeBlendFunction:Function;
 		static NORMAL:string;
@@ -47480,6 +46608,44 @@ inherit wait w-resize sw-resize
 		addPoint(pointX:number,pointY:number):void;
 		push(points:any[],convex:boolean):void;
 		reset():void;
+	}
+
+	/**
+	 * 对象 cacheas normal的时候，本质上只是想把submit缓存起来，以后直接执行
+为了避免各种各样的麻烦，这里采用复制相应部分的submit的方法。执行环境还是在原来的context中
+否则包括clip等都非常难以处理
+	 */
+	class WebGLCacheAsNormalCanvas  {
+		submitStartPos:number;
+		submitEndPos:number;
+		context:Context;
+		touches:any[];
+		submits:any[];
+		sprite:Sprite|null;
+		private _pathMesh:any;
+		private _triangleMesh:any;
+		meshlist:any[];
+		private _oldMesh:any;
+		private _oldPathMesh:any;
+		private _oldTriMesh:any;
+		private _oldMeshList:any;
+		private cachedClipInfo:any;
+		private oldTx:any;
+		private oldTy:any;
+		private static matI:any;
+		invMat:Matrix;
+
+		constructor(ctx:Context,sp:Sprite);
+		startRec():void;
+		endRec():void;
+
+		/**
+		 * 当前缓存是否还有效。例如clip变了就失效了，因为clip太难自动处理
+		 * @return 
+		 */
+		isCacheValid():boolean;
+		flushsubmit():void;
+		releaseMem():void;
 	}
 
 	interface ISaveData{
@@ -47552,50 +46718,161 @@ inherit wait w-resize sw-resize
 	}
 
 	/**
-	 * 对象 cacheas normal的时候，本质上只是想把submit缓存起来，以后直接执行
-	 * 为了避免各种各样的麻烦，这里采用复制相应部分的submit的方法。执行环境还是在原来的context中
-	 * 否则包括clip等都非常难以处理
-	 */
-	class WebGLCacheAsNormalCanvas  {
-		submitStartPos:number;
-		submitEndPos:number;
-		context:Context;
-		touches:any[];
-		submits:any[];
-		sprite:Sprite|null;
-		private _pathMesh:any;
-		private _triangleMesh:any;
-		meshlist:any[];
-		private _oldMesh:any;
-		private _oldPathMesh:any;
-		private _oldTriMesh:any;
-		private _oldMeshList:any;
-		private cachedClipInfo:any;
-		private oldTx:any;
-		private oldTy:any;
-		private static matI:any;
-		invMat:Matrix;
-
-		constructor(ctx:Context,sp:Sprite);
-		startRec():void;
-		endRec():void;
-
-		/**
-		 * 当前缓存是否还有效。例如clip变了就失效了，因为clip太难自动处理
-		 * @return 
-		 */
-		isCacheValid():boolean;
-		flushsubmit():void;
-		releaseMem():void;
-	}
-
-	/**
 	 * ...
 	 * @author ...
 	 */
 	class BaseShader extends Resource  {
 		static activeShader:BaseShader|null;
 		static bindShader:BaseShader;
+
+		constructor();
+	}
+	class Shader extends BaseShader  {
+		private static _count:any;
+		private _attribInfo:any;
+		static SHADERNAME2ID:number;
+		static nameKey:StringKey;
+		static sharders:any[];
+		static getShader(name:any):Shader;
+		static create(vs:string,ps:string,saveName?:any,nameMap?:any,bindAttrib?:any[]):Shader;
+
+		/**
+		 * 根据宏动态生成shader文件，支持#include?COLOR_FILTER "parts/ColorFilter_ps_logic.glsl";条件嵌入文件
+		 * @param name 
+		 * @param vs 
+		 * @param ps 
+		 * @param define 宏定义，格式:{name:value...}
+		 * @return 
+		 */
+		static withCompile(nameID:number,define:any,shaderName:any,createShader:Function):Shader;
+
+		/**
+		 * 根据宏动态生成shader文件，支持#include?COLOR_FILTER "parts/ColorFilter_ps_logic.glsl";条件嵌入文件
+		 * @param name 
+		 * @param vs 
+		 * @param ps 
+		 * @param define 宏定义，格式:{name:value...}
+		 * @return 
+		 */
+		static withCompile2D(nameID:number,mainID:number,define:any,shaderName:any,createShader:Function,bindAttrib?:any[]):Shader;
+		static addInclude(fileName:string,txt:string):void;
+
+		/**
+		 * 预编译shader文件，主要是处理宏定义
+		 * @param nameID ,一般是特殊宏+shaderNameID*0.0002组成的一个浮点数当做唯一标识
+		 * @param vs 
+		 * @param ps 
+		 */
+		static preCompile(nameID:number,vs:string,ps:string,nameMap:any):void;
+
+		/**
+		 * 预编译shader文件，主要是处理宏定义
+		 * @param nameID ,一般是特殊宏+shaderNameID*0.0002组成的一个浮点数当做唯一标识
+		 * @param vs 
+		 * @param ps 
+		 */
+		static preCompile2D(nameID:number,mainID:number,vs:string,ps:string,nameMap:any):void;
+		private customCompile:any;
+		private _nameMap:any;
+		private _vs:any;
+		private _ps:any;
+		private _curActTexIndex:any;
+		private _reCompile:any;
+		tag:any;
+
+		/**
+		 * 根据vs和ps信息生成shader对象
+把自己存储在 sharders 数组中
+		 * @param vs 
+		 * @param ps 
+		 * @param name :
+		 * @param nameMap 帮助里要详细解释为什么需要nameMap
+		 */
+
+		constructor(vs:string,ps:string,saveName?:any,nameMap?:any,bindAttrib?:any[]|null);
+		protected recreateResource():void;
+
+		/**
+		 * @override 
+		 */
+		protected _disposeResource():void;
+		private _compile:any;
+		private static _createShader:any;
+
+		/**
+		 * 根据变量名字获得
+		 * @param name 
+		 * @return 
+		 */
+		getUniform(name:string):any;
+		private _uniform1f:any;
+		private _uniform1fv:any;
+		private _uniform_vec2:any;
+		private _uniform_vec2v:any;
+		private _uniform_vec3:any;
+		private _uniform_vec3v:any;
+		private _uniform_vec4:any;
+		private _uniform_vec4v:any;
+		private _uniformMatrix2fv:any;
+		private _uniformMatrix3fv:any;
+		private _uniformMatrix4fv:any;
+		private _uniform1i:any;
+		private _uniform1iv:any;
+		private _uniform_ivec2:any;
+		private _uniform_ivec2v:any;
+		private _uniform_vec3i:any;
+		private _uniform_vec3vi:any;
+		private _uniform_vec4i:any;
+		private _uniform_vec4vi:any;
+		private _uniform_sampler2D:any;
+		private _uniform_samplerCube:any;
+		private _noSetValue:any;
+		uploadOne(name:string,value:any):void;
+		uploadTexture2D(value:any):void;
+
+		/**
+		 * 提交shader到GPU
+		 * @param shaderValue 
+		 */
+		upload(shaderValue:ShaderValue,params?:any[]):void;
+
+		/**
+		 * 按数组的定义提交
+		 * @param shaderValue 数组格式[name,value,...]
+		 */
+		uploadArray(shaderValue:any[],length:number,_bufferUsage:any):void;
+
+		/**
+		 * 得到编译后的变量及相关预定义
+		 * @return 
+		 */
+		getParams():any[];
+
+		/**
+		 * 设置shader里面的attribute绑定到哪个location，必须与mesh2d的对应起来，
+这个必须在编译之前设置。
+		 * @param attribDesc 属性描述，格式是 [attributeName, location, attributeName, location ... ]
+		 */
+		setAttributesLocation(attribDesc:any[]):void;
+	}
+	class ShaderDefinesBase  {
+		private _name2int:any;
+		private _int2name:any;
+		private _int2nameMap:any;
+
+		constructor(name2int:any,int2name:any[],int2nameMap:any[]);
+		add(value:any):number;
+		addInt(value:number):number;
+		remove(value:any):number;
+		isDefine(def:number):boolean;
+		getValue():number;
+		setValue(value:number):void;
+		toNameDic():any;
+		static _reg(name:string,value:number,_name2int:any,_int2name:any[]):void;
+		static _toText(value:number,_int2name:any[],_int2nameMap:any):any;
+		static _toInt(names:string,_name2int:any):number;
+	}
+	class ShaderValue  {
 
 		constructor();
 	}
@@ -47722,155 +46999,6 @@ inherit wait w-resize sw-resize
 		release():void;
 		static create(mainType:number,subType:number):Value2D;
 	}
-	class Shader extends BaseShader  {
-		private static _count:any;
-		private _attribInfo:any;
-		static SHADERNAME2ID:number;
-		static nameKey:StringKey;
-		static sharders:any[];
-		static getShader(name:any):Shader;
-		static create(vs:string,ps:string,saveName?:any,nameMap?:any,bindAttrib?:any[]):Shader;
-
-		/**
-		 * 根据宏动态生成shader文件，支持#include?COLOR_FILTER "parts/ColorFilter_ps_logic.glsl";条件嵌入文件
-		 * @param name 
-		 * @param vs 
-		 * @param ps 
-		 * @param define 宏定义，格式:{name:value...}
-		 * @return 
-		 */
-		static withCompile(nameID:number,define:any,shaderName:any,createShader:Function):Shader;
-
-		/**
-		 * 根据宏动态生成shader文件，支持#include?COLOR_FILTER "parts/ColorFilter_ps_logic.glsl";条件嵌入文件
-		 * @param name 
-		 * @param vs 
-		 * @param ps 
-		 * @param define 宏定义，格式:{name:value...}
-		 * @return 
-		 */
-		static withCompile2D(nameID:number,mainID:number,define:any,shaderName:any,createShader:Function,bindAttrib?:any[]):Shader;
-		static addInclude(fileName:string,txt:string):void;
-
-		/**
-		 * 预编译shader文件，主要是处理宏定义
-		 * @param nameID ,一般是特殊宏+shaderNameID*0.0002组成的一个浮点数当做唯一标识
-		 * @param vs 
-		 * @param ps 
-		 */
-		static preCompile(nameID:number,vs:string,ps:string,nameMap:any):void;
-
-		/**
-		 * 预编译shader文件，主要是处理宏定义
-		 * @param nameID ,一般是特殊宏+shaderNameID*0.0002组成的一个浮点数当做唯一标识
-		 * @param vs 
-		 * @param ps 
-		 */
-		static preCompile2D(nameID:number,mainID:number,vs:string,ps:string,nameMap:any):void;
-		private customCompile:any;
-		private _nameMap:any;
-		private _vs:any;
-		private _ps:any;
-		private _curActTexIndex:any;
-		private _reCompile:any;
-		tag:any;
-
-		/**
-		 * 根据vs和ps信息生成shader对象
-		 * 把自己存储在 sharders 数组中
-		 * @param vs 
-		 * @param ps 
-		 * @param name :
-		 * @param nameMap 帮助里要详细解释为什么需要nameMap
-		 */
-
-		constructor(vs:string,ps:string,saveName?:any,nameMap?:any,bindAttrib?:any[]|null);
-		protected recreateResource():void;
-
-		/**
-		 * @override 
-		 */
-		protected _disposeResource():void;
-		private _compile:any;
-		private static _createShader:any;
-
-		/**
-		 * 根据变量名字获得
-		 * @param name 
-		 * @return 
-		 */
-		getUniform(name:string):any;
-		private _uniform1f:any;
-		private _uniform1fv:any;
-		private _uniform_vec2:any;
-		private _uniform_vec2v:any;
-		private _uniform_vec3:any;
-		private _uniform_vec3v:any;
-		private _uniform_vec4:any;
-		private _uniform_vec4v:any;
-		private _uniformMatrix2fv:any;
-		private _uniformMatrix3fv:any;
-		private _uniformMatrix4fv:any;
-		private _uniform1i:any;
-		private _uniform1iv:any;
-		private _uniform_ivec2:any;
-		private _uniform_ivec2v:any;
-		private _uniform_vec3i:any;
-		private _uniform_vec3vi:any;
-		private _uniform_vec4i:any;
-		private _uniform_vec4vi:any;
-		private _uniform_sampler2D:any;
-		private _uniform_samplerCube:any;
-		private _noSetValue:any;
-		uploadOne(name:string,value:any):void;
-		uploadTexture2D(value:any):void;
-
-		/**
-		 * 提交shader到GPU
-		 * @param shaderValue 
-		 */
-		upload(shaderValue:ShaderValue,params?:any[]):void;
-
-		/**
-		 * 按数组的定义提交
-		 * @param shaderValue 数组格式[name,value,...]
-		 */
-		uploadArray(shaderValue:any[],length:number,_bufferUsage:any):void;
-
-		/**
-		 * 得到编译后的变量及相关预定义
-		 * @return 
-		 */
-		getParams():any[];
-
-		/**
-		 * 设置shader里面的attribute绑定到哪个location，必须与mesh2d的对应起来，
-		 * 这个必须在编译之前设置。
-		 * @param attribDesc 属性描述，格式是 [attributeName, location, attributeName, location ... ]
-		 */
-		setAttributesLocation(attribDesc:any[]):void;
-	}
-	class ShaderDefinesBase  {
-		private _name2int:any;
-		private _int2name:any;
-		private _int2nameMap:any;
-
-		constructor(name2int:any,int2name:any[],int2nameMap:any[]);
-		add(value:any):number;
-		addInt(value:number):number;
-		remove(value:any):number;
-		isDefine(def:number):boolean;
-		getValue():number;
-		setValue(value:number):void;
-		toNameDic():any;
-		static _reg(name:string,value:number,_name2int:any,_int2name:any[]):void;
-		static _toText(value:number,_int2name:any[],_int2nameMap:any):any;
-		static _toInt(names:string,_name2int:any):number;
-	}
-	class ShaderValue  {
-
-		constructor();
-	}
 	class BasePoly  {
 		private static tempData:any;
 
@@ -47887,10 +47015,10 @@ inherit wait w-resize sw-resize
 
 		/**
 		 * 相邻的两段线，边界会相交，这些交点可以作为三角形的顶点。有两种可选，一种是采用左左,右右交点，一种是采用 左右，左右交点。当两段线夹角很小的时候，如果采用
-		 * 左左，右右会产生很长很长的交点，这时候就要采用左右左右交点，相当于把尖角截断。
-		 * 当采用左左右右交点的时候，直接用切线的垂线。采用左右左右的时候，用切线
-		 * 切线直接采用两个方向的平均值。不能用3-1的方式，那样垂线和下一段可能都在同一方向（例如都在右方）
-		 * 注意把重合的点去掉
+左左，右右会产生很长很长的交点，这时候就要采用左右左右交点，相当于把尖角截断。
+当采用左左右右交点的时候，直接用切线的垂线。采用左右左右的时候，用切线
+切线直接采用两个方向的平均值。不能用3-1的方式，那样垂线和下一段可能都在同一方向（例如都在右方）
+注意把重合的点去掉
 		 * @param path 
 		 * @param color 
 		 * @param width 
@@ -48032,6 +47160,17 @@ inherit wait w-resize sw-resize
 		renderSubmit():number;
 		releaseRender():void;
 	}
+	class SubmitCMD implements ISubmit  {
+		static POOL:SubmitCMD[];
+		fun:Function;
+		args:any[];
+
+		constructor();
+		renderSubmit():number;
+		getRenderType():number;
+		releaseRender():void;
+		static create(args:any[],fun:Function,thisobj:any):SubmitCMD;
+	}
 
 	/**
 	 * cache as normal 模式下的生成的canvas的渲染。
@@ -48057,17 +47196,6 @@ inherit wait w-resize sw-resize
 		 * @override 
 		 */
 		getRenderType():number;
-	}
-	class SubmitCMD implements ISubmit  {
-		static POOL:SubmitCMD[];
-		fun:Function;
-		args:any[];
-
-		constructor();
-		renderSubmit():number;
-		getRenderType():number;
-		releaseRender():void;
-		static create(args:any[],fun:Function,thisobj:any):SubmitCMD;
 	}
 
 	/**
@@ -48116,50 +47244,15 @@ inherit wait w-resize sw-resize
 	}
 
 	/**
-	 * 系统工具。
-	 */
-	class SystemUtils  {
-
-		/**
-		 * 图形设备支持的最大纹理数量。
-		 */
-		static get maxTextureCount():number;
-
-		/**
-		 * 图形设备支持的最大纹理尺寸。
-		 */
-		static get maxTextureSize():number;
-
-		/**
-		 * 图形设备着色器的大致能力等级,类似于DirectX的shader model概念。
-		 */
-		static get shaderCapailityLevel():number;
-
-		/**
-		 * 是否支持纹理格式。
-		 * @param format 纹理格式。
-		 * @returns 是否支持。
-		 */
-		static supportTextureFormat(format:number):boolean;
-
-		/**
-		 * 是否支持渲染纹理格式。
-		 * @param format 渲染纹理格式。
-		 * @returns 是否支持。
-		 */
-		static supportRenderTextureFormat(format:number):boolean;
-	}
-
-	/**
 	 * 阿拉伯文的转码。把unicode的阿拉伯文字母编码转成他们的老的能描述不同写法的编码。
-	 *   这个是从GitHub上 Javascript-Arabic-Reshaper 项目转来的
-	 * https://github.com/louy/Javascript-Arabic-Reshaper/blob/master/src/index.js
+  这个是从GitHub上 Javascript-Arabic-Reshaper 项目转来的
+https://github.com/louy/Javascript-Arabic-Reshaper/blob/master/src/index.js
 	 */
 
 	/**
 	 * Javascript Arabic Reshaper by Louy Alakkad
-	 * https://github.com/louy/Javascript-Arabic-Reshaper
-	 * Based on (http://git.io/vsnAd)
+https://github.com/louy/Javascript-Arabic-Reshaper
+Based on (http://git.io/vsnAd)
 	 */
 	class ArabicReshaper  {
 		private static charsMap:any;
@@ -48173,9 +47266,9 @@ inherit wait w-resize sw-resize
 
 		/**
 		 * 转换函数。从normal转到presentB
-		 * 这个返回的字符串可以直接按照从左到右的顺序渲染。
-		 * 例如
-		 * graphics.fillText(convertArabic('سلام'),....)
+这个返回的字符串可以直接按照从左到右的顺序渲染。
+例如
+graphics.fillText(convertArabic('سلام'),....)
 		 */
 		convertArabic(normal:any):string;
 		convertArabicBack(apfb:any):string;
@@ -48353,7 +47446,7 @@ inherit wait w-resize sw-resize
 
 		/**
 		 * 如果返回null，则表示无法加入了
-		 * 分配的时候优先选择最接近自己高度的节点
+分配的时候优先选择最接近自己高度的节点
 		 * @param w 
 		 * @param h 
 		 * @return 
@@ -48385,9 +47478,9 @@ inherit wait w-resize sw-resize
 
 		/**
 		 * fontSizeInfo
-		 * 记录每种字体的像素的大小。标准是32px的字体。由4个byte组成，分别表示[xdist,ydist,w,h]。
-		 * xdist,ydist 是像素起点到排版原点的距离，都是正的，表示实际数据往左和上偏多少，如果实际往右和下偏，则算作0，毕竟这个只是一个大概
-		 * 例如 [Arial]=0x00002020, 表示宽高都是32
+记录每种字体的像素的大小。标准是32px的字体。由4个byte组成，分别表示[xdist,ydist,w,h]。
+xdist,ydist 是像素起点到排版原点的距离，都是正的，表示实际数据往左和上偏多少，如果实际往右和下偏，则算作0，毕竟这个只是一个大概
+例如 [Arial]=0x00002020, 表示宽高都是32
 		 */
 		private fontSizeInfo:any;
 		static atlasWidth2:number;
@@ -48425,8 +47518,8 @@ inherit wait w-resize sw-resize
 
 		/**
 		 * 从string中取出一个完整的char，例如emoji的话要多个
-		 * 会修改 _curStrPos
-		 * TODO 由于各种文字中的组合写法，这个需要能扩展，以便支持泰文等
+会修改 _curStrPos
+TODO 由于各种文字中的组合写法，这个需要能扩展，以便支持泰文等
 		 * @param str 
 		 * @param start 开始位置
 		 */
@@ -48483,7 +47576,7 @@ inherit wait w-resize sw-resize
 
 		/**
 		 * 根据bmp数据和当前的包围盒，更新包围盒
-		 * 由于选择的文字是连续的，所以可以用二分法
+由于选择的文字是连续的，所以可以用二分法
 		 * @param data 
 		 * @param curbbx [l,t,r,b]
 		 * @param onlyH 不检查左右
@@ -48540,7 +47633,7 @@ inherit wait w-resize sw-resize
 
 		/**
 		 * 定期清理
-		 * 为了简单，只有发生 getAPage 或者 discardPage的时候才检测是否需要清理
+为了简单，只有发生 getAPage 或者 discardPage的时候才检测是否需要清理
 		 */
 		static clean():void;
 		touchRect(ri:CharRenderInfo,curloop:number):void;
@@ -48700,7 +47793,7 @@ inherit wait w-resize sw-resize
 
 		/**
 		 * 4*4矩阵数组相乘。
-		 * o=a*b;
+o=a*b;
 		 * @param a 4*4矩阵数组。
 		 * @param b 4*4矩阵数组。
 		 * @param o 4*4矩阵数组。
@@ -48768,8 +47861,8 @@ inherit wait w-resize sw-resize
 
 		/**
 		 * 设置mesh的属性。每3个一组，对应的location分别是0,1,2...
-		 * 含义是：type,size,offset
-		 * 不允许多流。因此stride是固定的，offset只是在一个vertex之内。
+含义是：type,size,offset
+不允许多流。因此stride是固定的，offset只是在一个vertex之内。
 		 * @param attribs 
 		 */
 		setAttributes(attribs:any[]):void;
@@ -49039,39 +48132,6 @@ inherit wait w-resize sw-resize
 		 * @override 
 		 */
 		destroy():void;
-	}
-	class VertexArrayObject  {
-
-		constructor();
-	}
-
-	/**
-	 * @private 
-	 */
-	class WebGL  {
-		static _isWebGL2:boolean;
-		static isNativeRender_enable:boolean;
-		private static _uint8ArraySlice:any;
-		private static _float32ArraySlice:any;
-		private static _uint16ArraySlice:any;
-		static _nativeRender_enable():void;
-		static enable():boolean;
-		static inner_enable():boolean;
-		static onStageResize(width:number,height:number):void;
-	}
-
-	/**
-	 * @private 
-	 */
-	class WebGLContext  {
-
-		/**
-		 * 模板写入开关
-		 * @param gl 
-		 * @param value 
-		 */
-		static setStencilMask(gl:WebGLRenderingContext,value:boolean):void;
-		static getUniformMaxVector():number;
 	}
 
 }

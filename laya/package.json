@@ -1,0 +1,22 @@
+{
+  "name": "gather-game",
+  "version": "1.0.0",
+  "description": "",
+  "main": "layaboxEsbuildConfig.js",
+  "bin": {
+    "n3d-game": "index.js"
+  },
+  "scripts": {
+    "start": "layabox-esbuild -c ./build-config/layaboxEsbuildConfig.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "layabox-esbuild": "^1.2.3"
+  },
+  "dependencies": {
+    "gulp": "^4.0.2",
+    "gulp-cli": "^2.3.0",
+    "layaair2-cmd": "^1.6.15"
+  }
+}

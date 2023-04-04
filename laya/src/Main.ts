@@ -3,8 +3,14 @@ import GameConfig from "./GameConfig";
 class Main {
     constructor() {
         //根据IDE设置初始化引擎
-        if (window["Laya3D"]) Laya3D.init(GameConfig.width, GameConfig.height);
-        else Laya.init(GameConfig.width, GameConfig.height, Laya["WebGL"]);
+        let config3D = new Config3D();
+        config3D.isAlpha = true;
+        config3D.isAntialias = true;
+        if (window["Laya3D"]) {
+            Laya3D.init(GameConfig.width, GameConfig.height, config3D);
+        } else {
+            Laya.init(GameConfig.width, GameConfig.height, Laya["WebGL"]);
+        }
         Laya["Physics"] && Laya["Physics"].enable();
         Laya["DebugPanel"] && Laya["DebugPanel"].enable();
         Laya.stage.scaleMode = GameConfig.scaleMode;

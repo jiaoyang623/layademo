@@ -40,7 +40,7 @@
     <Ios>False</Ios>
     <Android>False</Android>
     <Conventional>True</Conventional>
-    <SavePath>E:/workspace/laya/LayaDemo/bin/3d/scene01</SavePath>
+    <SavePath>/opt/git/github/public/layademo/laya/bin/3d/scene01</SavePath>
     <ScrollPositionY>0</ScrollPositionY>
   </config1>
   <config2>
@@ -216,7 +216,7 @@
     <ScrollPositionY>0</ScrollPositionY>
   </config5>
   <language>1</language>
-  <time>1673247575</time>
+  <time>1677580374</time>
   <saveAcount>
   </saveAcount>
   <savePassWorld>

@@ -113,12 +113,19 @@
     }
 
     var BaseTexture = Laya.BaseTexture;
+    var Loader = Laya.Loader;
+    var Browser = Laya.Browser;
     class GameUI extends Laya.Scene {
         constructor() {
             super();
-            this.imageUrl = "http://w2h.fun/u3d/games104_tree.jpg";
-            this.showImage();
+            this.imageUrl = "http://localhost:8004/3d/scene01/Assets/Materials/games104_tree.ktx";
             this.showUnityScene();
+        }
+        onSceneLoaded(scene) {
+            this.mScene = scene;
+            this.mCamera = scene.getChildByName("PlayerHolder");
+            this.mCamera.addComponent(CameraController);
+            Laya.stage.addChild(scene);
         }
         showImage() {
             const thumb = new ThumbManager();
@@ -128,14 +135,27 @@
             thumb.move(-50, -50, 135);
         }
         showUnityScene() {
-            Laya.Scene3D.load("3d/scene01/scene.ls", Laya.Handler.create(this, this.onSceneLoaded));
+            Laya.loader.load([
+                { url: "scene01.zip", type: "plfb" },
+                { url: "scene01.json", type: "plf" }
+            ], Laya.Handler.create(this, function () {
+                Laya.Scene3D.load("3d/scene01/scene.ls", Laya.Handler.create(this, this.onSceneLoaded));
+            }));
+            Laya.Sprite3D.load("3d/avatar.glb", Laya.Handler.create(this, function (sp) {
+                this.mScene.addChild(sp);
+            }));
         }
-        onSceneLoaded(scene) {
-            this.mScene = scene;
-            this.mCamera = scene.getChildByName("PlayerHolder");
-            this.mCamera.addComponent(CameraController);
-            Laya.stage.addChild(scene);
-            this.loadRemoteImage();
+        decodeStreamImage(url, data) {
+            const blob = new Blob([data], { type: "application/octet-binary" });
+            let blobUrl = URL.createObjectURL(blob);
+            console.log(`GU.dsi loadedMap: ${blobUrl}`);
+            let image = new Browser.window.Image();
+            image.crossOrigin = "";
+            image.onload = () => {
+                console.log(`GU.dsi loadedMap done: ${blobUrl}`);
+                Loader.preLoadedMap[url] = image;
+            };
+            image.src = url;
         }
         loadRemoteImage() {
             Laya.loader.load(this.imageUrl, Laya.Handler.create(this, () => {

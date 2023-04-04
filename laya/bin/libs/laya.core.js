@@ -2798,7 +2798,7 @@ window.Laya= (function (exports) {
             var height = source.height;
             this._width = width;
             this._height = height;
-            if (!(this._isPot(width) && this._isPot(height)))
+            if (!(this._isPot(width) || this._isPot(height)))
                 this._mipmap = false;
             this._setWarpMode(gl.TEXTURE_WRAP_S, this._wrapModeU);
             this._setWarpMode(gl.TEXTURE_WRAP_T, this._wrapModeV);
@@ -6113,17 +6113,17 @@ window.Laya= (function (exports) {
     }
     WebGLCacheAsNormalCanvas.matI = new Matrix();
 
-    var texture_vs = "/*\r\n\ttexture和fillrect使用的。\r\n*/\r\nattribute vec4 posuv;\r\nattribute vec4 attribColor;\r\nattribute vec4 attribFlags;\r\n//attribute vec4 clipDir;\r\n//attribute vec2 clipRect;\r\nuniform vec4 clipMatDir;\r\nuniform vec2 clipMatPos;\t\t// 这个是全局的，不用再应用矩阵了。\r\nvarying vec2 cliped;\r\nuniform vec2 size;\r\nuniform vec2 clipOff;\t\t\t// 使用要把clip偏移。cacheas normal用. 只用了[0]\r\n#ifdef WORLDMAT\r\n\tuniform mat4 mmat;\r\n#endif\r\n#ifdef MVP3D\r\n\tuniform mat4 u_MvpMatrix;\r\n#endif\r\nvarying vec4 v_texcoordAlpha;\r\nvarying vec4 v_color;\r\nvarying float v_useTex;\r\n\r\nvoid main() {\r\n\r\n\tvec4 pos = vec4(posuv.xy,0.,1.);\r\n#ifdef WORLDMAT\r\n\tpos=mmat*pos;\r\n#endif\r\n\tvec4 pos1  =vec4((pos.x/size.x-0.5)*2.0,(0.5-pos.y/size.y)*2.0,0.,1.0);\r\n#ifdef MVP3D\r\n\tgl_Position=u_MvpMatrix*pos1;\r\n#else\r\n\tgl_Position=pos1;\r\n#endif\r\n\tv_texcoordAlpha.xy = posuv.zw;\r\n\t//v_texcoordAlpha.z = attribColor.a/255.0;\r\n\tv_color = attribColor/255.0;\r\n\tv_color.xyz*=v_color.w;//反正后面也要预乘\r\n\t\r\n\tv_useTex = attribFlags.r/255.0;\r\n\tfloat clipw = length(clipMatDir.xy);\r\n\tfloat cliph = length(clipMatDir.zw);\r\n\t\r\n\tvec2 clpos = clipMatPos.xy;\r\n\t#ifdef WORLDMAT\r\n\t\t// 如果有mmat，需要修改clipMatPos,因为 这是cacheas normal （如果不是就错了）， clipMatPos被去掉了偏移\r\n\t\tif(clipOff[0]>0.0){\r\n\t\t\tclpos.x+=mmat[3].x;\t//tx\t最简单处理\r\n\t\t\tclpos.y+=mmat[3].y;\t//ty\r\n\t\t}\r\n\t#endif\r\n\tvec2 clippos = pos.xy - clpos;\t//pos已经应用矩阵了，为了减的有意义，clip的位置也要缩放\r\n\tif(clipw>20000. && cliph>20000.)\r\n\t\tcliped = vec2(0.5,0.5);\r\n\telse {\r\n\t\t//转成0到1之间。/clipw/clipw 表示clippos与normalize之后的clip朝向点积之后，再除以clipw\r\n\t\tcliped=vec2( dot(clippos,clipMatDir.xy)/clipw/clipw, dot(clippos,clipMatDir.zw)/cliph/cliph);\r\n\t}\r\n\r\n}";
+    var texture_vs = "/*\n\ttexture和fillrect使用的。\n*/\nattribute vec4 posuv;\nattribute vec4 attribColor;\nattribute vec4 attribFlags;\n//attribute vec4 clipDir;\n//attribute vec2 clipRect;\nuniform vec4 clipMatDir;\nuniform vec2 clipMatPos;\t\t// 这个是全局的，不用再应用矩阵了。\nvarying vec2 cliped;\nuniform vec2 size;\nuniform vec2 clipOff;\t\t\t// 使用要把clip偏移。cacheas normal用. 只用了[0]\n#ifdef WORLDMAT\n\tuniform mat4 mmat;\n#endif\n#ifdef MVP3D\n\tuniform mat4 u_MvpMatrix;\n#endif\nvarying vec4 v_texcoordAlpha;\nvarying vec4 v_color;\nvarying float v_useTex;\n\nvoid main() {\n\n\tvec4 pos = vec4(posuv.xy,0.,1.);\n#ifdef WORLDMAT\n\tpos=mmat*pos;\n#endif\n\tvec4 pos1  =vec4((pos.x/size.x-0.5)*2.0,(0.5-pos.y/size.y)*2.0,0.,1.0);\n#ifdef MVP3D\n\tgl_Position=u_MvpMatrix*pos1;\n#else\n\tgl_Position=pos1;\n#endif\n\tv_texcoordAlpha.xy = posuv.zw;\n\t//v_texcoordAlpha.z = attribColor.a/255.0;\n\tv_color = attribColor/255.0;\n\tv_color.xyz*=v_color.w;//反正后面也要预乘\n\t\n\tv_useTex = attribFlags.r/255.0;\n\tfloat clipw = length(clipMatDir.xy);\n\tfloat cliph = length(clipMatDir.zw);\n\t\n\tvec2 clpos = clipMatPos.xy;\n\t#ifdef WORLDMAT\n\t\t// 如果有mmat，需要修改clipMatPos,因为 这是cacheas normal （如果不是就错了）， clipMatPos被去掉了偏移\n\t\tif(clipOff[0]>0.0){\n\t\t\tclpos.x+=mmat[3].x;\t//tx\t最简单处理\n\t\t\tclpos.y+=mmat[3].y;\t//ty\n\t\t}\n\t#endif\n\tvec2 clippos = pos.xy - clpos;\t//pos已经应用矩阵了，为了减的有意义，clip的位置也要缩放\n\tif(clipw>20000. && cliph>20000.)\n\t\tcliped = vec2(0.5,0.5);\n\telse {\n\t\t//转成0到1之间。/clipw/clipw 表示clippos与normalize之后的clip朝向点积之后，再除以clipw\n\t\tcliped=vec2( dot(clippos,clipMatDir.xy)/clipw/clipw, dot(clippos,clipMatDir.zw)/cliph/cliph);\n\t}\n\n}";
 
-    var texture_ps = "/*\r\n\ttexture和fillrect使用的。\r\n*/\r\n#if defined(GL_FRAGMENT_PRECISION_HIGH)// 原来的写法会被我们自己的解析流程处理，而我们的解析是不认内置宏的，导致被删掉，所以改成 if defined 了\r\nprecision highp float;\r\n#else\r\nprecision mediump float;\r\n#endif\r\n\r\nvarying vec4 v_texcoordAlpha;\r\nvarying vec4 v_color;\r\nvarying float v_useTex;\r\nuniform sampler2D texture;\r\nvarying vec2 cliped;\r\n\r\n#ifdef BLUR_FILTER\r\nuniform vec4 strength_sig2_2sig2_gauss1;//TODO模糊的过程中会导致变暗变亮  \r\nuniform vec2 blurInfo;\r\n\r\n#define PI 3.141593\r\n\r\nfloat getGaussian(float x, float y){\r\n    return strength_sig2_2sig2_gauss1.w*exp(-(x*x+y*y)/strength_sig2_2sig2_gauss1.z);\r\n}\r\n\r\nvec4 blur(){\r\n    const float blurw = 9.0;\r\n    vec4 vec4Color = vec4(0.0,0.0,0.0,0.0);\r\n    vec2 halfsz=vec2(blurw,blurw)/2.0/blurInfo;    \r\n    vec2 startpos=v_texcoordAlpha.xy-halfsz;\r\n    vec2 ctexcoord = startpos;\r\n    vec2 step = 1.0/blurInfo;  //每个像素      \r\n    \r\n    for(float y = 0.0;y<=blurw; ++y){\r\n        ctexcoord.x=startpos.x;\r\n        for(float x = 0.0;x<=blurw; ++x){\r\n            //TODO 纹理坐标的固定偏移应该在vs中处理\r\n            vec4Color += texture2D(texture, ctexcoord)*getGaussian(x-blurw/2.0,y-blurw/2.0);\r\n            ctexcoord.x+=step.x;\r\n        }\r\n        ctexcoord.y+=step.y;\r\n    }\r\n    //vec4Color.w=1.0;  这个会导致丢失alpha。以后有时间再找模糊会导致透明的问题\r\n    return vec4Color;\r\n}\r\n#endif\r\n\r\n#ifdef COLOR_FILTER\r\nuniform vec4 colorAlpha;\r\nuniform mat4 colorMat;\r\n#endif\r\n\r\n#ifdef GLOW_FILTER\r\nuniform vec4 u_color;\r\nuniform vec4 u_blurInfo1;\r\nuniform vec4 u_blurInfo2;\r\n#endif\r\n\r\n#ifdef COLOR_ADD\r\nuniform vec4 colorAdd;\r\n#endif\r\n\r\n#ifdef FILLTEXTURE\t\r\nuniform vec4 u_TexRange;//startu,startv,urange, vrange\r\n#endif\r\nvoid main() {\r\n\tif(cliped.x<0.) discard;\r\n\tif(cliped.x>1.) discard;\r\n\tif(cliped.y<0.) discard;\r\n\tif(cliped.y>1.) discard;\r\n\t\r\n#ifdef FILLTEXTURE\t\r\n   vec4 color= texture2D(texture, fract(v_texcoordAlpha.xy)*u_TexRange.zw + u_TexRange.xy);\r\n#else\r\n   vec4 color= texture2D(texture, v_texcoordAlpha.xy);\r\n#endif\r\n\r\n   if(v_useTex<=0.)color = vec4(1.,1.,1.,1.);\r\n   color.a*=v_color.w;\r\n   //color.rgb*=v_color.w;\r\n   color.rgb*=v_color.rgb;\r\n   gl_FragColor=color;\r\n   \r\n   #ifdef COLOR_ADD\r\n\tgl_FragColor = vec4(colorAdd.rgb,colorAdd.a*gl_FragColor.a);\r\n\tgl_FragColor.xyz *= colorAdd.a;\r\n   #endif\r\n   \r\n   #ifdef BLUR_FILTER\r\n\tgl_FragColor =   blur();\r\n\tgl_FragColor.w*=v_color.w;   \r\n   #endif\r\n   \r\n   #ifdef COLOR_FILTER\r\n\tmat4 alphaMat =colorMat;\r\n\r\n\talphaMat[0][3] *= gl_FragColor.a;\r\n\talphaMat[1][3] *= gl_FragColor.a;\r\n\talphaMat[2][3] *= gl_FragColor.a;\r\n\r\n\tgl_FragColor = gl_FragColor * alphaMat;\r\n\tgl_FragColor += colorAlpha/255.0*gl_FragColor.a;\r\n   #endif\r\n   \r\n   #ifdef GLOW_FILTER\r\n\tconst float c_IterationTime = 10.0;\r\n\tfloat floatIterationTotalTime = c_IterationTime * c_IterationTime;\r\n\tvec4 vec4Color = vec4(0.0,0.0,0.0,0.0);\r\n\tvec2 vec2FilterDir = vec2(-(u_blurInfo1.z)/u_blurInfo2.x,-(u_blurInfo1.w)/u_blurInfo2.y);\r\n\tvec2 vec2FilterOff = vec2(u_blurInfo1.x/u_blurInfo2.x/c_IterationTime * 2.0,u_blurInfo1.y/u_blurInfo2.y/c_IterationTime * 2.0);\r\n\tfloat maxNum = u_blurInfo1.x * u_blurInfo1.y;\r\n\tvec2 vec2Off = vec2(0.0,0.0);\r\n\tfloat floatOff = c_IterationTime/2.0;\r\n\tfor(float i = 0.0;i<=c_IterationTime; ++i){\r\n\t\tfor(float j = 0.0;j<=c_IterationTime; ++j){\r\n\t\t\tvec2Off = vec2(vec2FilterOff.x * (i - floatOff),vec2FilterOff.y * (j - floatOff));\r\n\t\t\tvec4Color += texture2D(texture, v_texcoordAlpha.xy + vec2FilterDir + vec2Off)/floatIterationTotalTime;\r\n\t\t}\r\n\t}\r\n\tgl_FragColor = vec4(u_color.rgb,vec4Color.a * u_blurInfo2.z);\r\n\tgl_FragColor.rgb *= gl_FragColor.a;   \r\n   #endif\r\n   \r\n}";
+    var texture_ps = "/*\n\ttexture和fillrect使用的。\n*/\n#if defined(GL_FRAGMENT_PRECISION_HIGH)// 原来的写法会被我们自己的解析流程处理，而我们的解析是不认内置宏的，导致被删掉，所以改成 if defined 了\nprecision highp float;\n#else\nprecision mediump float;\n#endif\n\nvarying vec4 v_texcoordAlpha;\nvarying vec4 v_color;\nvarying float v_useTex;\nuniform sampler2D texture;\nvarying vec2 cliped;\n\n#ifdef BLUR_FILTER\nuniform vec4 strength_sig2_2sig2_gauss1;//TODO模糊的过程中会导致变暗变亮  \nuniform vec2 blurInfo;\n\n#define PI 3.141593\n\nfloat getGaussian(float x, float y){\n    return strength_sig2_2sig2_gauss1.w*exp(-(x*x+y*y)/strength_sig2_2sig2_gauss1.z);\n}\n\nvec4 blur(){\n    const float blurw = 9.0;\n    vec4 vec4Color = vec4(0.0,0.0,0.0,0.0);\n    vec2 halfsz=vec2(blurw,blurw)/2.0/blurInfo;    \n    vec2 startpos=v_texcoordAlpha.xy-halfsz;\n    vec2 ctexcoord = startpos;\n    vec2 step = 1.0/blurInfo;  //每个像素      \n    \n    for(float y = 0.0;y<=blurw; ++y){\n        ctexcoord.x=startpos.x;\n        for(float x = 0.0;x<=blurw; ++x){\n            //TODO 纹理坐标的固定偏移应该在vs中处理\n            vec4Color += texture2D(texture, ctexcoord)*getGaussian(x-blurw/2.0,y-blurw/2.0);\n            ctexcoord.x+=step.x;\n        }\n        ctexcoord.y+=step.y;\n    }\n    //vec4Color.w=1.0;  这个会导致丢失alpha。以后有时间再找模糊会导致透明的问题\n    return vec4Color;\n}\n#endif\n\n#ifdef COLOR_FILTER\nuniform vec4 colorAlpha;\nuniform mat4 colorMat;\n#endif\n\n#ifdef GLOW_FILTER\nuniform vec4 u_color;\nuniform vec4 u_blurInfo1;\nuniform vec4 u_blurInfo2;\n#endif\n\n#ifdef COLOR_ADD\nuniform vec4 colorAdd;\n#endif\n\n#ifdef FILLTEXTURE\t\nuniform vec4 u_TexRange;//startu,startv,urange, vrange\n#endif\nvoid main() {\n\tif(cliped.x<0.) discard;\n\tif(cliped.x>1.) discard;\n\tif(cliped.y<0.) discard;\n\tif(cliped.y>1.) discard;\n\t\n#ifdef FILLTEXTURE\t\n   vec4 color= texture2D(texture, fract(v_texcoordAlpha.xy)*u_TexRange.zw + u_TexRange.xy);\n#else\n   vec4 color= texture2D(texture, v_texcoordAlpha.xy);\n#endif\n\n   if(v_useTex<=0.)color = vec4(1.,1.,1.,1.);\n   color.a*=v_color.w;\n   //color.rgb*=v_color.w;\n   color.rgb*=v_color.rgb;\n   gl_FragColor=color;\n   \n   #ifdef COLOR_ADD\n\tgl_FragColor = vec4(colorAdd.rgb,colorAdd.a*gl_FragColor.a);\n\tgl_FragColor.xyz *= colorAdd.a;\n   #endif\n   \n   #ifdef BLUR_FILTER\n\tgl_FragColor =   blur();\n\tgl_FragColor.w*=v_color.w;   \n   #endif\n   \n   #ifdef COLOR_FILTER\n\tmat4 alphaMat =colorMat;\n\n\talphaMat[0][3] *= gl_FragColor.a;\n\talphaMat[1][3] *= gl_FragColor.a;\n\talphaMat[2][3] *= gl_FragColor.a;\n\n\tgl_FragColor = gl_FragColor * alphaMat;\n\tgl_FragColor += colorAlpha/255.0*gl_FragColor.a;\n   #endif\n   \n   #ifdef GLOW_FILTER\n\tconst float c_IterationTime = 10.0;\n\tfloat floatIterationTotalTime = c_IterationTime * c_IterationTime;\n\tvec4 vec4Color = vec4(0.0,0.0,0.0,0.0);\n\tvec2 vec2FilterDir = vec2(-(u_blurInfo1.z)/u_blurInfo2.x,-(u_blurInfo1.w)/u_blurInfo2.y);\n\tvec2 vec2FilterOff = vec2(u_blurInfo1.x/u_blurInfo2.x/c_IterationTime * 2.0,u_blurInfo1.y/u_blurInfo2.y/c_IterationTime * 2.0);\n\tfloat maxNum = u_blurInfo1.x * u_blurInfo1.y;\n\tvec2 vec2Off = vec2(0.0,0.0);\n\tfloat floatOff = c_IterationTime/2.0;\n\tfor(float i = 0.0;i<=c_IterationTime; ++i){\n\t\tfor(float j = 0.0;j<=c_IterationTime; ++j){\n\t\t\tvec2Off = vec2(vec2FilterOff.x * (i - floatOff),vec2FilterOff.y * (j - floatOff));\n\t\t\tvec4Color += texture2D(texture, v_texcoordAlpha.xy + vec2FilterDir + vec2Off)/floatIterationTotalTime;\n\t\t}\n\t}\n\tgl_FragColor = vec4(u_color.rgb,vec4Color.a * u_blurInfo2.z);\n\tgl_FragColor.rgb *= gl_FragColor.a;   \n   #endif\n   \n}";
 
-    var prime_vs = "attribute vec4 position;\r\nattribute vec4 attribColor;\r\n//attribute vec4 clipDir;\r\n//attribute vec2 clipRect;\r\nuniform vec4 clipMatDir;\r\nuniform vec2 clipMatPos;\r\n#ifdef WORLDMAT\r\n\tuniform mat4 mmat;\r\n#endif\r\nuniform mat4 u_mmat2;\r\n//uniform vec2 u_pos;\r\nuniform vec2 size;\r\nvarying vec4 color;\r\n//vec4 dirxy=vec4(0.9,0.1, -0.1,0.9);\r\n//vec4 clip=vec4(100.,30.,300.,600.);\r\nvarying vec2 cliped;\r\nvoid main(){\r\n\t\r\n#ifdef WORLDMAT\r\n\tvec4 pos=mmat*vec4(position.xy,0.,1.);\r\n\tgl_Position =vec4((pos.x/size.x-0.5)*2.0,(0.5-pos.y/size.y)*2.0,pos.z,1.0);\r\n#else\r\n\tgl_Position =vec4((position.x/size.x-0.5)*2.0,(0.5-position.y/size.y)*2.0,position.z,1.0);\r\n#endif\t\r\n\tfloat clipw = length(clipMatDir.xy);\r\n\tfloat cliph = length(clipMatDir.zw);\r\n\tvec2 clippos = position.xy - clipMatPos.xy;\t//pos已经应用矩阵了，为了减的有意义，clip的位置也要缩放\r\n\tif(clipw>20000. && cliph>20000.)\r\n\t\tcliped = vec2(0.5,0.5);\r\n\telse {\r\n\t\t//clipdir是带缩放的方向，由于上面clippos是在缩放后的空间计算的，所以需要把方向先normalize一下\r\n\t\tcliped=vec2( dot(clippos,clipMatDir.xy)/clipw/clipw, dot(clippos,clipMatDir.zw)/cliph/cliph);\r\n\t}\r\n  //pos2d.x = dot(clippos,dirx);\r\n  color=attribColor/255.;\r\n}";
+    var prime_vs = "attribute vec4 position;\nattribute vec4 attribColor;\n//attribute vec4 clipDir;\n//attribute vec2 clipRect;\nuniform vec4 clipMatDir;\nuniform vec2 clipMatPos;\n#ifdef WORLDMAT\n\tuniform mat4 mmat;\n#endif\nuniform mat4 u_mmat2;\n//uniform vec2 u_pos;\nuniform vec2 size;\nvarying vec4 color;\n//vec4 dirxy=vec4(0.9,0.1, -0.1,0.9);\n//vec4 clip=vec4(100.,30.,300.,600.);\nvarying vec2 cliped;\nvoid main(){\n\t\n#ifdef WORLDMAT\n\tvec4 pos=mmat*vec4(position.xy,0.,1.);\n\tgl_Position =vec4((pos.x/size.x-0.5)*2.0,(0.5-pos.y/size.y)*2.0,pos.z,1.0);\n#else\n\tgl_Position =vec4((position.x/size.x-0.5)*2.0,(0.5-position.y/size.y)*2.0,position.z,1.0);\n#endif\t\n\tfloat clipw = length(clipMatDir.xy);\n\tfloat cliph = length(clipMatDir.zw);\n\tvec2 clippos = position.xy - clipMatPos.xy;\t//pos已经应用矩阵了，为了减的有意义，clip的位置也要缩放\n\tif(clipw>20000. && cliph>20000.)\n\t\tcliped = vec2(0.5,0.5);\n\telse {\n\t\t//clipdir是带缩放的方向，由于上面clippos是在缩放后的空间计算的，所以需要把方向先normalize一下\n\t\tcliped=vec2( dot(clippos,clipMatDir.xy)/clipw/clipw, dot(clippos,clipMatDir.zw)/cliph/cliph);\n\t}\n  //pos2d.x = dot(clippos,dirx);\n  color=attribColor/255.;\n}";
 
-    var prime_ps = "precision mediump float;\r\n//precision mediump float;\r\nvarying vec4 color;\r\n//uniform float alpha;\r\nvarying vec2 cliped;\r\nvoid main(){\r\n\t//vec4 a=vec4(color.r, color.g, color.b, 1);\r\n\t//a.a*=alpha;\r\n    gl_FragColor= color;// vec4(color.r, color.g, color.b, alpha);\r\n\tgl_FragColor.rgb*=color.a;\r\n\tif(cliped.x<0.) discard;\r\n\tif(cliped.x>1.) discard;\r\n\tif(cliped.y<0.) discard;\r\n\tif(cliped.y>1.) discard;\r\n}";
+    var prime_ps = "precision mediump float;\n//precision mediump float;\nvarying vec4 color;\n//uniform float alpha;\nvarying vec2 cliped;\nvoid main(){\n\t//vec4 a=vec4(color.r, color.g, color.b, 1);\n\t//a.a*=alpha;\n    gl_FragColor= color;// vec4(color.r, color.g, color.b, alpha);\n\tgl_FragColor.rgb*=color.a;\n\tif(cliped.x<0.) discard;\n\tif(cliped.x>1.) discard;\n\tif(cliped.y<0.) discard;\n\tif(cliped.y>1.) discard;\n}";
 
-    var skin_vs = "attribute vec2 position;\r\nattribute vec2 texcoord;\r\nattribute vec4 color;\r\nuniform vec2 size;\r\nuniform float offsetX;\r\nuniform float offsetY;\r\nuniform mat4 mmat;\r\nuniform mat4 u_mmat2;\r\nvarying vec2 v_texcoord;\r\nvarying vec4 v_color;\r\nvoid main() {\r\n  vec4 pos=mmat*u_mmat2*vec4(offsetX+position.x,offsetY+position.y,0,1 );\r\n  gl_Position = vec4((pos.x/size.x-0.5)*2.0,(0.5-pos.y/size.y)*2.0,pos.z,1.0);\r\n  v_color = color;\r\n  v_color.rgb *= v_color.a;\r\n  v_texcoord = texcoord;  \r\n}";
+    var skin_vs = "attribute vec2 position;\nattribute vec2 texcoord;\nattribute vec4 color;\nuniform vec2 size;\nuniform float offsetX;\nuniform float offsetY;\nuniform mat4 mmat;\nuniform mat4 u_mmat2;\nvarying vec2 v_texcoord;\nvarying vec4 v_color;\nvoid main() {\n  vec4 pos=mmat*u_mmat2*vec4(offsetX+position.x,offsetY+position.y,0,1 );\n  gl_Position = vec4((pos.x/size.x-0.5)*2.0,(0.5-pos.y/size.y)*2.0,pos.z,1.0);\n  v_color = color;\n  v_color.rgb *= v_color.a;\n  v_texcoord = texcoord;  \n}";
 
-    var skin_ps = "precision mediump float;\r\nvarying vec2 v_texcoord;\r\nvarying vec4 v_color;\r\nuniform sampler2D texture;\r\nuniform float alpha;\r\nvoid main() {\r\n\tvec4 t_color = texture2D(texture, v_texcoord);\r\n\tgl_FragColor = t_color.rgba * v_color;\r\n\tgl_FragColor *= alpha;\r\n}";
+    var skin_ps = "precision mediump float;\nvarying vec2 v_texcoord;\nvarying vec4 v_color;\nuniform sampler2D texture;\nuniform float alpha;\nvoid main() {\n\tvec4 t_color = texture2D(texture, v_texcoord);\n\tgl_FragColor = t_color.rgba * v_color;\n\tgl_FragColor *= alpha;\n}";
 
     class Shader2D {
         constructor() {
@@ -17931,6 +17931,11 @@ window.Laya= (function (exports) {
         static hasKeyDown(key) {
             return KeyBoardManager._pressKeys[key];
         }
+        static clearKeys() {
+            for (const key in KeyBoardManager._pressKeys) {
+                KeyBoardManager._pressKeys[key] = null;
+            }
+        }
     }
     KeyBoardManager._pressKeys = {};
     KeyBoardManager.enabled = true;
@@ -19136,10 +19141,127 @@ window.Laya= (function (exports) {
     }
     HttpRequest._urlEncode = encodeURI;
 
+    class ImageCacheHelper {
+        constructor() {
+            this.blobMap = new Map();
+            this.base64Map = new Map();
+            this.imageMap = new Map();
+        }
+        static createBlob(data) {
+            const blob = new Blob([data], { type: "application/octet-binary" });
+            let blobUrl = webkitURL.createObjectURL(blob);
+            return blobUrl;
+        }
+        static destroyBlob(blobUrl) {
+            webkitURL.revokeObjectURL(blobUrl);
+        }
+        getCache(url) {
+            let cacheUrl = ImageCacheHelper.useBlobCache ? this.getImageBlobCache(url) : this.getImageBase64Cache(url);
+            return cacheUrl == null ? url : cacheUrl;
+        }
+        setCache(url, fileData) {
+            if (ImageCacheHelper.useBlobCache) {
+                this.cacheImageBlob(url, fileData);
+            }
+            else {
+                this.cacheImageBase64(url, fileData);
+            }
+        }
+        getImageBlobCache(url) {
+            let out = this.blobMap.get(url);
+            return out == null ? url : out;
+        }
+        getImageBeanCache(url) {
+            return this.imageMap.get(url);
+        }
+        getImageBase64Cache(url) {
+            let out = this.base64Map.get(url);
+            return out == null ? url : out;
+        }
+        cacheImageBlob(url, fileData) {
+            if (fileData instanceof ArrayBuffer && (url.endsWith(".png") || url.endsWith(".jpg") || url.endsWith(".jpeg"))) {
+                let blobUrl = ImageCacheHelper.createBlob(fileData);
+                this.blobMap.set(url, blobUrl);
+                this.imageMap.set(url, new ImageBean(blobUrl));
+            }
+        }
+        arrayBufferToBase64(buffer) {
+            var binary = '';
+            var bytes = new Uint8Array(buffer);
+            var len = bytes.byteLength;
+            for (var i = 0; i < len; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
+        }
+        cacheImageBase64(url, fileData) {
+            if (fileData instanceof ArrayBuffer && (url.endsWith(".png") || url.endsWith(".jpg"))) {
+                this.base64Map.set(url, (url.endsWith(".png") ? "data:image/png;base64," : "data:image/jpg;base64,")
+                    + this.arrayBufferToBase64(fileData));
+            }
+        }
+    }
+    ImageCacheHelper.instance = new ImageCacheHelper();
+    ImageCacheHelper.useBlobCache = true;
+    class ImageBean {
+        constructor(blobUrl) {
+            this.requestLoad = false;
+            this.isLoaded = false;
+            this.isError = false;
+            this.blobUrl = blobUrl;
+            this.image = new Image();
+            this.image.crossOrigin = "";
+            this.image.src = blobUrl;
+            this.image.onload = () => {
+                var _a;
+                ImageCacheHelper.destroyBlob(this.blobUrl);
+                if (this.requestLoad) {
+                    (_a = this.onload) === null || _a === void 0 ? void 0 : _a.call(this);
+                }
+                else {
+                    this.isLoaded = true;
+                }
+            };
+            this.image.onerror = () => {
+                var _a;
+                ImageCacheHelper.destroyBlob(this.blobUrl);
+                if (this.requestLoad) {
+                    (_a = this.onerror) === null || _a === void 0 ? void 0 : _a.call(this);
+                }
+                else {
+                    this.isError = true;
+                }
+            };
+        }
+        load() {
+            var _a, _b;
+            this.requestLoad = true;
+            if (this.isLoaded) {
+                (_a = this.onload) === null || _a === void 0 ? void 0 : _a.call(this);
+            }
+            if (this.isError) {
+                (_b = this.onerror) === null || _b === void 0 ? void 0 : _b.call(this);
+            }
+        }
+    }
+
     class Loader extends EventDispatcher {
         constructor() {
             super(...arguments);
             this._customParse = false;
+            this._mipmap = true;
+        }
+        get data() {
+            return this._data;
+        }
+        get url() {
+            return this._url;
+        }
+        get type() {
+            return this._type;
+        }
+        get cache() {
+            return this._cache;
         }
         static getTypeFromUrl(url) {
             var type = Utils.getFileExtension(url);
@@ -19147,6 +19269,113 @@ window.Laya= (function (exports) {
                 return Loader.typeMap[type];
             console.warn("Not recognize the resources suffix", url);
             return "text";
+        }
+        static clearRes(url) {
+            url = URL.formatURL(url);
+            var arr = Loader.getAtlas(url);
+            if (arr) {
+                for (var i = 0, n = arr.length; i < n; i++) {
+                    var resUrl = arr[i];
+                    var tex = Loader.getRes(resUrl);
+                    delete Loader.textureMap[resUrl];
+                    if (tex)
+                        tex.destroy();
+                }
+                arr.length = 0;
+                delete Loader.atlasMap[url];
+            }
+            var texture = Loader.textureMap[url];
+            if (texture) {
+                texture.destroy();
+                delete Loader.textureMap[url];
+            }
+            var res = Loader.loadedMap[url];
+            (res) && (delete Loader.loadedMap[url]);
+        }
+        static clearTextureRes(url) {
+            url = URL.formatURL(url);
+            var arr = Loader.getAtlas(url);
+            if (arr && arr.length > 0) {
+                arr.forEach(function (t) {
+                    var tex = Loader.getRes(t);
+                    if (tex instanceof Texture) {
+                        tex.disposeBitmap();
+                    }
+                });
+            }
+            else {
+                var t = Loader.getRes(url);
+                if (t instanceof Texture) {
+                    t.disposeBitmap();
+                }
+            }
+        }
+        static getRes(url) {
+            var res = Loader.textureMap[URL.formatURL(url)];
+            if (res)
+                return res;
+            else
+                return Loader.loadedMap[URL.formatURL(url)];
+        }
+        static getAtlas(url) {
+            return Loader.atlasMap[URL.formatURL(url)];
+        }
+        static cacheRes(url, data) {
+            url = URL.formatURL(url);
+            if (Loader.loadedMap[url] != null) {
+                console.warn("Resources already exist,is repeated loading:", url);
+            }
+            else {
+                if (data instanceof Texture) {
+                    Loader.loadedMap[url] = data.bitmap;
+                    Loader.textureMap[url] = data;
+                }
+                else {
+                    Loader.loadedMap[url] = data;
+                }
+            }
+        }
+        static cacheResForce(url, data) {
+            Loader.loadedMap[url] = data;
+        }
+        static cacheTexture(url, data) {
+            url = URL.formatURL(url);
+            if (Loader.textureMap[url] != null) {
+                console.warn("Resources already exist,is repeated loading:", url);
+            }
+            else {
+                Loader.textureMap[url] = data;
+            }
+        }
+        static setGroup(url, group) {
+            if (!Loader.groupMap[group])
+                Loader.groupMap[group] = [];
+            Loader.groupMap[group].push(url);
+        }
+        static clearResByGroup(group) {
+            if (!Loader.groupMap[group])
+                return;
+            var arr = Loader.groupMap[group], i, len = arr.length;
+            for (i = 0; i < len; i++) {
+                Loader.clearRes(arr[i]);
+            }
+            arr.length = 0;
+        }
+        static checkNext() {
+            Loader._isWorking = true;
+            var startTimer = Browser.now();
+            while (Loader._startIndex < Loader._loaders.length) {
+                Loader._loaders[Loader._startIndex].endLoad();
+                Loader._startIndex++;
+                if (Browser.now() - startTimer > Loader.maxTimeOut) {
+                    console.warn("loader callback cost a long time:" + (Browser.now() - startTimer) + " url=" + Loader._loaders[Loader._startIndex - 1].url);
+                    ILaya.systemTimer.frameOnce(1, null, Loader.checkNext);
+                    return;
+                }
+            }
+            Loader._loaders.length = 0;
+            Loader._startIndex = 0;
+            Loader._isWorking = false;
         }
         load(url, type = null, cache = true, group = null, ignoreCache = false, useWorkerLoader = ILaya.WorkerLoader.enable) {
             if (!url) {
@@ -19195,75 +19424,37 @@ window.Laya= (function (exports) {
         _loadResourceFilter(type, url) {
             this._loadResource(type, url);
         }
-        _loadResource(type, url) {
-            switch (type) {
-                case Loader.IMAGE:
-                case "htmlimage":
-                case "nativeimage":
-                    this._loadImage(url);
-                    break;
-                case Loader.SOUND:
-                    this._loadSound(url);
-                    break;
-                case Loader.TTF:
-                    this._loadTTF(url);
-                    break;
-                case Loader.ATLAS:
-                case Loader.PREFAB:
-                case Loader.PLF:
-                    this._loadHttpRequestWhat(url, Loader.JSON);
-                    break;
-                case Loader.FONT:
-                    this._loadHttpRequestWhat(url, Loader.XML);
-                    break;
-                case Loader.PLFB:
-                    this._loadHttpRequestWhat(url, Loader.BUFFER);
-                    break;
-                default:
-                    this._loadHttpRequestWhat(url, type);
-            }
-        }
-        _loadHttpRequest(url, contentType, onLoadCaller, onLoad, onProcessCaller, onProcess, onErrorCaller, onError) {
-            if (Browser.onVVMiniGame || Browser.onHWMiniGame) {
-                this._http = new HttpRequest();
-            }
-            else {
-                if (!this._http)
-                    this._http = new HttpRequest();
-            }
-            onProcess && this._http.on(Event.PROGRESS, onProcessCaller, onProcess);
-            onLoad && this._http.on(Event.COMPLETE, onLoadCaller, onLoad);
-            this._http.on(Event.ERROR, onErrorCaller, onError);
-            this._http.send(url, null, "get", contentType);
-        }
-        _loadHtmlImage(url, onLoadCaller, onLoad, onErrorCaller, onError) {
-            var image;
-            function clear() {
-                var img = image;
-                img.onload = null;
-                img.onerror = null;
-                delete Loader._imgCache[url];
-            }
-            var onerror = function () {
-                clear();
-                onError.call(onErrorCaller);
-            };
-            var onload = function () {
-                clear();
-                onLoad.call(onLoadCaller, image);
-            };
-            image = new Browser.window.Image();
-            image.crossOrigin = "";
-            image.onload = onload;
-            image.onerror = onerror;
-            image.src = url;
-            Loader._imgCache[url] = image;
-        }
         _loadHttpRequestWhat(url, contentType) {
             if (Loader.preLoadedMap[url])
                 this.onLoaded(Loader.preLoadedMap[url]);
             else
                 this._loadHttpRequest(url, contentType, this, this.onLoaded, this, this.onProgress, this, this.onError);
+        }
+        _loadSound(url) {
+            var sound = (new SoundManager._soundClass());
+            var _this = this;
+            sound.on(Event.COMPLETE, this, soundOnload);
+            sound.on(Event.ERROR, this, soundOnErr);
+            sound.load(url);
+            function soundOnload() {
+                clear();
+                _this.onLoaded(sound);
+            }
+            function soundOnErr() {
+                clear();
+                sound.dispose();
+                _this.event(Event.ERROR, "Load sound failed");
+            }
+            function clear() {
+                sound.offAll();
+            }
+        }
+        endLoad(content = null) {
+            content && (this._data = content);
+            if (this._cache)
+                Loader.cacheRes(this._url, this._data);
+            this.event(Event.PROGRESS, 1);
+            this.event(Event.COMPLETE, this.data instanceof Array ? [this.data] : this.data);
         }
         _loadTTF(url) {
             url = URL.formatURL(url);
@@ -19290,25 +19481,6 @@ window.Laya= (function (exports) {
                     this._loadHttpRequest(url, Loader.BUFFER, this, this.onLoaded, this, this.onProgress, this, this.onError);
                 else
                     this._loadHtmlImage(url, this, this.onLoaded, this, onError);
-            }
-        }
-        _loadSound(url) {
-            var sound = (new SoundManager._soundClass());
-            var _this = this;
-            sound.on(Event.COMPLETE, this, soundOnload);
-            sound.on(Event.ERROR, this, soundOnErr);
-            sound.load(url);
-            function soundOnload() {
-                clear();
-                _this.onLoaded(sound);
-            }
-            function soundOnErr() {
-                clear();
-                sound.dispose();
-                _this.event(Event.ERROR, "Load sound failed");
-            }
-            function clear() {
-                sound.offAll();
             }
         }
         onProgress(value) {
@@ -19349,14 +19521,14 @@ window.Laya= (function (exports) {
                             return;
                         }
                     }
-                    tex = new Texture2D(0, 0, format, false, false);
+                    tex = new Texture2D(0, 0, format, this._mipmap, false);
                     tex.wrapModeU = exports.WarpMode.Clamp;
                     tex.wrapModeV = exports.WarpMode.Clamp;
                     tex.setCompressData(data);
                     tex._setCreateURL(this.url);
                 }
                 else if (!(data instanceof Texture2D)) {
-                    tex = new Texture2D(data.width, data.height, 1, false, false);
+                    tex = new Texture2D(data.width, data.height, 1, this._mipmap, false);
                     tex.wrapModeU = exports.WarpMode.Clamp;
                     tex.wrapModeV = exports.WarpMode.Clamp;
                     tex.loadImageSource(data, true);
@@ -19373,7 +19545,7 @@ window.Laya= (function (exports) {
                 this.complete(data);
             }
             else if (type === "htmlimage") {
-                let tex = new Texture2D(data.width, data.height, 1, false, false);
+                let tex = new Texture2D(data.width, data.height, 1, this._mipmap, false);
                 tex.wrapModeU = exports.WarpMode.Clamp;
                 tex.wrapModeV = exports.WarpMode.Clamp;
                 tex.loadImageSource(data, true);
@@ -19535,6 +19707,90 @@ window.Laya= (function (exports) {
                 this.complete(data);
             }
         }
+        complete(data) {
+            this._data = data;
+            if (this._customParse) {
+                this.event(Event.LOADED, data instanceof Array ? [data] : data);
+            }
+            else {
+                Loader._loaders.push(this);
+                if (!Loader._isWorking)
+                    Loader.checkNext();
+            }
+        }
+        _loadResource(type, url) {
+            switch (type) {
+                case Loader.IMAGE:
+                case "htmlimage":
+                case "nativeimage":
+                    this._loadImage(url);
+                    break;
+                case Loader.SOUND:
+                    this._loadSound(url);
+                    break;
+                case Loader.TTF:
+                    this._loadTTF(url);
+                    break;
+                case Loader.ATLAS:
+                case Loader.PREFAB:
+                case Loader.PLF:
+                    this._loadHttpRequestWhat(url, Loader.JSON);
+                    break;
+                case Loader.FONT:
+                    this._loadHttpRequestWhat(url, Loader.XML);
+                    break;
+                case Loader.PLFB:
+                    this._loadHttpRequestWhat(url, Loader.BUFFER);
+                    break;
+                default:
+                    this._loadHttpRequestWhat(url, type);
+            }
+        }
+        _loadHttpRequest(url, contentType, onLoadCaller, onLoad, onProcessCaller, onProcess, onErrorCaller, onError) {
+            if (Browser.onVVMiniGame || Browser.onHWMiniGame) {
+                this._http = new HttpRequest();
+            }
+            else {
+                if (!this._http)
+                    this._http = new HttpRequest();
+            }
+            onProcess && this._http.on(Event.PROGRESS, onProcessCaller, onProcess);
+            onLoad && this._http.on(Event.COMPLETE, onLoadCaller, onLoad);
+            this._http.on(Event.ERROR, onErrorCaller, onError);
+            this._http.send(url, null, "get", contentType);
+        }
+        _loadHtmlImage(url, onLoadCaller, onLoad, onErrorCaller, onError) {
+            let imageBean = ImageCacheHelper.instance.getImageBeanCache(url);
+            let image;
+            function clear() {
+                let img = image;
+                img.onload = null;
+                img.onerror = null;
+                delete Loader._imgCache[url];
+            }
+            let onerror = function () {
+                clear();
+                onError.call(onErrorCaller);
+            };
+            let onload = function () {
+                clear();
+                onLoad.call(onLoadCaller, image);
+            };
+            if (imageBean != null) {
+                image = imageBean.image;
+                imageBean.onload = onload;
+                imageBean.onerror = onerror;
+                imageBean.load();
+            }
+            else {
+                image = new Browser.window.Image();
+                image.crossOrigin = "";
+                image.onload = onload;
+                image.onerror = onerror;
+                image.src = url;
+            }
+            Loader._imgCache[url] = image;
+        }
         parsePLFData(plfData) {
             var type;
             var filePath;
@@ -19571,144 +19827,9 @@ window.Laya= (function (exports) {
             fileName = byte.getUTFString();
             fileLen = byte.getInt32();
             fileData = byte.readArrayBuffer(fileLen);
-            Loader.preLoadedMap[URL.formatURL(fileName)] = fileData;
-        }
-        complete(data) {
-            this._data = data;
-            if (this._customParse) {
-                this.event(Event.LOADED, data instanceof Array ? [data] : data);
-            }
-            else {
-                Loader._loaders.push(this);
-                if (!Loader._isWorking)
-                    Loader.checkNext();
-            }
-        }
-        static checkNext() {
-            Loader._isWorking = true;
-            var startTimer = Browser.now();
-            while (Loader._startIndex < Loader._loaders.length) {
-                Loader._loaders[Loader._startIndex].endLoad();
-                Loader._startIndex++;
-                if (Browser.now() - startTimer > Loader.maxTimeOut) {
-                    console.warn("loader callback cost a long time:" + (Browser.now() - startTimer) + " url=" + Loader._loaders[Loader._startIndex - 1].url);
-                    ILaya.systemTimer.frameOnce(1, null, Loader.checkNext);
-                    return;
-                }
-            }
-            Loader._loaders.length = 0;
-            Loader._startIndex = 0;
-            Loader._isWorking = false;
-        }
-        endLoad(content = null) {
-            content && (this._data = content);
-            if (this._cache)
-                Loader.cacheRes(this._url, this._data);
-            this.event(Event.PROGRESS, 1);
-            this.event(Event.COMPLETE, this.data instanceof Array ? [this.data] : this.data);
-        }
-        get url() {
-            return this._url;
-        }
-        get type() {
-            return this._type;
-        }
-        get cache() {
-            return this._cache;
-        }
-        get data() {
-            return this._data;
-        }
-        static clearRes(url) {
-            url = URL.formatURL(url);
-            var arr = Loader.getAtlas(url);
-            if (arr) {
-                for (var i = 0, n = arr.length; i < n; i++) {
-                    var resUrl = arr[i];
-                    var tex = Loader.getRes(resUrl);
-                    delete Loader.textureMap[resUrl];
-                    if (tex)
-                        tex.destroy();
-                }
-                arr.length = 0;
-                delete Loader.atlasMap[url];
-            }
-            var texture = Loader.textureMap[url];
-            if (texture) {
-                texture.destroy();
-                delete Loader.textureMap[url];
-            }
-            var res = Loader.loadedMap[url];
-            (res) && (delete Loader.loadedMap[url]);
-        }
-        static clearTextureRes(url) {
-            url = URL.formatURL(url);
-            var arr = Loader.getAtlas(url);
-            if (arr && arr.length > 0) {
-                arr.forEach(function (t) {
-                    var tex = Loader.getRes(t);
-                    if (tex instanceof Texture) {
-                        tex.disposeBitmap();
-                    }
-                });
-            }
-            else {
-                var t = Loader.getRes(url);
-                if (t instanceof Texture) {
-                    t.disposeBitmap();
-                }
-            }
-        }
-        static getRes(url) {
-            var res = Loader.textureMap[URL.formatURL(url)];
-            if (res)
-                return res;
-            else
-                return Loader.loadedMap[URL.formatURL(url)];
-        }
-        static getAtlas(url) {
-            return Loader.atlasMap[URL.formatURL(url)];
-        }
-        static cacheRes(url, data) {
-            url = URL.formatURL(url);
-            if (Loader.loadedMap[url] != null) {
-                console.warn("Resources already exist,is repeated loading:", url);
-            }
-            else {
-                if (data instanceof Texture) {
-                    Loader.loadedMap[url] = data.bitmap;
-                    Loader.textureMap[url] = data;
-                }
-                else {
-                    Loader.loadedMap[url] = data;
-                }
-            }
-        }
-        static cacheResForce(url, data) {
-            Loader.loadedMap[url] = data;
-        }
-        static cacheTexture(url, data) {
-            url = URL.formatURL(url);
-            if (Loader.textureMap[url] != null) {
-                console.warn("Resources already exist,is repeated loading:", url);
-            }
-            else {
-                Loader.textureMap[url] = data;
-            }
-        }
-        static setGroup(url, group) {
-            if (!Loader.groupMap[group])
-                Loader.groupMap[group] = [];
-            Loader.groupMap[group].push(url);
-        }
-        static clearResByGroup(group) {
-            if (!Loader.groupMap[group])
-                return;
-            var arr = Loader.groupMap[group], i, len = arr.length;
-            for (i = 0; i < len; i++) {
-                Loader.clearRes(arr[i]);
-            }
-            arr.length = 0;
+            var url = URL.formatURL(fileName);
+            Loader.preLoadedMap[url] = fileData;
+            ImageCacheHelper.instance.setCache(url, fileData);
         }
     }
     Loader.TEXT = "text";
@@ -19732,7 +19853,31 @@ window.Laya= (function (exports) {
     Loader.AVATAR = "AVATAR";
     Loader.TERRAINHEIGHTDATA = "TERRAINHEIGHTDATA";
     Loader.TERRAINRES = "TERRAIN";
-    Loader.typeMap = { "ttf": "ttf", "png": "image", "jpg": "image", "jpeg": "image", "ktx": "image", "pvr": "image", "txt": "text", "json": "json", "prefab": "prefab", "xml": "xml", "als": "atlas", "atlas": "atlas", "mp3": "sound", "ogg": "sound", "wav": "sound", "part": "json", "fnt": "font", "plf": "plf", "plfb": "plfb", "scene": "json", "ani": "json", "sk": "arraybuffer", "wasm": "arraybuffer" };
+    Loader.typeMap = {
+        "ttf": "ttf",
+        "png": "image",
+        "jpg": "image",
+        "jpeg": "image",
+        "ktx": "image",
+        "pvr": "image",
+        "txt": "text",
+        "json": "json",
+        "prefab": "prefab",
+        "xml": "xml",
+        "als": "atlas",
+        "atlas": "atlas",
+        "mp3": "sound",
+        "ogg": "sound",
+        "wav": "sound",
+        "part": "json",
+        "fnt": "font",
+        "plf": "plf",
+        "plfb": "plfb",
+        "scene": "json",
+        "ani": "json",
+        "sk": "arraybuffer",
+        "wasm": "arraybuffer"
+    };
     Loader.parserMap = {};
     Loader.maxTimeOut = 100;
     Loader.groupMap = {};
@@ -20024,14 +20169,12 @@ window.Laya= (function (exports) {
             if (content == null) {
                 var errorCount = this._failRes[url] || 0;
                 if (errorCount < this.retryNum) {
-                    console.warn("[warn]Retry to load:", url);
                     this._failRes[url] = errorCount + 1;
                     ILaya.systemTimer.once(this.retryDelay, this, this._addReTry, [resInfo], false);
                     return;
                 }
                 else {
                     Loader.clearRes(url);
-                    console.warn("[error]Failed to load:", url);
                     this.event(Event.ERROR, url);
                 }
             }
@@ -26538,6 +26681,8 @@ window.Laya= (function (exports) {
     exports.ICharRender = ICharRender;
     exports.ILaya = ILaya;
     exports.IStatRender = IStatRender;
+    exports.ImageBean = ImageBean;
+    exports.ImageCacheHelper = ImageCacheHelper;
     exports.IndexBuffer2D = IndexBuffer2D;
     exports.InlcudeFile = InlcudeFile;
     exports.Input = Input;
